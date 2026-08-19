@@ -20,137 +20,229 @@ export default function TripkarioLogo({
   textColor,
   isAnimated = false,
 }: TripkarioLogoProps) {
-  const size = badgeSize || (variant === 'compact' || variant === 'mobile' ? 34 : 40);
-  const isWhite = variant === 'white';
+  const size = badgeSize || (variant === 'compact' || variant === 'mobile' ? 36 : 42);
+  const isWhiteText = variant === 'white';
   const isAnimatedMode = variant === 'animated' || isAnimated;
 
-  const tealPrimary = isWhite ? '#FFFFFF' : '#173D35';
-  const orangeSun = isWhite ? '#FFFFFF' : '#E86A3A';
-  const creamBg = isWhite ? 'rgba(255,255,255,0.08)' : '#FAF3E0';
-  const cloudColor = isWhite ? 'rgba(255,255,255,0.2)' : '#F7D7C4';
-  const mountainTeal = isWhite ? 'rgba(255,255,255,0.3)' : '#173D35';
+  // The authentic client logo palette
+  const teal = '#1B4947';
+  const tealDark = '#133937';
+  const sunsetOrange = '#EE582C';
+  const creamBg = '#FAF4E8';
+  const creamLight = '#FFFDF9';
+  const cloudTint = '#FCEEE3';
 
   return (
     <div className={`inline-flex items-center gap-3 select-none ${className}`}>
-      {/* Hexagonal Shield Badge */}
+      {/* ════════════════════════════════════════════
+          AUTHENTIC CLIENT LOGO: HEXAGON AIRLINER BADGE
+          ════════════════════════════════════════════ */}
       <div
-        className="relative shrink-0 flex items-center justify-center"
-        style={{ width: size, height: size * 1.15 }}
+        className="relative shrink-0 flex items-center justify-center filter drop-shadow-md"
+        style={{ width: size * 1.08, height: size * 1.15 }}
       >
         <svg
-          viewBox="0 0 200 230"
+          viewBox="0 0 240 250"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-full drop-shadow-xs overflow-visible"
+          className="w-full h-full overflow-visible"
         >
           <defs>
-            <clipPath id="badgeClipLogoMain">
-              <path d="M100 8L186 52V158L100 222L14 158V52L100 8Z" />
+            {/* Hexagon Clip Path */}
+            <clipPath id="clientLogoHexClip">
+              <path d="M120 12 L224 68 L224 182 L120 238 L16 182 L16 68 Z" />
             </clipPath>
+
+            {/* Inner Shadow / Glow filter for realism */}
+            <filter id="badgeShadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.25" />
+            </filter>
           </defs>
 
-          {/* Hexagon Outline */}
+          {/* ── 1. OUTER HEXAGON FRAME ── */}
           {isAnimatedMode ? (
             <motion.path
-              d="M100 8L186 52V158L100 222L14 158V52L100 8Z"
+              d="M120 12 L224 68 L224 182 L120 238 L16 182 L16 68 Z"
               fill={creamBg}
-              stroke={tealPrimary}
-              strokeWidth="9"
+              stroke={teal}
+              strokeWidth="10"
               strokeLinejoin="round"
+              strokeLinecap="round"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 1 }}
               transition={{ duration: 0.7, ease: 'easeInOut' }}
             />
           ) : (
             <path
-              d="M100 8L186 52V158L100 222L14 158V52L100 8Z"
+              d="M120 12 L224 68 L224 182 L120 238 L16 182 L16 68 Z"
               fill={creamBg}
-              stroke={tealPrimary}
-              strokeWidth="9"
+              stroke={teal}
+              strokeWidth="10"
               strokeLinejoin="round"
+              strokeLinecap="round"
             />
           )}
 
-          {/* Artwork */}
-          <g clipPath="url(#badgeClipLogoMain)">
-            {/* Clouds */}
+          {/* Inner Inset Border Line */}
+          <path
+            d="M120 22 L214 73 L214 177 L120 228 L26 177 L26 73 Z"
+            fill="none"
+            stroke={creamLight}
+            strokeWidth="3"
+            opacity="0.8"
+          />
+
+          {/* ── 2. CLIPPED ARTWORK CONTENT ── */}
+          <g clipPath="url(#clientLogoHexClip)">
+            {/* Background Sky / Clouds */}
+            <rect x="0" y="0" width="240" height="250" fill={creamBg} />
             <path
-              d="M60 42C60 38 68 36 78 38C84 34 96 35 100 40C104 35 116 34 122 38C132 36 140 38 140 42H60Z"
-              fill={cloudColor}
+              d="M60 48 C60 42 72 40 85 43 C93 38 108 39 114 45 C120 39 135 38 143 43 C156 40 168 42 168 48 Z"
+              fill={cloudTint}
             />
 
-            {/* Rising Sun */}
+            {/* Glowing Sunset with Horizontal Stripe Cuts */}
             <g>
-              <circle cx="100" cy="95" r="46" fill={orangeSun} />
-              <path d="M54 90H146" stroke={creamBg} strokeWidth="3" />
-              <path d="M58 98H142" stroke={creamBg} strokeWidth="3" />
-              <path d="M66 106H134" stroke={creamBg} strokeWidth="3" />
-              <path d="M78 114H122" stroke={creamBg} strokeWidth="3" />
+              <circle cx="120" cy="106" r="48" fill={sunsetOrange} />
+              <rect x="68" y="98" width="104" height="4" fill={creamBg} />
+              <rect x="74" y="108" width="92" height="4" fill={creamBg} />
+              <rect x="84" y="118" width="72" height="4" fill={creamBg} />
+              <rect x="98" y="128" width="44" height="4" fill={creamBg} />
             </g>
 
-            {/* Mountain Ridges */}
-            <path d="M10 95L38 90L46 104L68 112L90 120H10V95Z" fill={mountainTeal} />
-            <path d="M190 95L162 90L154 104L132 112L110 120H190V95Z" fill={mountainTeal} />
+            {/* Desert Mountains Left & Right */}
+            <path
+              d="M12 110 L44 102 L54 118 L78 126 L104 136 L12 136 Z"
+              fill={teal}
+            />
+            <path
+              d="M228 110 L196 102 L186 118 L162 126 L136 136 L228 136 Z"
+              fill={teal}
+            />
 
-            {/* Cacti Silhouettes */}
-            <g stroke={mountainTeal} strokeWidth="2.5" strokeLinecap="round" fill="none">
-              <path d="M30 84V100M26 90H30M26 86V90M34 94H30M34 90V94" />
-              <path d="M170 84V100M166 90H170M166 86V90M174 94H170M174 90V94" />
+            {/* Saguaro Cacti Silhouettes */}
+            <g stroke={teal} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none">
+              {/* Left Cacti */}
+              <path d="M36 96 V116 M30 104 H36 M30 100 V104 M42 108 H36 M42 104 V108" />
+              {/* Right Cacti */}
+              <path d="M204 96 V116 M198 104 H204 M198 100 V104 M210 108 H204 M210 104 V108" />
             </g>
 
-            {/* Ascending Forward Airplane */}
+            {/* Vintage Airliner (Facing Forward) */}
             <g>
-              <path d="M100 68L22 76L22 84L94 80L100 80L106 80L178 84L178 76L100 68Z" fill={tealPrimary} />
-              <rect x="52" y="80" width="14" height="18" rx="7" fill={tealPrimary} stroke={creamBg} strokeWidth="2" />
-              <rect x="134" y="80" width="14" height="18" rx="7" fill={tealPrimary} stroke={creamBg} strokeWidth="2" />
-              <path d="M100 32C91 32 87 45 87 75C87 95 91 116 100 116C109 116 113 95 113 75C113 45 109 32 100 32Z" fill={tealPrimary} />
-              <path d="M93 46C93 42 96 40 100 40C104 40 107 42 107 46L105 52H95L93 46Z" fill={creamBg} />
-              <line x1="100" y1="40" x2="100" y2="52" stroke={tealPrimary} strokeWidth="1.5" />
-              <path d="M100 98L78 106V110L100 108L122 110V106L100 98Z" fill={tealPrimary} />
+              {/* Wings */}
+              <path
+                d="M120 80 L28 88 L28 98 L112 94 L120 94 L128 94 L212 98 L212 88 Z"
+                fill={teal}
+              />
+              {/* Jet Turbines Left & Right with cream center intake */}
+              <rect x="62" y="92" width="16" height="20" rx="8" fill={teal} stroke={creamLight} strokeWidth="2.5" />
+              <circle cx="70" cy="102" r="3.5" fill={creamBg} />
+              <rect x="162" y="92" width="16" height="20" rx="8" fill={teal} stroke={creamLight} strokeWidth="2.5" />
+              <circle cx="170" cy="102" r="3.5" fill={creamBg} />
+
+              {/* Fuselage Body */}
+              <path
+                d="M120 40 C108 40 102 54 102 88 C102 112 108 134 120 134 C132 134 138 112 138 88 C138 54 132 40 120 40 Z"
+                fill={teal}
+              />
+              {/* Cockpit Windshield Windows */}
+              <path
+                d="M110 56 C110 52 114 50 120 50 C126 50 130 52 130 56 L127 63 H113 Z"
+                fill={creamLight}
+              />
+              <line x1="120" y1="50" x2="120" y2="63" stroke={teal} strokeWidth="2" />
+              <line x1="115" y1="53" x2="115" y2="63" stroke={teal} strokeWidth="1.5" />
+              <line x1="125" y1="53" x2="125" y2="63" stroke={teal} strokeWidth="1.5" />
+
+              {/* Horizontal Tail Stabilizers */}
+              <path
+                d="M120 114 L94 124 V128 L120 126 L146 128 V124 Z"
+                fill={teal}
+              />
             </g>
 
-            {/* Stars & 'T' */}
+            {/* Lower Half: Stars & Serif 'T' */}
             <g>
-              <polygon points="58,168 62,180 74,180 64,188 68,200 58,192 48,200 52,188 42,180 54,180" fill={orangeSun} />
-              <polygon points="142,168 146,180 158,180 148,188 152,200 142,192 132,200 136,188 126,180 138,180" fill={orangeSun} />
-              <text x="100" y="198" textAnchor="middle" fontFamily="sans-serif" fontWeight="bold" fontSize="36" fill={tealPrimary}>
+              {/* Left Star */}
+              <polygon
+                points="72,192 76,204 88,204 78,212 82,224 72,216 62,224 66,212 56,204 68,204"
+                fill={sunsetOrange}
+              />
+              {/* Right Star */}
+              <polygon
+                points="168,192 172,204 184,204 174,212 178,224 168,216 158,224 162,212 152,204 164,204"
+                fill={sunsetOrange}
+              />
+              {/* Centered 'T' */}
+              <text
+                x="120"
+                y="222"
+                textAnchor="middle"
+                fontFamily="'Times New Roman', Times, serif"
+                fontWeight="900"
+                fontSize="42"
+                fill={teal}
+              >
                 T
               </text>
             </g>
           </g>
 
-          {/* Banner with TRIPKARIO */}
+          {/* ── 3. HORIZONTAL BANNER: TRIPKARIO.COM ── */}
           <g>
+            {/* Banner Winged Ribbon Background */}
             <path
-              d="M4 125H196C198 125 200 128 198 131L190 155C189 157 187 159 184 159H16C13 159 11 157 10 155L2 131C0 128 2 125 4 125Z"
-              fill={isWhite ? tealPrimary : '#FFFFFF'}
-              stroke={tealPrimary}
-              strokeWidth="5"
+              d="M4 140 H236 C238 140 240 143 238 147 L226 174 C225 177 222 179 219 179 H21 C18 179 15 177 14 174 L2 147 C0 143 2 140 4 140 Z"
+              fill={creamBg}
+              stroke={teal}
+              strokeWidth="6"
+              strokeLinejoin="round"
             />
+            {/* Inner Gold/Cream Accent Line */}
+            <path
+              d="M12 145 H228 L218 172 H22 Z"
+              fill="none"
+              stroke={creamLight}
+              strokeWidth="1.5"
+            />
+            {/* TRIPKARIO.COM Text in Heavy Condensed Font with 3D Offset */}
             <text
-              x="100"
-              y="149"
+              x="121"
+              y="169"
               textAnchor="middle"
-              fontFamily="Impact, sans-serif"
+              fontFamily="Impact, 'Arial Black', sans-serif"
               fontWeight="900"
-              fontSize="23"
-              letterSpacing="3"
-              fill={isWhite ? '#173D35' : tealPrimary}
+              fontSize="27"
+              letterSpacing="2.5"
+              fill="rgba(27,73,71,0.25)"
             >
-              TRIPKARIO
+              TRIPKARIO.COM
+            </text>
+            <text
+              x="120"
+              y="168"
+              textAnchor="middle"
+              fontFamily="Impact, 'Arial Black', sans-serif"
+              fontWeight="900"
+              fontSize="27"
+              letterSpacing="2.5"
+              fill={teal}
+            >
+              TRIPKARIO.COM
             </text>
           </g>
         </svg>
       </div>
 
-      {/* Wordmark Typography: TripKario */}
+      {/* ── Wordmark Typography Lockup ── */}
       {showWordmark && variant !== 'badge-only' && (
         <div className="flex flex-col justify-center leading-none">
           <span
             className={`font-serif font-bold text-xl sm:text-2xl tracking-tight transition-colors ${
               textColor
                 ? textColor
-                : isWhite
+                : isWhiteText
                 ? 'text-white'
                 : 'text-[var(--text-primary)]'
             }`}
@@ -159,8 +251,8 @@ export default function TripkarioLogo({
           </span>
           <span
             className={`text-[9px] font-mono tracking-[0.2em] uppercase mt-0.5 ${
-              isWhite
-                ? 'text-white/70'
+              isWhiteText
+                ? 'text-white/75'
                 : 'text-[var(--text-muted)]'
             }`}
           >

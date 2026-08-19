@@ -54,9 +54,9 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
           style={{ marginLeft: 'auto', marginRight: 'auto', width: 'calc(100% - 32px)' }}
         >
           {/* ===== LEFT: Logo Lockup ===== */}
-          <Link href="/" className="flex items-center gap-2.5 shrink-0 group" style={{ width: '180px' }}>
+          <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
             <TripkarioLogo
-              badgeSize={scrolled ? 28 : 32}
+              badgeSize={scrolled ? 32 : 38}
               variant={scrolled ? 'desktop' : 'white'}
               className="transition-all duration-500 ease-out group-hover:scale-[1.02]"
             />
