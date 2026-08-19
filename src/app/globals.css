@@ -185,6 +185,38 @@ body {
   transform-origin: top center;
 }
 
+/* Smooth Right-to-Left Infinite Marquee */
+@keyframes marquee-scroll-rtl {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-rtl {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll-rtl 48s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-rtl:hover {
+  animation-play-state: paused;
+}
+
+.animate-marquee-rtl-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll-rtl 56s linear infinite reverse;
+  will-change: transform;
+}
+
+.animate-marquee-rtl-reverse:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

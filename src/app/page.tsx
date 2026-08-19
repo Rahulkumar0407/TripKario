@@ -13,6 +13,7 @@ import SurpriseMeCTA from '@/components/SurpriseMeCTA';
 import ItineraryStory from '@/components/ItineraryStory';
 import TripMatcher from '@/components/TripMatcher';
 import TravellerStories from '@/components/TravellerStories';
+import Testimonials from '@/components/Testimonials';
 import WhyTripkario from '@/components/WhyTripkario';
 import CustomJourney from '@/components/CustomJourney';
 import FinalCinematicCTA from '@/components/FinalCinematicCTA';
@@ -99,7 +100,10 @@ export default function Home() {
       {/* 09. TRAVELLER STORIES: Real Photography + Glass Review Overlays */}
       <TravellerStories />
 
-      {/* 10. PHILOSOPHY: You Enjoy the Trip. We Handle the Chaos. */}
+      {/* 10. GOOGLE REVIEWS TESTIMONIALS: Smooth Moving Right-to-Left Ticker */}
+      <Testimonials />
+
+      {/* 11. PHILOSOPHY: You Enjoy the Trip. We Handle the Chaos. */}
       <WhyTripkario />
 
       {/* 11. BESPOKE CUSTOM TRIP: Your Route. Your Rules. */}
