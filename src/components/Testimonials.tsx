@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Star, CheckCircle2, Quote, ExternalLink, MapPin } from 'lucide-react';
 import { testimonials } from '@/data/testimonials';
 import type { Testimonial } from '@/types';
@@ -11,37 +10,57 @@ interface TestimonialCardProps {
   item: Testimonial;
 }
 
+const AVATAR_GRADIENTS = [
+  'from-[#E85D30] to-[#F59E0B] text-white',
+  'from-[#10B981] to-[#059669] text-white',
+  'from-[#6366F1] to-[#4F46E5] text-white',
+  'from-[#EC4899] to-[#DB2777] text-white',
+  'from-[#0EA5E9] to-[#0284C7] text-white',
+  'from-[#F59E0B] to-[#D97706] text-white',
+  'from-[#8B5CF6] to-[#7C3AED] text-white',
+];
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getAvatarGradient(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+}
+
 function TestimonialCard({ item }: TestimonialCardProps) {
-  const avatar =
-    item.avatar ||
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop';
+  const initials = getInitials(item.name);
+  const gradientClass = getAvatarGradient(item.name);
 
   return (
-    <div className="w-[360px] sm:w-[410px] shrink-0 p-1 flex">
+    <div className="w-[320px] sm:w-[360px] shrink-0 p-1.5 flex">
       <GlassSurface
         variant="frost"
         rounded="3xl"
-        className="w-full p-6 flex flex-col justify-between border border-[var(--border-card)] shadow-lg hover:shadow-2xl transition-all duration-300 group hover:-translate-y-1 bg-[var(--bg-surface)]/90 dark:bg-[#121816]/90 backdrop-blur-xl"
+        className="w-full p-5 sm:p-6 flex flex-col justify-between border border-[var(--border-card)] shadow-md hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 bg-[var(--bg-surface)]/90 dark:bg-[#121816]/90 backdrop-blur-xl"
       >
-        <div className="space-y-4">
-          {/* Header: Avatar, Name, Location & Google Badge */}
+        <div className="space-y-3.5">
+          {/* Header: Initials Avatar, Name, Location & Google Badge */}
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              {/* User Avatar */}
-              <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0 border-2 border-[var(--brand-saffron, #E85D30)]/30 bg-black/10">
-                <Image
-                  src={avatar}
-                  alt={item.name}
-                  fill
-                  sizes="44px"
-                  className="object-cover"
-                />
+              {/* User Initials Avatar */}
+              <div
+                className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradientClass} flex items-center justify-center font-bold text-xs tracking-wider shadow-sm shrink-0 border border-white/20`}
+                aria-hidden="true"
+              >
+                {initials}
               </div>
 
               {/* Name & Location */}
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-[14px] font-bold text-[var(--text-primary)] leading-tight">
+                  <h4 className="text-[13.5px] font-bold text-[var(--text-primary)] leading-tight">
                     {item.name}
                   </h4>
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981] shrink-0" />
@@ -96,32 +115,15 @@ function TestimonialCard({ item }: TestimonialCardProps) {
             </div>
 
             {item.trip && (
-              <span className="px-2.5 py-0.5 rounded-md bg-[var(--brand-saffron, #E85D30)]/10 text-[var(--brand-saffron, #E85D30)] text-[11px] font-mono font-medium truncate max-w-[190px]">
+              <span className="px-2.5 py-0.5 rounded-md bg-[var(--brand-saffron, #E85D30)]/10 text-[var(--brand-saffron, #E85D30)] text-[11px] font-mono font-medium truncate max-w-[170px]">
                 {item.trip}
               </span>
             )}
           </div>
 
-          {/* Attached User Traveler Image (if available) */}
-          {item.image && (
-            <div className="relative w-full h-44 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 group-hover:scale-[1.01] transition-transform duration-300 bg-black/10">
-              <Image
-                src={item.image}
-                alt={`${item.name} travel photograph`}
-                fill
-                sizes="(max-width: 640px) 100vw, 420px"
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
-              <span className="absolute bottom-2.5 left-3 text-[10px] font-mono text-white/90 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/15">
-                📷 Photo attached by {item.name.split(' ')[0]}
-              </span>
-            </div>
-          )}
-
           {/* Highlight Hook */}
           {item.highlight && (
-            <p className="text-xs font-semibold text-[var(--text-primary)] italic">
+            <p className="text-xs font-semibold text-[var(--text-primary)]">
               &ldquo;{item.highlight}&rdquo;
             </p>
           )}
@@ -133,7 +135,7 @@ function TestimonialCard({ item }: TestimonialCardProps) {
         </div>
 
         {/* Card Footer: Verified Mark & Quote Icon */}
-        <div className="pt-4 mt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
+        <div className="pt-3.5 mt-3.5 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--text-muted)]">
           <span className="flex items-center gap-1 text-[10px] text-[#10B981]">
             <CheckCircle2 className="w-3 h-3" />
             Verified Google Review

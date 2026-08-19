@@ -233,7 +233,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Himachal',
     region: 'Western Himalayas · Cedar Valley',
     image:
-      'https://images.unsplash.com/photo-1605649487212-47bdab064df8?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=2800&auto=format&fit=crop',
     alt: 'Traditional wooden Himalayan village home nestled among cedar trees with snow-capped peaks in the background, Himachal Pradesh',
     caption: 'A little mountain air never hurt.',
     route: 'Shimla → Jibhi → Spiti',

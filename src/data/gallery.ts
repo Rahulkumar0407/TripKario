@@ -94,7 +94,7 @@ export const fieldNotes: FieldNote[] = [
     photographer: 'Nimit Nigam',
     aspect: 'portrait',
     image: {
-      src: 'https://images.unsplash.com/photo-1605649487212-47bdab064df8?q=90&w=1200&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=1200&auto=format&fit=crop',
       alt: 'Traditional wooden Himalayan home surrounded by cedar trees and snowy peaks',
       photographer: 'Nimit Nigam',
       source: 'Unsplash Editorial',
