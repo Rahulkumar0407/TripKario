@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Star, Eye, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Star, Eye, Check, MapPin } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -30,7 +30,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
   const [activeModalTrip, setActiveModalTrip] = useState<TripPackage | null>(null);
 
   const total = tripPackages.length;
-  const AUTOPLAY_DURATION = 6000;
+  const AUTOPLAY_DURATION = 7000;
 
   const nextSlide = () => {
     setDirection('next');
@@ -63,6 +63,18 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
     return () => clearInterval(timer);
   }, [isHovered, activeIndex, quickViewTrip, activeModalTrip]);
 
+  const activeTrip = tripPackages[activeIndex];
+
+  // Ambient atmosphere washes per destination
+  const ambientGlowColors: Record<string, string> = {
+    'kashmir-signature': 'rgba(228, 107, 59, 0.16)',
+    'rajasthan-heritage': 'rgba(197, 154, 99, 0.20)',
+    'kerala-backwaters': 'rgba(37, 78, 74, 0.22)',
+    'meghalaya-living-roots': 'rgba(80, 130, 150, 0.18)',
+    'ladakh-monasteries': 'rgba(228, 107, 59, 0.18)',
+  };
+  const activeGlow = ambientGlowColors[activeTrip.id] || 'rgba(228, 107, 59, 0.16)';
+
   return (
     <section
       id="packages"
@@ -70,6 +82,13 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
       onMouseLeave={() => setIsHovered(false)}
       className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-hidden relative"
     >
+      {/* Ambient Backdrop Illumination */}
+      <motion.div
+        animate={{ backgroundColor: activeGlow }}
+        transition={{ duration: 1.0, ease: 'easeOut' }}
+        className="absolute inset-0 pointer-events-none blur-[120px] opacity-70"
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
         <div>
           <span className="text-xs font-mono uppercase tracking-[0.3em] text-[var(--accent)] font-semibold block mb-2">
@@ -80,7 +99,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
           </h2>
         </div>
 
-        {/* Carousel Controls & Progress */}
+        {/* Carousel Controls & Progress Bar */}
         <div className="flex items-center gap-5">
           <div className="flex flex-col items-end gap-1.5">
             <span className="text-xs font-mono tracking-widest text-[var(--text-muted)] font-semibold">
@@ -115,8 +134,8 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
         </div>
       </div>
 
-      {/* Layered Package Carousel with Directional Physics */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[480px] sm:min-h-[560px] flex items-center justify-center">
+      {/* Layered Package Carousel Container with Spring Physics */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[500px] sm:min-h-[580px] flex items-center justify-center">
         {tripPackages.map((trip, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;
@@ -135,7 +154,8 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                 x: `${position * 72}%`,
                 scale: isCenter ? 1 : 0.90,
                 rotateZ: position * 2,
-                opacity: isCenter ? 1 : 0.65,
+                opacity: isCenter ? 1 : 0.60,
+                filter: isCenter ? 'blur(0px)' : 'blur(1.5px)',
                 zIndex: isCenter ? 20 : 10,
               }}
               transition={{
@@ -144,6 +164,16 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                 damping: 30,
                 mass: 0.7,
               }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.25}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -50 || info.velocity.x < -350) {
+                  nextSlide();
+                } else if (info.offset.x > 50 || info.velocity.x > 350) {
+                  prevSlide();
+                }
+              }}
               onClick={() => {
                 if (!isCenter) {
                   if (position > 0) nextSlide();
@@ -151,11 +181,11 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                 }
               }}
               data-cursor={isCenter ? 'EXPLORE' : 'VIEW'}
-              className="absolute w-[88vw] sm:w-[72vw] md:w-[60vw] max-w-[800px] bg-[var(--bg-surface)] rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] cursor-pointer group select-none flex flex-col md:flex-row"
+              className="absolute w-[88vw] sm:w-[72vw] md:w-[62vw] max-w-[840px] bg-[var(--bg-surface)] rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] cursor-grab active:cursor-grabbing group select-none flex flex-col md:flex-row"
             >
               {/* Image Column */}
               <div
-                className="relative aspect-[16/11] md:aspect-auto md:w-3/5 overflow-hidden bg-black/10 min-h-[280px] sm:min-h-[360px]"
+                className="relative aspect-[16/11] md:aspect-auto md:w-3/5 overflow-hidden bg-black/10 min-h-[300px] sm:min-h-[380px]"
                 onClick={() => isCenter && setActiveModalTrip(trip)}
               >
                 <Image
@@ -165,11 +195,11 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                   sizes="(max-width: 1024px) 90vw, 55vw"
                   className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20" />
 
                 {/* Top Duration & Quick View Trigger */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full font-bold">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full font-bold border border-white/10">
                     {trip.durationNights}N / {trip.durationDays}D
                   </span>
 
@@ -180,7 +210,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                         e.stopPropagation();
                         setQuickViewTrip(trip);
                       }}
-                      className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10.5px] font-medium flex items-center gap-1.5 hover:bg-[var(--accent)] transition-colors cursor-pointer"
+                      className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10.5px] font-medium flex items-center gap-1.5 hover:bg-[var(--accent)] transition-colors cursor-pointer border border-white/10"
                     >
                       <Eye className="w-3.5 h-3.5" />
                       <span>Quick view</span>
@@ -192,13 +222,13 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                   <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#F4A261] font-bold block mb-1">
                     {trip.destination}
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-serif font-medium text-white line-clamp-1">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-medium text-white line-clamp-1">
                     {trip.title}
                   </h3>
                 </div>
               </div>
 
-              {/* Info Column */}
+              {/* Info Column (Staggered hierarchy: Route -> Description -> Price -> Action) */}
               <div className="p-6 sm:p-8 md:w-2/5 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-xs">
@@ -212,12 +242,13 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                   </div>
 
                   {trip.route && (
-                    <div className="text-xs font-mono text-[var(--accent)] bg-[var(--bg-surface-2)] p-2.5 rounded-xl font-semibold">
-                      Route: {trip.route}
+                    <div className="text-xs font-mono text-[var(--accent)] bg-[var(--bg-surface-2)] p-2.5 rounded-xl font-semibold flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{trip.route}</span>
                     </div>
                   )}
 
-                  <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-2 leading-relaxed font-normal">
+                  <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-3 leading-relaxed font-normal">
                     {trip.shortDescription}
                   </p>
                 </div>
@@ -236,7 +267,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                         e.stopPropagation();
                         setActiveModalTrip(trip);
                       }}
-                      className="px-5 h-10 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white flex items-center gap-1.5 shadow-md"
+                      className="px-5 h-10 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white flex items-center gap-1.5 shadow-md font-medium"
                     >
                       <span>Explore</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -252,7 +283,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
       {/* Quick View Staggered Glass Sheet Dialog */}
       <Dialog open={!!quickViewTrip} onOpenChange={(open) => !open && setQuickViewTrip(null)}>
         {quickViewTrip && (
-          <DialogContent className="max-w-lg p-6 sm:p-8 glass-surface border border-white/20 shadow-2xl">
+          <DialogContent className="max-w-lg p-6 sm:p-8 glass-surface border border-white/20 shadow-2xl bg-[var(--bg-surface)] text-[var(--text-primary)]">
             <DialogHeader>
               <motion.span
                 initial={{ opacity: 0, y: -6 }}
@@ -267,7 +298,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: 0.06 }}
               >
-                <DialogTitle className="text-2xl font-serif font-medium">
+                <DialogTitle className="text-2xl font-serif font-medium text-[var(--text-primary)]">
                   {quickViewTrip.title}
                 </DialogTitle>
               </motion.div>
@@ -278,9 +309,10 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: 0.12 }}
-                className="p-3.5 rounded-2xl bg-[var(--bg-surface-2)] text-xs font-mono text-[var(--accent)] font-semibold"
+                className="p-3.5 rounded-2xl bg-[var(--bg-surface-2)] text-xs font-mono text-[var(--accent)] font-semibold flex items-center gap-2"
               >
-                Route: {quickViewTrip.route}
+                <MapPin className="w-4 h-4 shrink-0" />
+                <span>Route: {quickViewTrip.route}</span>
               </motion.div>
 
               <motion.div
@@ -319,7 +351,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
                     setQuickViewTrip(null);
                     setActiveModalTrip(t);
                   }}
-                  className="px-6 h-11 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white flex items-center gap-2"
+                  className="px-6 h-11 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white flex items-center gap-2 font-medium"
                 >
                   <span>VIEW FULL JOURNEY</span>
                   <ArrowRight className="w-4 h-4" />
