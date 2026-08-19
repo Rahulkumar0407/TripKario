@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: var(--font-serif), Georgia, Cambria, serif;
+
+  --color-canvas: var(--bg-primary);
+  --color-canvas-surface: var(--bg-surface);
+  --color-canvas-surface-2: var(--bg-surface-2);
+  --color-text-main: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-accent-burnt: var(--accent);
+  --color-accent-warm: var(--accent-soft);
+  --color-teal-subtle: var(--teal-secondary);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Sunlit Editorial Light Mode */
+  --bg-primary: #F3EEE4;
+  --bg-surface: #FFFDFC;
+  --bg-surface-2: #F8F5EE;
+  --text-primary: #171513;
+  --text-muted: #6B655D;
+  --text-subtle: #968F85;
+  --border-subtle: rgba(23, 21, 19, 0.12);
+  --border-card: rgba(23, 21, 19, 0.08);
+  --accent: #D45C31;
+  --accent-hover: #BF4F25;
+  --accent-soft: #C69A5D;
+  --teal-secondary: #285A56;
+
+  /* Layered Light Glass System */
+  --glass-bg: rgba(255, 255, 255, 0.50);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-border-hover: rgba(255, 255, 255, 0.88);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-shadow: 0 20px 60px rgba(45, 36, 28, 0.07), 0 6px 20px rgba(45, 36, 28, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --glass-shadow-hover: 0 28px 75px rgba(45, 36, 28, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  /* Midnight Film Dark Mode */
+  --bg-primary: #090908;
+  --bg-surface: #11100E;
+  --bg-surface-2: #171411;
+  --text-primary: #F4EFE7;
+  --text-muted: #AAA39A;
+  --text-subtle: #7A7369;
+  --border-subtle: rgba(244, 239, 231, 0.12);
+  --border-card: rgba(244, 239, 231, 0.08);
+  --accent: #E46B3B;
+  --accent-hover: #ED7B4D;
+  --accent-soft: #C59A63;
+  --teal-secondary: #254E4A;
+
+  /* Layered Dark Glass System */
+  --glass-bg: rgba(255, 255, 255, 0.065);
+  --glass-border: rgba(255, 255, 255, 0.13);
+  --glass-border-hover: rgba(255, 255, 255, 0.24);
+  --glass-highlight: rgba(255, 255, 255, 0.09);
+  --glass-shadow: 0 24px 70px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --glass-shadow-hover: 0 32px 85px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+  font-style: normal !important; /* Strict Zero Italic Typography */
+}
+
+html {
+  scroll-behavior: smooth;
+  background-color: var(--bg-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  font-style: normal;
+  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tactile Glass Surface Primitives */
+.glass-surface {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease;
+}
+
+.glass-surface:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Atmospheric Ambient Noise */
+.bg-grain {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Subtle Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

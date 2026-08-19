@@ -1,0 +1,68 @@
+import { Category } from '@/types';
+
+export const categories: Category[] = [
+  {
+    id: 'weekend-escapes',
+    name: 'Weekend Escapes',
+    tagline: 'Quick 2–3 day revitalizing getaways from bustling cities',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 14,
+    slug: 'weekend-escapes',
+  },
+  {
+    id: 'mountains',
+    name: 'Mountains & Valleys',
+    tagline: 'Snowbound peaks, alpine meadows, and high Himalayan passes',
+    image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 18,
+    slug: 'mountains',
+  },
+  {
+    id: 'honeymoon',
+    name: 'Honeymoon & Romance',
+    tagline: 'Secluded luxury retreats, starry skies, and candlelit dinners',
+    image: 'https://images.unsplash.com/photo-1512100356356-de1b84283e18?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 12,
+    slug: 'honeymoon',
+  },
+  {
+    id: 'adventure',
+    name: 'Adventure & Treks',
+    tagline: 'Off-road expeditions, river rafting, and rugged summit trails',
+    image: 'https://images.unsplash.com/photo-1527668752968-14dc70a27c95?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 9,
+    slug: 'adventure',
+  },
+  {
+    id: 'beaches',
+    name: 'Beaches & Coastal',
+    tagline: 'Sun-drenched shores, emerald backwaters, and private catamarans',
+    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 11,
+    slug: 'beaches',
+  },
+  {
+    id: 'family-holidays',
+    name: 'Family Holidays',
+    tagline: 'Comfortable pacing, heritage forts, and enriching cultural memories',
+    image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 15,
+    slug: 'family-holidays',
+  },
+  {
+    id: 'spiritual',
+    name: 'Spiritual & Wellness',
+    tagline: 'Sacred ghats, yoga sanctuaries, and ancient temple trails',
+    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 8,
+    slug: 'spiritual',
+  },
+  {
+    id: 'international',
+    name: 'International Escapes',
+    tagline: 'Handpicked bespoke itineraries across Southeast Asia, Europe & UAE',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+    packageCount: 10,
+    slug: 'international',
+  },
+];

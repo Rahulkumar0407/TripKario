@@ -1,0 +1,56 @@
+import { ChatbotQA } from '@/types';
+
+export const chatbotQAData: ChatbotQA[] = [
+  {
+    id: 'honeymoon',
+    question: 'Show me honeymoon trips',
+    shortAnswer: 'Our top romantic getaways include Kashmir (Private Shikara & Snow Peaks), Kerala (Luxury Houseboat & Munnar Tea Estates), and Andaman (Private Beachfront Villas & Coral Reefs).',
+    details: 'Every honeymoon package includes candlelit dinners, floral decor, private chauffeurs, and handpicked 4/5-star boutique stays.',
+    recommendedTrips: ['kashmir-great-escape', 'kerala-gods-own-escape', 'andaman-island-paradise'],
+    suggestedActionText: 'Explore Honeymoon Packages',
+    whatsappPrefillText: 'Hi Tripkario! I am looking for honeymoon packages. Please share itinerary details and quotes.',
+  },
+  {
+    id: 'under-20k',
+    question: 'I want a trip under ₹20,000',
+    shortAnswer: 'We have incredible all-inclusive holiday itineraries starting under ₹20,000 per person:',
+    details: '1. "Goa, Your Way" (4D/3N) starting at ₹9,999/person.\n2. "Into the Mountains — Himachal" (6D/5N) starting at ₹14,999/person.\n3. "Meghalaya — Living Root Bridges" (6D/5N) starting at ₹18,999/person.\n4. "Royal Rajasthan — Forts & Palaces" (6D/5N) starting at ₹19,999/person.',
+    recommendedTrips: ['goa-your-way', 'into-the-mountains-himachal', 'meghalaya-clouds-waterfalls', 'royal-rajasthan-heritage'],
+    suggestedActionText: 'View Budget Holidays',
+    whatsappPrefillText: 'Hi Tripkario! I am looking for a curated trip under ₹20,000 per person. What options are available?',
+  },
+  {
+    id: 'weekend-delhi',
+    question: 'Best weekend trips from Delhi?',
+    shortAnswer: 'For quick 2–4 day revitalizing getaways from Delhi NCR, we recommend:',
+    details: '1. Kasol & Manali (Himachal) — Scenic mountain air and pine cafe trails.\n2. Jaipur & Pushkar (Rajasthan) — Heritage forts, havelis, and desert sunsets.\n3. Rishikesh & Mussoorie (Uttarakhand) — Ganga riverside luxury camps and hill views.',
+    recommendedTrips: ['into-the-mountains-himachal', 'royal-rajasthan-heritage'],
+    suggestedActionText: 'Plan a Weekend Getaway',
+    whatsappPrefillText: 'Hi Tripkario! I want to plan a quick weekend trip from Delhi. Could you suggest itineraries?',
+  },
+  {
+    id: 'kashmir-best',
+    question: 'Which Kashmir package is best?',
+    shortAnswer: '“The Great Kashmir Escape” (6 Nights / 7 Days) is our highest rated package (4.96★).',
+    details: 'It covers Srinagar Shikara sunset, Gulmarg Gondola Phase 2, Pahalgam Betaab Valley, Sonamarg Thajiwas Glacier, and a stay on a heritage cedar houseboat on Nigeen Lake.',
+    recommendedTrips: ['kashmir-great-escape'],
+    suggestedActionText: 'View Kashmir Itinerary',
+    whatsappPrefillText: 'Hi Tripkario! Can you send me the day-by-day plan and pricing for The Great Kashmir Escape?',
+  },
+  {
+    id: 'customize',
+    question: 'Can I customize a package?',
+    shortAnswer: 'Yes, 100%! Bespoke personalized travel is our specialty.',
+    details: 'You can adjust hotel categories, change travel dates, add or remove nights, and select private activities. Our senior travel curator creates your custom day-by-day plan within 24 hours at zero upfront cost.',
+    suggestedActionText: 'Request Custom Itinerary',
+    whatsappPrefillText: 'Hi Tripkario! I would like to design a 100% customized travel itinerary for my group.',
+  },
+  {
+    id: 'inclusions',
+    question: 'What does a package include?',
+    shortAnswer: 'All Tripkario packages offer comprehensive, transparent inclusions:',
+    details: '• Handpicked 4/5-star boutique hotels & heritage houseboats\n• Daily breakfast and gourmet dinners\n• Dedicated private AC vehicle with experienced local chauffeur\n• Key activity passes (Gondola, Shikara, Dune safaris, Ferries)\n• 24/7 on-trip concierge and emergency support.',
+    suggestedActionText: 'Ask About Inclusions',
+    whatsappPrefillText: 'Hi Tripkario! I have questions regarding inclusions and payment terms for your packages.',
+  },
+];
