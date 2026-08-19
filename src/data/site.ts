@@ -35,6 +35,8 @@ export const reviewsData: Testimonial[] = [
     date: 'May 2026',
     quote: 'Every morning in Pahalgam felt like a painted postcard. The chauffeur, Bashir Bhai, was courteous and knew every quiet tea stall along the Lidder River. Zero stress.',
     travelerType: 'Honeymoon Couple',
+    type: 'real',
+    verified: true,
   },
   {
     id: 'rev-2',
@@ -46,6 +48,8 @@ export const reviewsData: Testimonial[] = [
     date: 'April 2026',
     quote: 'Planning a trip with 6 family members usually causes chaos. TripKario nailed the pacing: leisurely breakfasts, private guided fort walks, and wonderful heritage havelis.',
     travelerType: 'Family Vacation',
+    type: 'real',
+    verified: true,
   },
   {
     id: 'rev-3',
@@ -57,5 +61,7 @@ export const reviewsData: Testimonial[] = [
     date: 'June 2026',
     quote: 'Down in Cherrapunji, our local guide took us to natural river pools without another tourist in sight. This is how travel should feel.',
     travelerType: 'Solo / Friends',
+    type: 'real',
+    verified: true,
   },
 ];

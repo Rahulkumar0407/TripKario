@@ -131,16 +131,22 @@ export interface JournalPhoto {
 export interface Testimonial {
   id: string;
   name: string;
-  location: string;
-  avatar?: string;
-  rating: number;
-  comment?: string;
-  quote?: string;
+  quote: string;
+  destination?: string;
+  trip?: string;
   tripName?: string;
   tripDestination?: string;
-  tripTitle?: string;
-  travelerType?: string;
   date?: string;
+  rating?: number;
+  image?: string;
+  avatar?: string;
+  source?: string;
+  type?: 'real' | 'demo';
+  verified?: boolean;
+  location?: string;
+  travelerType?: string;
+  highlight?: string;
+  comment?: string;
 }
 
 export interface TeamMember {
