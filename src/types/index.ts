@@ -7,6 +7,51 @@ export interface EditorialImage {
   location?: string;
   year?: string;
   time?: string;
+  orientation?: 'landscape' | 'portrait';
+  heroSafeArea?: 'left' | 'right' | 'center';
+  focalPosition?: string;
+  pointOfView?: string;
+}
+
+export interface HeroPhotograph {
+  id: string;
+  destinationId: string;
+  destinationName: string;
+  region: string;
+  src: string;
+  alt: string;
+  photographer: string;
+  source: string;
+  license: string;
+  location: string;
+  year: string;
+  orientation: 'landscape' | 'portrait';
+  heroSafeArea: 'left' | 'right' | 'center';
+  focalPosition: string;
+  focalPoint: {
+    x: number;
+    y: number;
+  };
+  motionProfile: {
+    camera: 'zoom-forward' | 'drift-vertical' | 'lateral-pan' | 'push-through-mist' | 'slow-pan';
+    parallaxSpeed: number;
+    directionHint: string;
+    animationClass: string;
+  };
+  editorialHeadline: {
+    line1: string;
+    line2: string;
+    accentWord: string;
+  };
+  sensoryMicrocopy: string;
+  pointOfView: string;
+  routeString: string;
+  startingPrice: number;
+  durationNights: number;
+  durationDays: number;
+  atmosphereColor: string;
+  filmGrainOpacity: number;
+  contactSheetNumber: string;
 }
 
 export interface Destination {
@@ -24,6 +69,7 @@ export interface Destination {
   tripCount?: number;
   curatedHighlights?: string[];
   popularFor?: string[];
+  route?: string;
 }
 
 export interface TripPackage {

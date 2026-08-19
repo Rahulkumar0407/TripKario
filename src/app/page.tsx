@@ -61,7 +61,7 @@ export default function Home() {
       {/* Floating Glass Navigation */}
       <Navbar onOpenPlanTrip={() => handleOpenPlanTrip()} />
 
-      {/* 01. HERO CAROUSEL: 5 Cinematic Scenes + Search Dock */}
+      {/* 01. HERO CAROUSEL: Dynamic Destination Showcase */}
       <Hero
         onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)}
         onSearch={handleSearchFilter}

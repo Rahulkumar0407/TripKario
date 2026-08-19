@@ -18,29 +18,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem('tripkario-theme') as Theme | null;
-    if (savedTheme) {
-      setThemeState(savedTheme);
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+    // Explicitly check saved theme. Default to light mode for all new visitors.
+    const savedTheme = (localStorage.getItem('tripkario_theme') || localStorage.getItem('tripkario-theme')) as Theme | null;
+    if (savedTheme === 'dark') {
+      setThemeState('dark');
+      document.documentElement.classList.add('dark');
     } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        setThemeState('dark');
-        document.documentElement.classList.add('dark');
-      } else {
-        setThemeState('light');
-        document.documentElement.classList.remove('dark');
-      }
+      setThemeState('light');
+      document.documentElement.classList.remove('dark');
     }
   }, []);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('tripkario-theme', newTheme);
+    try {
+      localStorage.setItem('tripkario_theme', newTheme);
+    } catch {}
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {

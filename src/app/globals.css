@@ -138,6 +138,53 @@ body {
   scrollbar-width: none;
 }
 
+/* Hero Camera Breathing — extremely slow cinematic idle */
+@keyframes hero-camera-breathe {
+  0%, 100% {
+    transform: scale(1) translateX(0);
+  }
+  50% {
+    transform: scale(1.025) translateX(0.3%);
+  }
+}
+
+.hero-camera-breathe {
+  animation: hero-camera-breathe 12s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+}
+
+/* Hero film grain overlay */
+.bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Scroll invite line animation */
+@keyframes scroll-line-grow {
+  0% {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
+}
+
+.scroll-line-anim {
+  animation: scroll-line-grow 2.5s cubic-bezier(0.37, 0, 0.63, 1) infinite;
+  transform-origin: top center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

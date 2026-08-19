@@ -1,14 +1,167 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Compass, IndianRupee, ArrowRight, ArrowLeft, Check, X } from 'lucide-react';
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  PanInfo,
+} from 'framer-motion';
+import {
+  Search,
+  MapPin,
+  Compass,
+  IndianRupee,
+  ArrowRight,
+  ArrowLeft,
+  Check,
+  X,
+  MessageCircle,
+} from 'lucide-react';
+import { EASE } from '@/lib/motion';
 import GlassSurface from './ui/GlassSurface';
 import MagneticButton from './ui/MagneticButton';
+import {
+  heroDestinations,
+  preloadHeroImage,
+  HERO_DESTINATION_COUNT,
+  HERO_AUTOPLAY_MS,
+  HERO_TRANSITION_DURATION,
+} from '@/data/heroDestinations';
+import type { HeroDestination } from '@/data/heroDestinations';
 import { destinations } from '@/data/destinations';
 import { formatPrice } from '@/lib/utils';
-import { Destination } from '@/types';
+
+// ════════════════════════════════════════════════════════════════
+// TRANSITION DIRECTION & PHYSICAL OVERSHOOT HELPERS
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Compute enter (initial/keyframes) and exit (animate-to) values
+ * for the cinematic destination transition with subtle physical overshoot
+ * (e.g. scale: 1.08 -> 0.996 -> 1.0, x: +5vw -> -0.3vw -> 0).
+ */
+function getTransitionValues(
+  direction: HeroDestination['transitionDirection'],
+  isNext: boolean
+) {
+  const f = isNext ? 1 : -1;
+
+  switch (direction) {
+    case 'left-to-right':
+      return {
+        enterInitial: {
+          x: `${-5 * f}vw`,
+          y: 0,
+          scale: 1.08,
+          opacity: 0,
+          filter: 'blur(3px)',
+        },
+        enterAnimate: {
+          x: [`${-5 * f}vw`, `${0.3 * f}vw`, '0vw'],
+          y: ['0vh', '0vh', '0vh'],
+          scale: [1.08, 0.996, 1.0],
+          opacity: [0, 0.85, 1],
+          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
+        },
+        exitAnimate: {
+          x: `${5 * f}vw`,
+          y: 0,
+          scale: 1.08,
+          opacity: 0.2,
+          filter: 'blur(2px)',
+        },
+      };
+    case 'bottom-to-top':
+      return {
+        enterInitial: {
+          x: 0,
+          y: `${5 * f}vh`,
+          scale: 1.08,
+          opacity: 0,
+          filter: 'blur(3px)',
+        },
+        enterAnimate: {
+          x: ['0vw', '0vw', '0vw'],
+          y: [`${5 * f}vh`, `${-0.3 * f}vh`, '0vh'],
+          scale: [1.08, 0.996, 1.0],
+          opacity: [0, 0.85, 1],
+          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
+        },
+        exitAnimate: {
+          x: 0,
+          y: `${-5 * f}vh`,
+          scale: 1.08,
+          opacity: 0.2,
+          filter: 'blur(2px)',
+        },
+      };
+    case 'diagonal':
+      return {
+        enterInitial: {
+          x: `${4 * f}vw`,
+          y: `${3 * f}vh`,
+          scale: 1.08,
+          opacity: 0,
+          filter: 'blur(3px)',
+        },
+        enterAnimate: {
+          x: [`${4 * f}vw`, `${-0.2 * f}vw`, '0vw'],
+          y: [`${3 * f}vh`, `${-0.2 * f}vh`, '0vh'],
+          scale: [1.08, 0.996, 1.0],
+          opacity: [0, 0.85, 1],
+          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
+        },
+        exitAnimate: {
+          x: `${-4 * f}vw`,
+          y: `${-3 * f}vh`,
+          scale: 1.08,
+          opacity: 0.2,
+          filter: 'blur(2px)',
+        },
+      };
+    case 'right-to-left':
+    default:
+      return {
+        enterInitial: {
+          x: `${5 * f}vw`,
+          y: 0,
+          scale: 1.08,
+          opacity: 0,
+          filter: 'blur(3px)',
+        },
+        enterAnimate: {
+          x: [`${5 * f}vw`, `${-0.3 * f}vw`, '0vw'],
+          y: ['0vh', '0vh', '0vh'],
+          scale: [1.08, 0.996, 1.0],
+          opacity: [0, 0.85, 1],
+          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
+        },
+        exitAnimate: {
+          x: `${-5 * f}vw`,
+          y: 0,
+          scale: 1.08,
+          opacity: 0.2,
+          filter: 'blur(2px)',
+        },
+      };
+  }
+}
+
+/** Settled scene (no motion) */
+const SCENE_SETTLED = {
+  x: 0,
+  y: 0,
+  scale: 1,
+  opacity: 1,
+  filter: 'blur(0px)',
+};
+
+// ════════════════════════════════════════════════════════════════
+// HERO COMPONENT
+// ════════════════════════════════════════════════════════════════
 
 interface HeroProps {
   onOpenPlanTrip: (destination?: string) => void;
@@ -21,79 +174,203 @@ interface HeroProps {
 }
 
 export default function Hero({ onOpenPlanTrip, onSearch }: HeroProps) {
-  const [activeSceneIdx, setActiveSceneIdx] = useState(0);
-  const [sceneDirection, setSceneDirection] = useState<'next' | 'prev'>('next');
-  const [isHeroHovered, setIsHeroHovered] = useState(false);
+  // ── Scene State ──────────────────────────────────────────────
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [exitingIdx, setExitingIdx] = useState<number | null>(null);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [sceneProgress, setSceneProgress] = useState(0);
 
+  // ── Pause / Manual Resume State ──────────────────────────────
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const [manualPause, setManualPause] = useState(false);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Search State ─────────────────────────────────────────────
   const [destinationQuery, setDestinationQuery] = useState('');
   const [selectedDestination, setSelectedDestination] = useState('');
   const [selectedStyle, setSelectedStyle] = useState('');
   const [selectedBudget, setSelectedBudget] = useState('');
-  const [activeDropdown, setActiveDropdown] = useState<'dest' | 'style' | 'budget' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<
+    'dest' | 'style' | 'budget' | null
+  >(null);
 
+  // ── Parallax State ───────────────────────────────────────────
   const [mouseParallax, setMouseParallax] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLDivElement>(null);
+  const lastValidIdx = useRef(0);
 
-  // Top 5 Hero Cinematic Destination Scenes
-  const heroScenes: Destination[] = destinations.slice(0, 5);
-  const totalScenes = heroScenes.length;
-  const AUTOPLAY_TIME = 7500; // 7.5s per scene
+  // ── Scroll Parallax ──────────────────────────────────────────
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+  const imgExitScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
+  const headingExitY = useTransform(scrollYProgress, [0, 1], ['0px', '-40px']);
+  const headingExitOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.2]);
+  const infoExitY = useTransform(scrollYProgress, [0, 1], ['0px', '-25px']);
+  const infoExitOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.2]);
+  const searchExitY = useTransform(scrollYProgress, [0, 1], ['0px', '30px']);
+  const searchExitOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0.3]);
+  const scrollInviteOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
-  const nextScene = () => {
-    setSceneDirection('next');
-    setActiveSceneIdx((prev) => (prev + 1) % totalScenes);
+  // ── Derived ──────────────────────────────────────────────────
+  const current = heroDestinations[activeIdx] ?? heroDestinations[0];
+  const exiting =
+    exitingIdx !== null ? heroDestinations[exitingIdx] : null;
+
+  // Pre-transition anticipation: ~500ms before auto-transition (>93% progress)
+  const isAnticipating = sceneProgress > 93;
+
+  // Paused when: scrolled away, user focusing search input, search dropdown open, or manual pause cooldown
+  const isPaused =
+    hasScrolled || isFocused || activeDropdown !== null || manualPause;
+
+  // ── Trigger Manual Interaction (cancels autoplay, resets, waits 4s) ──
+  const registerManualInteraction = useCallback(() => {
+    setManualPause(true);
     setSceneProgress(0);
-  };
+    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = setTimeout(() => {
+      setManualPause(false);
+    }, 4000); // 4.0s resume delay after user interaction
+  }, []);
 
-  const prevScene = () => {
-    setSceneDirection('prev');
-    setActiveSceneIdx((prev) => (prev - 1 + totalScenes) % totalScenes);
-    setSceneProgress(0);
-  };
+  // ── Navigation Callbacks ─────────────────────────────────────
+  const goTo = useCallback(
+    (nextIdx: number, dir: 'next' | 'prev', isManual = false) => {
+      if (isTransitioning || nextIdx === activeIdx) return;
+      if (isManual) {
+        registerManualInteraction();
+      }
+      setDirection(dir);
+      setExitingIdx(activeIdx);
+      setActiveIdx(nextIdx);
+      setIsTransitioning(true);
+      setSceneProgress(0);
+      lastValidIdx.current = activeIdx;
+    },
+    [activeIdx, isTransitioning, registerManualInteraction]
+  );
 
-  // Autoplay with instant pause on interaction
+  const nextScene = useCallback(
+    (isManual = false) => {
+      goTo((activeIdx + 1) % HERO_DESTINATION_COUNT, 'next', isManual);
+    },
+    [activeIdx, goTo]
+  );
+
+  const prevScene = useCallback(
+    (isManual = false) => {
+      goTo(
+        (activeIdx - 1 + HERO_DESTINATION_COUNT) % HERO_DESTINATION_COUNT,
+        'prev',
+        isManual
+      );
+    },
+    [activeIdx, goTo]
+  );
+
+  // ── Transition Cleanup ───────────────────────────────────────
   useEffect(() => {
-    if (isHeroHovered || activeDropdown) return;
+    if (!isTransitioning) return;
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+      setExitingIdx(null);
+    }, HERO_TRANSITION_DURATION * 1000 + 100);
+    return () => clearTimeout(timer);
+  }, [isTransitioning]);
 
-    const interval = 50;
-    const step = (interval / AUTOPLAY_TIME) * 100;
+  // ── Preload Next Image ───────────────────────────────────────
+  useEffect(() => {
+    const nextIdx = (activeIdx + 1) % HERO_DESTINATION_COUNT;
+    preloadHeroImage(heroDestinations[nextIdx].image);
+  }, [activeIdx]);
 
+  // ── Auto-Rotation (7.5s smoothly paced, pauses on scroll/search) ───
+  useEffect(() => {
+    if (isPaused || isTransitioning) return;
+    const tickMs = 50;
+    const step = (tickMs / HERO_AUTOPLAY_MS) * 100;
     const timer = setInterval(() => {
       setSceneProgress((old) => {
         if (old >= 100) {
-          nextScene();
+          nextScene(false);
           return 0;
         }
         return old + step;
       });
-    }, interval);
-
+    }, tickMs);
     return () => clearInterval(timer);
-  }, [isHeroHovered, activeSceneIdx, activeDropdown]);
+  }, [isPaused, isTransitioning, activeIdx, nextScene]);
 
-  // Desktop Mouse Parallax
+  // ── Scroll Detection (pauses on scroll, resumes only when back at top and idle) ──
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handler = () => {
+      const scrolled = window.scrollY > 40;
+      if (scrolled) {
+        setHasScrolled(true);
+      } else {
+        if (scrollIdleTimerRef.current) clearTimeout(scrollIdleTimerRef.current);
+        scrollIdleTimerRef.current = setTimeout(() => {
+          setHasScrolled(false);
+        }, 1000);
+      }
+    };
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handler);
+      if (scrollIdleTimerRef.current) clearTimeout(scrollIdleTimerRef.current);
+    };
+  }, []);
+
+  // ── Mouse Parallax ───────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
       if (!heroRef.current) return;
       const { innerWidth, innerHeight } = window;
       const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
       const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
       setMouseParallax({ x, y });
     };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handler, { passive: true });
+    return () => window.removeEventListener('mousemove', handler);
   }, []);
 
-  const currentScene = heroScenes[activeSceneIdx];
+  // ── Drag / Swipe ─────────────────────────────────────────────
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (Math.abs(info.offset.x) > 40 || Math.abs(info.velocity.x) > 200) {
+      if (info.offset.x < 0 || info.velocity.x < -200) {
+        nextScene(true);
+      } else {
+        prevScene(true);
+      }
+    }
+  };
 
+  // ── Transition Animation Values ──────────────────────────────
+  const transitionDir = current.transitionDirection;
+  const isNext = direction === 'next';
+  const { enterInitial, enterAnimate, exitAnimate } = getTransitionValues(
+    transitionDir,
+    isNext
+  );
+
+  // ── Content directional animation & subtle anticipation ──────
+  const contentEnterX = isNext ? 18 : -18;
+  const contentExitX = isNext ? -18 : 18;
+  const anticipationOffset = isAnticipating ? (isNext ? -5 : 5) : 0;
+
+  // ── Search Helpers ───────────────────────────────────────────
   const styleOptions = ['Couple', 'Family', 'Friends', 'Solo'];
   const budgetOptions = ['Under ₹15K', '₹15K–₹30K', '₹30K–₹50K', '₹50K+'];
 
-  const filteredDestinations = destinations.filter((d) =>
-    d.name.toLowerCase().includes(destinationQuery.toLowerCase()) ||
-    d.region.toLowerCase().includes(destinationQuery.toLowerCase())
+  const filteredDestinations = destinations.filter(
+    (d) =>
+      d.name.toLowerCase().includes(destinationQuery.toLowerCase()) ||
+      d.region.toLowerCase().includes(destinationQuery.toLowerCase())
   );
 
   const handleSelectDest = (destName: string) => {
@@ -113,391 +390,802 @@ export default function Hero({ onOpenPlanTrip, onSearch }: HeroProps) {
     });
   };
 
+  // ════════════════════════════════════════════════════════════════
+  // RENDER
+  // ════════════════════════════════════════════════════════════════
   return (
     <section
       ref={heroRef}
-      onMouseEnter={() => setIsHeroHovered(true)}
-      onMouseLeave={() => setIsHeroHovered(false)}
-      className="relative min-h-[110vh] flex flex-col justify-between pt-32 pb-16 px-4 sm:px-6 md:px-10 overflow-hidden bg-[#090908]"
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      className="relative min-h-[105vh] flex flex-col justify-end pb-[12vh] px-4 sm:px-6 md:px-10 overflow-hidden bg-[#090908]"
     >
-      {/* LAYER 1: Full-Bleed Authentic Editorial Photography Carousel */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-        <AnimatePresence mode="wait">
+      {/* ════════════════════════════════════════════
+          LAYER 0: Full-Bleed Photography Viewport
+          TWO-LAYER CINEMATIC TRANSITION SYSTEM
+          ════════════════════════════════════════════ */}
+      <motion.div
+        className="absolute inset-0 z-0 overflow-hidden cursor-grab active:cursor-grabbing"
+        style={{ scale: imgExitScale }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.12}
+        onDragEnd={handleDragEnd}
+      >
+        {/* ── EXITING SCENE (visible only during transition) ── */}
+        <AnimatePresence>
+          {exiting && exitingIdx !== null && (
+            <motion.div
+              key={`exit-${exitingIdx}`}
+              className="absolute inset-0 z-0"
+              initial={false}
+              animate={exitAnimate}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: HERO_TRANSITION_DURATION,
+                ease: EASE.out as [number, number, number, number],
+              }}
+            >
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  x: mouseParallax.x * 3,
+                  y: mouseParallax.y * 2,
+                }}
+                transition={{ type: 'spring', stiffness: 80, damping: 40 }}
+              >
+                <Image
+                  src={exiting.image}
+                  alt={exiting.alt}
+                  fill
+                  sizes="100vw"
+                  style={{ objectPosition: exiting.focalPosition }}
+                  className="object-cover"
+                />
+              </motion.div>
+              {/* Natural light preserving overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/25 to-black/20" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-transparent to-black/20" />
+              {/* Exiting atmosphere wash — slides toward exit edge */}
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0.7 }}
+                animate={{ opacity: 0 }}
+                transition={{ duration: HERO_TRANSITION_DURATION * 0.8 }}
+                style={{ backgroundColor: exiting.atmosphereWash }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── ENTERING / CURRENT SCENE ── */}
+        <motion.div
+          key={`scene-${activeIdx}`}
+          className="absolute inset-0 z-[1] hero-camera-breathe"
+          initial={isTransitioning ? enterInitial : false}
+          animate={isTransitioning ? enterAnimate : SCENE_SETTLED}
+          transition={{
+            duration: HERO_TRANSITION_DURATION,
+            times: isTransitioning ? [0, 0.78, 1] : undefined,
+            ease: EASE.out as [number, number, number, number],
+          }}
+        >
+          {/* Parallax Image */}
           <motion.div
-            key={currentScene.id}
-            initial={{
-              opacity: 0,
-              x: sceneDirection === 'next' ? 60 : -60,
-              scale: 1.06,
-            }}
-            animate={{ opacity: 1, x: 0, scale: 1.02 }}
-            exit={{
-              opacity: 0,
-              x: sceneDirection === 'next' ? -60 : 60,
-              scale: 0.98,
-            }}
-            transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
             className="absolute inset-0"
+            animate={{
+              x: mouseParallax.x * 4,
+              y: mouseParallax.y * 3,
+            }}
+            transition={{ type: 'spring', stiffness: 80, damping: 40 }}
           >
             <Image
-              src={currentScene.image.src}
-              alt={currentScene.image.alt}
+              src={current.image}
+              alt={current.alt}
               fill
               priority
               sizes="100vw"
-              className="object-cover object-center"
+              style={{ objectPosition: current.focalPosition }}
+              className="object-cover"
+              onError={() => {
+                // If image fails to load, revert to last valid
+                if (lastValidIdx.current !== activeIdx) {
+                  setActiveIdx(lastValidIdx.current);
+                }
+              }}
             />
-            {/* Subtle Gradient Atmospheres */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/45 to-black/55" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-black/40" />
-            <div className="absolute inset-0 bg-grain opacity-35 pointer-events-none" />
           </motion.div>
-        </AnimatePresence>
-      </div>
 
-      {/* LAYER 2: Typography & Floating Metadata Over Photography */}
-      <div className="relative z-20 max-w-7xl mx-auto w-full my-auto pt-4 sm:pt-10 flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-        {/* Left Editorial Heading */}
+          {/* Natural photographic lighting: preserves sky, textures, highlights */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/25 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/20" />
+
+          {/* Destination atmosphere tint */}
+          <motion.div
+            key={`tint-${current.id}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0 pointer-events-none"
+            style={{ backgroundColor: current.atmosphereColor }}
+          />
+
+          {/* Entering atmosphere wash — arrives with the scene */}
+          {isTransitioning && (
+            <motion.div
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0.5 }}
+              animate={{ opacity: 0 }}
+              transition={{
+                duration: HERO_TRANSITION_DURATION,
+                delay: 0.25,
+              }}
+              style={{ backgroundColor: current.atmosphereWash }}
+            />
+          )}
+
+          {/* Restrained photographic film grain */}
+          <div
+            className="absolute inset-0 bg-grain pointer-events-none"
+            style={{ opacity: 0.2 }}
+          />
+        </motion.div>
+      </motion.div>
+
+      {/* ════════════════════════════════════════════
+          LAYER 1: Midground Ambient Wash
+          ════════════════════════════════════════════ */}
+      <motion.div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        animate={{
+          x: mouseParallax.x * 6,
+          y: mouseParallax.y * 5,
+        }}
+        transition={{ type: 'spring', stiffness: 60, damping: 35 }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-[#090908]/75 via-transparent to-transparent" />
+      </motion.div>
+
+      {/* ════════════════════════════════════════════
+          LAYER 2: Foreground Content
+          Stable headline + staggered destination story
+          Choreography: IMAGE -> CONTEXT -> INFO -> ACTION
+          ════════════════════════════════════════════ */}
+      <div className="relative z-20 max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-12 pt-32">
+        {/* ── Left Column: Permanent Headline + Dynamic Destination ── */}
         <motion.div
-          animate={{
-            x: mouseParallax.x * 2.5,
-            y: mouseParallax.y * 2.5,
-          }}
-          transition={{ type: 'spring', stiffness: 100, damping: 30 }}
           className="max-w-3xl space-y-5"
+          style={{ y: headingExitY, opacity: headingExitOpacity }}
+          animate={{
+            x: mouseParallax.x * 8,
+            y: mouseParallax.y * 6,
+          }}
+          transition={{ type: 'spring', stiffness: 80, damping: 35 }}
         >
-          {/* Brand Tagline */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-mono tracking-[0.3em] text-[#E46B3B] uppercase font-bold">
-              TRIPKARIO
+          {/* ─── STABLE HEADLINE (animates once on mount, then stays) ─── */}
+          <h1>
+            <span className="block overflow-hidden">
+              <motion.span
+                initial={{ y: '110%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.2,
+                  ease: EASE.out as [number, number, number, number],
+                }}
+                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-white"
+              >
+                Where will you
+              </motion.span>
             </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
-            <span className="text-xs font-mono text-white/80">
-              {currentScene.region}
+
+            <span className="block overflow-hidden">
+              <motion.span
+                initial={{ y: '110%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  duration: 0.8,
+                  delay: 0.4,
+                  ease: EASE.out as [number, number, number, number],
+                }}
+                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-[#E46B3B]"
+              >
+                go next?
+              </motion.span>
             </span>
+          </h1>
+
+          {/* ─── STAGGERED DESTINATION INFO (changes with scene) ─── */}
+          <div className="space-y-2 pt-1 min-h-[54px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current.id}
+                initial={{ opacity: 0, x: contentEnterX }}
+                animate={{
+                  opacity: 1,
+                  x: anticipationOffset,
+                }}
+                exit={{ opacity: 0, x: contentExitX }}
+                transition={{
+                  duration: 0.45,
+                  ease: EASE.out as [number, number, number, number],
+                }}
+                className="space-y-1.5"
+              >
+                {/* 1. Destination Label (50-80ms behind image) */}
+                <motion.div
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.4,
+                    delay: 0.06,
+                    ease: EASE.out as [number, number, number, number],
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#E46B3B]" />
+                  <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#F4A261] font-bold">
+                    {current.destination}
+                  </span>
+                  <span className="text-white/30 text-xs">·</span>
+                  <span className="text-[11px] font-mono text-white/60">
+                    {current.region}
+                  </span>
+                </motion.div>
+
+                {/* 2. Description (80-120ms behind image) */}
+                <motion.p
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.45,
+                    delay: 0.1,
+                    ease: EASE.out as [number, number, number, number],
+                  }}
+                  className="text-[14px] sm:text-base text-white/85 max-w-md leading-relaxed font-normal"
+                >
+                  {current.caption}
+                </motion.p>
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Huge Heading */}
-          <div className="overflow-hidden">
-            <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-serif font-normal leading-[0.96] tracking-tight text-white">
-              Where will you <br />
-              <span className="text-white">go </span>
-              <span className="text-[#E46B3B]">next?</span>
-            </h1>
-          </div>
-
-          <p className="text-base sm:text-lg text-white/85 max-w-lg font-normal leading-relaxed">
-            {currentScene.description}
+          {/* Brand Wit */}
+          <p className="text-[11px] font-mono tracking-[0.06em] text-white/40 max-w-xs">
+            Planning a trip shouldn&apos;t require 47 WhatsApp messages.
           </p>
 
-          {/* Photo Credit */}
-          {currentScene.image.photographer && (
-            <div className="text-[11px] font-mono text-white/55 pt-1">
-              Photo — {currentScene.image.photographer} ({currentScene.image.location})
-            </div>
-          )}
+          {/* CTAs (150-220ms behind image) */}
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.5,
+              delay: 0.18,
+              ease: EASE.out as [number, number, number, number],
+            }}
+            className="flex flex-wrap items-center gap-3 pt-2"
+          >
+            <MagneticButton
+              onClick={() => onOpenPlanTrip(current.destination)}
+              dataCursor="GO"
+              className="px-7 h-[46px] rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl text-[13px] font-semibold tracking-wide"
+            >
+              <span>Find My Trip</span>
+              <ArrowRight className="w-4 h-4 ml-1.5" />
+            </MagneticButton>
+
+            <MagneticButton
+              onClick={() => {
+                window.open(
+                  `https://wa.me/919999999999?text=${encodeURIComponent(
+                    'Hi TripKario! I am interested in planning a trip.'
+                  )}`,
+                  '_blank'
+                );
+              }}
+              className="px-5 h-[46px] rounded-full text-white/90 text-[13px] font-semibold tracking-wide border border-white/25 hover:border-white/50 hover:bg-white/8 backdrop-blur-sm"
+            >
+              <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+              <span>Talk to an Expert</span>
+            </MagneticButton>
+          </motion.div>
         </motion.div>
 
-        {/* Right Floating Scene Navigator & Metadata */}
-        <div className="flex flex-col sm:flex-row lg:flex-col items-start sm:items-end gap-5 lg:mb-4">
-          {/* Glass Destination Chip */}
-          <motion.div
-            key={`chip-${currentScene.id}`}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <GlassSurface
-              variant="dark"
-              enableRefraction
-              rounded="2xl"
-              className="p-5 sm:p-6 text-white max-w-xs shadow-2xl border border-white/20"
+        {/* ── Right Column: Glass Journey Note + Nav Controls ── */}
+        <motion.div
+          className="lg:mb-1 flex flex-col items-start sm:items-end gap-4"
+          style={{ y: infoExitY, opacity: infoExitOpacity }}
+          animate={{
+            x: mouseParallax.x * 10,
+            y: mouseParallax.y * 8,
+          }}
+          transition={{ type: 'spring', stiffness: 80, damping: 35 }}
+        >
+          {/* ─── GLASS JOURNEY NOTE ─── */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`note-${current.id}`}
+              initial={{
+                opacity: 0,
+                x: direction === 'next' ? 22 : -22,
+              }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{
+                opacity: 0,
+                x: direction === 'next' ? -22 : 22,
+              }}
+              transition={{
+                duration: 0.45,
+                ease: EASE.out as [number, number, number, number],
+              }}
             >
-              <div className="flex items-center justify-between gap-4 mb-2">
-                <span className="text-[10px] font-mono tracking-widest uppercase text-[#F4A261] font-bold">
-                  {currentScene.name}
-                </span>
-                <span className="text-[10px] font-mono text-white/70">
-                  {currentScene.durationNights}N · {currentScene.durationDays}D
-                </span>
-              </div>
-              <h4 className="text-lg font-serif font-medium text-white mb-2 line-clamp-1">
-                {currentScene.tagline}
-              </h4>
-              <div className="flex items-center justify-between text-xs font-mono pt-2 border-t border-white/15">
-                <span className="text-white/70">From</span>
-                <span className="text-sm font-serif font-bold text-white">
-                  {formatPrice(currentScene.startingPrice)} / person
-                </span>
-              </div>
-            </GlassSurface>
-          </motion.div>
+              <GlassSurface
+                variant="dark"
+                enableRefraction
+                rounded="2xl"
+                className="p-5 text-white w-[280px] sm:w-[300px] shadow-2xl border border-white/15"
+              >
+                <div className="flex items-center justify-between gap-4 mb-2.5">
+                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#F4A261] font-bold">
+                    {current.destination}
+                  </span>
+                  <span className="text-[10px] font-mono text-white/60">
+                    {current.duration}
+                  </span>
+                </div>
 
-          {/* Scene Carousel Glass Arrows & Progress */}
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end gap-1">
-              <span className="text-xs font-mono tracking-widest text-white/70 font-semibold">
-                0{activeSceneIdx + 1} / 0{totalScenes}
-              </span>
-              <div className="w-20 h-[1.5px] bg-white/20 rounded-full overflow-hidden">
+                {/* Route (100-150ms behind) */}
                 <motion.div
-                  style={{ width: `${sceneProgress}%` }}
-                  className="h-full bg-[#E46B3B] transition-all ease-linear"
-                />
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.12, duration: 0.35 }}
+                  className="text-[11px] font-mono text-white/60 mb-3 truncate"
+                >
+                  {current.routeString}
+                </motion.div>
+
+                {/* Price (120-180ms behind) */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.15, duration: 0.35 }}
+                  className="flex items-center justify-between mb-3 pt-2.5 border-t border-white/10"
+                >
+                  <span className="text-[10px] font-mono text-white/50">
+                    From
+                  </span>
+                  <span className="text-lg font-serif font-bold text-white tabular-nums">
+                    {formatPrice(current.startingPrice)}
+                  </span>
+                </motion.div>
+
+                {/* CTA */}
+                <button
+                  type="button"
+                  onClick={() => onOpenPlanTrip(current.destination)}
+                  className="w-full text-center text-[11px] font-semibold tracking-wide text-[#E46B3B] hover:text-[#ED7B4D] transition-colors py-1.5 border-t border-white/10 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <span>Explore journey</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </GlassSurface>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* ─── COMPACT GLASS CONTROLS + DESTINATION TITLE TRANSITION ─── */}
+          <div className="flex items-center gap-4">
+            {/* Sliding Destination Title & Contact Sheet (Section 21) */}
+            <div className="flex flex-col items-end gap-1 min-w-[84px]">
+              <div className="overflow-hidden h-[18px]">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={`navtitle-${current.id}`}
+                    initial={{ opacity: 0, y: isNext ? 8 : -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: isNext ? -8 : 8 }}
+                    transition={{
+                      duration: 0.3,
+                      ease: EASE.out as [number, number, number, number],
+                    }}
+                    className="block text-[11px] font-mono tracking-[0.2em] text-white font-bold uppercase tabular-nums"
+                  >
+                    {current.destination}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono tracking-[0.15em] text-white/50 tabular-nums">
+                  {current.contactSheet}
+                </span>
+                {/* 1.5px Progress Line (Section 11) */}
+                <div className="w-16 h-[1.5px] bg-white/15 rounded-full overflow-hidden">
+                  <motion.div
+                    style={{ width: `${sceneProgress}%` }}
+                    className="h-full bg-[#E46B3B] transition-all ease-linear"
+                  />
+                </div>
               </div>
             </div>
 
+            {/* Prev / Next Buttons */}
             <div className="flex items-center gap-2">
               <MagneticButton
-                onClick={prevScene}
-                aria-label="Previous scene"
-                className="w-10 h-10 rounded-full glass-surface flex items-center justify-center text-white hover:border-[#E46B3B] shadow-lg"
+                onClick={() => prevScene(true)}
+                aria-label="Previous destination"
+                className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
               </MagneticButton>
 
               <MagneticButton
-                onClick={nextScene}
-                aria-label="Next scene"
-                className="w-10 h-10 rounded-full glass-surface flex items-center justify-center text-white hover:border-[#E46B3B] shadow-lg"
+                onClick={() => nextScene(true)}
+                aria-label="Next destination"
+                className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
               >
                 <ArrowRight className="w-3.5 h-3.5" />
               </MagneticButton>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* LAYER 3: Interface — Floating Glass Search Dock */}
+      {/* ════════════════════════════════════════════
+          LAYER 3: Destination Switcher & Search Dock
+          ════════════════════════════════════════════ */}
       <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.6 }}
-        className="relative z-30 max-w-5xl mx-auto w-full mt-6"
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          duration: 0.6,
+          delay: 0.6,
+          ease: EASE.out as [number, number, number, number],
+        }}
+        style={{ y: searchExitY, opacity: searchExitOpacity }}
+        className="relative z-30 max-w-4xl mx-auto w-full mt-6 space-y-3"
       >
-        <GlassSurface
-          variant="frost"
-          enableRefraction
-          rounded="3xl"
-          className="p-3 sm:p-4 text-white shadow-2xl border border-white/20"
-        >
-          <form onSubmit={handleSearchSubmit} className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
-            {/* Field 1: Destination */}
-            <div className="relative sm:col-span-5">
-              <div
-                onClick={() => setActiveDropdown(activeDropdown === 'dest' ? null : 'dest')}
-                className={`px-4 py-3 rounded-2xl transition-all flex items-center gap-3 cursor-pointer ${
-                  activeDropdown === 'dest' ? 'bg-white/15 ring-1 ring-[#E46B3B]/40' : 'hover:bg-white/10'
+        {/* Destination Quick Selector Strip */}
+        <div className="flex items-center justify-center sm:justify-start gap-1.5 overflow-x-auto no-scrollbar py-1">
+          {heroDestinations.map((dest, i) => {
+            const isActive = i === activeIdx;
+            return (
+              <button
+                key={dest.id}
+                type="button"
+                onClick={() => goTo(i, i > activeIdx ? 'next' : 'prev', true)}
+                className={`group relative px-3.5 py-1.5 rounded-full text-[11px] font-mono tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  isActive
+                    ? 'bg-[#E46B3B] text-white font-bold shadow-lg shadow-[#E46B3B]/30'
+                    : 'bg-black/35 hover:bg-black/60 text-white/70 hover:text-white border border-white/10 hover:border-white/25 backdrop-blur-md'
                 }`}
               >
-                <div className="w-9 h-9 rounded-xl bg-[#E46B3B]/20 text-[#E46B3B] flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <span className="block text-[10px] font-mono uppercase tracking-widest text-white/60 font-semibold">
-                    WHERE
+                <span
+                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+                    isActive
+                      ? 'bg-white scale-110'
+                      : 'bg-white/30 group-hover:bg-white/60'
+                  }`}
+                />
+                <span>{dest.destination}</span>
+                {isActive && (
+                  <span className="text-[9px] opacity-80 pl-0.5">
+                    {dest.contactSheet}
                   </span>
-                  <span className="block text-sm font-semibold truncate text-white">
-                    {selectedDestination || 'Search destination'}
-                  </span>
-                </div>
-                {selectedDestination && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDestination('');
-                      setDestinationQuery('');
-                    }}
-                    className="p-1 text-white/60 hover:text-white"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
                 )}
-              </div>
+              </button>
+            );
+          })}
+        </div>
 
-              {/* Destination Dropdown */}
-              <AnimatePresence>
-                {activeDropdown === 'dest' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                    transition={{ duration: 0.22 }}
-                    className="absolute top-full left-0 mt-3 w-80 sm:w-96 glass-panel rounded-2xl shadow-2xl p-4 z-50 overflow-hidden bg-[#11100E]/95 text-white border border-white/20"
-                  >
-                    <div className="relative mb-3">
-                      <Search className="w-4 h-4 text-white/50 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        placeholder="Search (e.g. Kashmir, Rajasthan)"
-                        value={destinationQuery}
-                        onChange={(e) => setDestinationQuery(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-white/10 text-white placeholder:text-white/40 border border-white/10 focus:outline-none focus:border-[#E46B3B]"
-                        autoFocus
-                      />
-                    </div>
+        {/* Mobile: single glass button */}
+        <div className="sm:hidden">
+          <button
+            type="button"
+            onClick={() => onOpenPlanTrip()}
+            className="w-full px-5 py-3.5 rounded-2xl glass-surface text-white text-left flex items-center gap-3 cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg bg-[#E46B3B]/20 text-[#E46B3B] flex items-center justify-center shrink-0">
+              <Search className="w-4 h-4" />
+            </div>
+            <span className="text-sm text-white/70 font-medium">
+              Where are you going?
+            </span>
+          </button>
+        </div>
 
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-white/50 font-semibold px-1 block mb-2">
-                      Popular Destinations
+        {/* Desktop: compact search bar */}
+        <div className="hidden sm:block">
+          <GlassSurface
+            variant="frost"
+            enableRefraction
+            rounded="3xl"
+            className="px-2 py-2 text-white shadow-2xl border border-white/15"
+          >
+            <form
+              onSubmit={handleSearchSubmit}
+              className="grid grid-cols-12 gap-1 items-center"
+            >
+              {/* Field 1: Destination */}
+              <div className="relative col-span-5">
+                <div
+                  onClick={() =>
+                    setActiveDropdown(
+                      activeDropdown === 'dest' ? null : 'dest'
+                    )
+                  }
+                  className={`px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer ${
+                    activeDropdown === 'dest'
+                      ? 'bg-white/12 ring-1 ring-[#E46B3B]/30'
+                      : 'hover:bg-white/8'
+                  }`}
+                >
+                  <MapPin className="w-3.5 h-3.5 text-[#E46B3B] shrink-0" />
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-white/50 font-semibold">
+                      WHERE
                     </span>
+                    <span className="block text-[13px] font-medium truncate text-white">
+                      {selectedDestination || 'Search destination'}
+                    </span>
+                  </div>
+                  {selectedDestination && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDestination('');
+                        setDestinationQuery('');
+                      }}
+                      className="p-0.5 text-white/50 hover:text-white"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
 
-                    <div className="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar">
-                      <button
-                        type="button"
-                        onClick={() => handleSelectDest('')}
-                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold hover:bg-white/10 flex items-center justify-between text-white"
-                      >
-                        <span>Search anywhere in India</span>
-                        {!selectedDestination && <Check className="w-3.5 h-3.5 text-[#E46B3B]" />}
-                      </button>
+                {/* Destination Dropdown */}
+                <AnimatePresence>
+                  {activeDropdown === 'dest' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 mt-2 w-80 rounded-2xl shadow-2xl p-3 z-50 overflow-hidden bg-[#11100E]/95 text-white border border-white/15 backdrop-blur-2xl"
+                    >
+                      <div className="relative mb-2">
+                        <Search className="w-3.5 h-3.5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search (e.g. Kashmir, Rajasthan)"
+                          value={destinationQuery}
+                          onChange={(e) =>
+                            setDestinationQuery(e.target.value)
+                          }
+                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-white/8 text-white placeholder:text-white/35 border border-white/8 focus:outline-none focus:border-[#E46B3B]/60"
+                          autoFocus
+                        />
+                      </div>
 
-                      {filteredDestinations.map((dest) => (
+                      <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-white/40 font-semibold px-1 block mb-1.5">
+                        Popular Destinations
+                      </span>
+
+                      <div className="space-y-1 max-h-56 overflow-y-auto no-scrollbar">
                         <button
-                          key={dest.id}
                           type="button"
-                          onClick={() => handleSelectDest(dest.name)}
-                          className={`w-full text-left p-2 rounded-xl text-xs transition-all flex items-center gap-3 cursor-pointer ${
-                            selectedDestination === dest.name
-                              ? 'bg-[#E46B3B] text-white'
-                              : 'hover:bg-white/10 text-white'
-                          }`}
+                          onClick={() => handleSelectDest('')}
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-white/8 flex items-center justify-between text-white"
                         >
-                          <div className="relative w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-black/20">
-                            <Image src={dest.image.src} alt={dest.name} fill className="object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="font-semibold block truncate">{dest.name}</span>
-                            <span className="text-[10px] text-white/70">
-                              From {formatPrice(dest.startingPrice)}
-                            </span>
-                          </div>
+                          <span>Search anywhere in India</span>
+                          {!selectedDestination && (
+                            <Check className="w-3 h-3 text-[#E46B3B]" />
+                          )}
                         </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
 
-            {/* Field 2: Travelling As */}
-            <div className="relative sm:col-span-3">
-              <div
-                onClick={() => setActiveDropdown(activeDropdown === 'style' ? null : 'style')}
-                className={`px-4 py-3 rounded-2xl transition-all flex items-center gap-3 cursor-pointer ${
-                  activeDropdown === 'style' ? 'bg-white/15 ring-1 ring-[#E46B3B]/40' : 'hover:bg-white/10'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#E46B3B]/20 text-[#E46B3B] flex items-center justify-center shrink-0">
-                  <Compass className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <span className="block text-[10px] font-mono uppercase tracking-widest text-white/60 font-semibold">
-                    TRAVELLING AS
-                  </span>
-                  <span className="block text-sm font-semibold truncate text-white">
-                    {selectedStyle || 'Couple'}
-                  </span>
-                </div>
+                        {filteredDestinations.map((dest) => (
+                          <button
+                            key={dest.id}
+                            type="button"
+                            onClick={() => handleSelectDest(dest.name)}
+                            className={`w-full text-left p-1.5 rounded-lg text-xs transition-all flex items-center gap-2.5 cursor-pointer ${
+                              selectedDestination === dest.name
+                                ? 'bg-[#E46B3B] text-white'
+                                : 'hover:bg-white/8 text-white'
+                            }`}
+                          >
+                            <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-black/20">
+                              <Image
+                                src={dest.image.src}
+                                alt={dest.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium block truncate text-[12px]">
+                                {dest.name}
+                              </span>
+                              <span className="text-[10px] text-white/60">
+                                From {formatPrice(dest.startingPrice)}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              <AnimatePresence>
-                {activeDropdown === 'style' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-full left-0 mt-3 w-56 glass-panel rounded-2xl shadow-2xl p-3 z-50 bg-[#11100E]/95 text-white border border-white/20"
-                  >
-                    <div className="space-y-1">
-                      {styleOptions.map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => {
-                            setSelectedStyle(opt);
-                            setActiveDropdown(null);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer ${
-                            selectedStyle === opt ? 'bg-[#E46B3B] text-white' : 'hover:bg-white/10 text-white'
-                          }`}
-                        >
-                          <span>{opt}</span>
-                          {selectedStyle === opt && <Check className="w-3.5 h-3.5 text-white" />}
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Field 3: Budget & Submit */}
-            <div className="relative sm:col-span-4 flex items-center gap-2">
-              <div
-                onClick={() => setActiveDropdown(activeDropdown === 'budget' ? null : 'budget')}
-                className={`flex-1 px-4 py-3 rounded-2xl transition-all flex items-center gap-3 cursor-pointer ${
-                  activeDropdown === 'budget' ? 'bg-white/15 ring-1 ring-[#E46B3B]/40' : 'hover:bg-white/10'
-                }`}
-              >
-                <div className="w-9 h-9 rounded-xl bg-[#E46B3B]/20 text-[#E46B3B] flex items-center justify-center shrink-0">
-                  <IndianRupee className="w-4 h-4" />
-                </div>
-                <div className="flex-1 min-w-0 text-left">
-                  <span className="block text-[10px] font-mono uppercase tracking-widest text-white/60 font-semibold">
-                    BUDGET
-                  </span>
-                  <span className="block text-sm font-semibold truncate text-white">
-                    {selectedBudget || '₹25K'}
-                  </span>
-                </div>
+              {/* Divider */}
+              <div className="col-span-0 hidden lg:flex justify-center">
+                <div className="w-px h-8 bg-white/10" />
               </div>
 
-              <AnimatePresence>
-                {activeDropdown === 'budget' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute top-full right-0 mt-3 w-56 glass-panel rounded-2xl shadow-2xl p-3 z-50 bg-[#11100E]/95 text-white border border-white/20"
-                  >
-                    <div className="space-y-1">
-                      {budgetOptions.map((b) => (
-                        <button
-                          key={b}
-                          type="button"
-                          onClick={() => {
-                            setSelectedBudget(b);
-                            setActiveDropdown(null);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between cursor-pointer ${
-                            selectedBudget === b ? 'bg-[#E46B3B] text-white' : 'hover:bg-white/10 text-white'
-                          }`}
-                        >
-                          <span>{b}</span>
-                          {selectedBudget === b && <Check className="w-3.5 h-3.5 text-white" />}
-                        </button>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Field 2: Travel Style */}
+              <div className="relative col-span-3">
+                <div
+                  onClick={() =>
+                    setActiveDropdown(
+                      activeDropdown === 'style' ? null : 'style'
+                    )
+                  }
+                  className={`px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer ${
+                    activeDropdown === 'style'
+                      ? 'bg-white/12 ring-1 ring-[#E46B3B]/30'
+                      : 'hover:bg-white/8'
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5 text-[#E46B3B] shrink-0" />
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-white/50 font-semibold">
+                      TRAVELLING AS
+                    </span>
+                    <span className="block text-[13px] font-medium truncate text-white">
+                      {selectedStyle || 'Couple'}
+                    </span>
+                  </div>
+                </div>
 
-              {/* Magnetic Submit Button */}
-              <MagneticButton
-                type="submit"
-                dataCursor="GO"
-                className="px-7 h-12 rounded-2xl bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl flex items-center gap-2 shrink-0"
-              >
-                <span>FIND MY TRIP</span>
-                <ArrowRight className="w-4 h-4" />
-              </MagneticButton>
-            </div>
-          </form>
-        </GlassSurface>
+                <AnimatePresence>
+                  {activeDropdown === 'style' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute top-full left-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[#11100E]/95 text-white border border-white/15 backdrop-blur-2xl"
+                    >
+                      <div className="space-y-0.5">
+                        {styleOptions.map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => {
+                              setSelectedStyle(opt);
+                              setActiveDropdown(null);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between cursor-pointer ${
+                              selectedStyle === opt
+                                ? 'bg-[#E46B3B] text-white'
+                                : 'hover:bg-white/8 text-white'
+                            }`}
+                          >
+                            <span>{opt}</span>
+                            {selectedStyle === opt && (
+                              <Check className="w-3 h-3 text-white" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Field 3: Budget + Submit */}
+              <div className="relative col-span-4 flex items-center gap-1.5">
+                <div
+                  onClick={() =>
+                    setActiveDropdown(
+                      activeDropdown === 'budget' ? null : 'budget'
+                    )
+                  }
+                  className={`flex-1 px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer ${
+                    activeDropdown === 'budget'
+                      ? 'bg-white/12 ring-1 ring-[#E46B3B]/30'
+                      : 'hover:bg-white/8'
+                  }`}
+                >
+                  <IndianRupee className="w-3.5 h-3.5 text-[#E46B3B] shrink-0" />
+                  <div className="flex-1 min-w-0 text-left">
+                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-white/50 font-semibold">
+                      BUDGET
+                    </span>
+                    <span className="block text-[13px] font-medium truncate text-white">
+                      {selectedBudget || '₹25K'}
+                    </span>
+                  </div>
+                </div>
+
+                <AnimatePresence>
+                  {activeDropdown === 'budget' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute top-full right-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[#11100E]/95 text-white border border-white/15 backdrop-blur-2xl"
+                    >
+                      <div className="space-y-0.5">
+                        {budgetOptions.map((b) => (
+                          <button
+                            key={b}
+                            type="button"
+                            onClick={() => {
+                              setSelectedBudget(b);
+                              setActiveDropdown(null);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between cursor-pointer ${
+                              selectedBudget === b
+                                ? 'bg-[#E46B3B] text-white'
+                                : 'hover:bg-white/8 text-white'
+                            }`}
+                          >
+                            <span>{b}</span>
+                            {selectedBudget === b && (
+                              <Check className="w-3 h-3 text-white" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Submit */}
+                <MagneticButton
+                  type="submit"
+                  dataCursor="GO"
+                  className="px-5 h-[42px] rounded-xl bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-lg text-[12px] font-semibold tracking-wide shrink-0"
+                >
+                  <span>Find My Trip</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </MagneticButton>
+              </div>
+            </form>
+          </GlassSurface>
+        </div>
       </motion.div>
+
+      {/* ════════════════════════════════════════════
+          LAYER 4: Scroll Invitation
+          ════════════════════════════════════════════ */}
+      <motion.div
+        style={{ opacity: scrollInviteOpacity }}
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 transition-opacity duration-500 ${
+          hasScrolled ? 'opacity-0 pointer-events-none' : ''
+        }`}
+      >
+        <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/50 font-semibold">
+          Scroll to explore
+        </span>
+        <div className="w-px h-8 bg-white/30 scroll-line-anim" />
+      </motion.div>
+
+      {/* ════════════════════════════════════════════
+          LAYER 5: Attribution
+          ════════════════════════════════════════════ */}
+      {current.photographer && (
+        <div className="absolute bottom-4 left-6 z-10 flex items-center gap-2 text-[9px] font-mono text-white/40 tracking-wide">
+          <span className="w-1 h-1 rounded-full bg-[#E46B3B]" />
+          <span>Photo — {current.photographer}</span>
+          <span className="text-white/20">·</span>
+          <span className="hidden sm:inline">{current.source}</span>
+        </div>
+      )}
     </section>
   );
 }

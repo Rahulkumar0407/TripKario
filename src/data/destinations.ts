@@ -22,6 +22,7 @@ export const destinations: Destination[] = [
     durationNights: 6,
     packageCount: 6,
     curatedHighlights: ['Private Sunset Shikara', 'Gondola Phase II Passes', 'Lidder Riverside Chalet'],
+    route: 'Srinagar → Gulmarg → Pahalgam',
   },
   {
     id: 'rajasthan',
@@ -44,6 +45,7 @@ export const destinations: Destination[] = [
     durationNights: 5,
     packageCount: 8,
     curatedHighlights: ['Private Fort Historian', 'Dune Stargazing Camp', 'Heritage Haveli Stays'],
+    route: 'Jaipur → Jodhpur → Jaisalmer',
   },
   {
     id: 'kerala',
@@ -66,6 +68,7 @@ export const destinations: Destination[] = [
     durationNights: 5,
     packageCount: 7,
     curatedHighlights: ['Handcrafted Kettuvallam', 'Organic Spice Trail', 'Cliffside Sunset Walk'],
+    route: 'Kochi → Munnar → Alleppey',
   },
   {
     id: 'meghalaya',
@@ -88,6 +91,7 @@ export const destinations: Destination[] = [
     durationNights: 4,
     packageCount: 5,
     curatedHighlights: ['Root Bridge Expedition', 'Crystal River Boating', 'Khasi Homestay Experience'],
+    route: 'Shillong → Cherrapunji → Dawki',
   },
   {
     id: 'ladakh',
@@ -110,6 +114,7 @@ export const destinations: Destination[] = [
     durationNights: 7,
     packageCount: 4,
     curatedHighlights: ['Pangong Tso Dome Camp', 'Monastery Morning Chants', 'Khardung La High Drive'],
+    route: 'Leh → Nubra → Pangong',
   },
   {
     id: 'himachal',
