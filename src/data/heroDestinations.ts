@@ -84,18 +84,17 @@ export const heroDestinations: HeroDestination[] = [
 
   // ═══════════════════════════════════════════════
   // 02 — KASHMIR
-  // Photographic direction: Real shikara gliding across
-  // Dal Lake in atmospheric morning light. Mist. Mountain
-  // background. Water reflection.
-  // Feeling: escape + calm + intimacy
+  // Photographic direction: Real Kashmir valley landscape
+  // with mountains, river, pine forests, and soft mist.
+  // Feeling: escape + calm + mountain tranquility
   // ═══════════════════════════════════════════════
   {
     id: 'hero-kashmir',
     destination: 'Kashmir',
     region: 'Jammu & Kashmir · Pir Panjal',
     image:
-      'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=2800&auto=format&fit=crop',
-    alt: 'Wooden shikara gliding through morning blue mist on Dal Lake with mountain silhouettes in Srinagar, Kashmir',
+      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=2800&auto=format&fit=crop',
+    alt: 'Panoramic view of lush green Kashmir valley surrounded by snow-dusted Himalayan peaks and pine forests',
     caption:
       'Misty mornings, cedar valleys and one very good excuse to disappear.',
     route: 'Srinagar → Gulmarg → Pahalgam',
@@ -269,8 +268,8 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Goa',
     region: 'Konkan Coast · Latin Quarter',
     image:
-      'https://images.unsplash.com/photo-1587474260584-136574528ed5?q=90&w=2800&auto=format&fit=crop',
-    alt: 'Sun-washed Portuguese colonial architecture with vibrant painted walls and arched doorways in old Goa',
+      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=90&w=2800&auto=format&fit=crop',
+    alt: 'Serene coastal palm-fringed shoreline and gentle waves in Goa',
     caption: 'Take the scenic route. Stay longer than planned.',
     route: 'Panaji → Divar Island → South Goa',
     duration: '4N · 5D',

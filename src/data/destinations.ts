@@ -9,7 +9,7 @@ export const destinations: Destination[] = [
     tagline: 'Mist, cedar houseboats & quiet Himalayan waters',
     description: 'Drift across Dal Lake at dawn on a cedarwood shikara, pass through alpine pine glades in Gulmarg, and rest in walnut-grove chalets along the turquoise Lidder river in Pahalgam.',
     image: {
-      src: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=2600&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=2600&auto=format&fit=crop',
       alt: 'Shikara cutting through morning mist on Dal Lake in Srinagar, Kashmir',
       photographer: 'Ayan Mukherjee',
       source: 'Unsplash Editorial',

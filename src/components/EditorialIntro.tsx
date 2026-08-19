@@ -100,7 +100,7 @@ export default function EditorialIntro({ onOpenPlanTrip }: EditorialIntroProps) 
           <div className="lg:col-span-6 relative">
             <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl">
               <Image
-                src="https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=80&w=1200&auto=format&fit=crop"
+                src="https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=80&w=1200&auto=format&fit=crop"
                 alt="Shikara cutting through morning mist on Dal Lake in Srinagar, Kashmir"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

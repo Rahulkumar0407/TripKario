@@ -16,7 +16,7 @@ export default function DestinationStory({ onSelectTrip, onOpenPlanTrip }: Desti
       {/* Cinematic Background with Parallax Feel */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=85&w=2400&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=2400&auto=format&fit=crop"
           alt="Kashmir Valley and Alpine Pine Forest"
           fill
           sizes="100vw"

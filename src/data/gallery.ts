@@ -9,7 +9,7 @@ export const fieldNotes: FieldNote[] = [
     photographer: 'Ayan Mukherjee',
     aspect: 'portrait',
     image: {
-      src: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=1200&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1200&auto=format&fit=crop',
       alt: 'Shikara boat cutting through calm mist on Dal Lake in Srinagar',
       photographer: 'Ayan Mukherjee',
       source: 'Unsplash Editorial',
@@ -149,7 +149,7 @@ export const travellerStories: TravellerStory[] = [
     reviewSummary: 'Beautifully planned from start to finish with confirmed boutique stays.',
     date: 'May 2026',
     image: {
-      src: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=1800&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1800&auto=format&fit=crop',
       alt: 'Couple enjoying sunset on Dal Lake aboard a wooden shikara',
       photographer: 'Ayan Mukherjee',
       source: 'Unsplash Editorial',
@@ -198,7 +198,7 @@ export const journalPhotos: JournalPhoto[] = [
     id: 'jp-1',
     caption: 'Sunset on Dal Lake Shikara',
     location: 'Srinagar, Kashmir',
-    image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1200&auto=format&fit=crop',
     photographer: 'Ayan Mukherjee',
   },
   {

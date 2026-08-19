@@ -19,7 +19,7 @@ export default function ItineraryStory() {
       location: 'Dal Lake & Houseboat Stay',
       desc: 'Land in Srinagar to a warm private chauffeur welcome. Check into your handcrafted cedarwood houseboat on Dal Lake and embark on a tranquil sunset Shikara cruise.',
       highlights: ['Chauffeur Airport Pickup', 'Handcrafted Cedar Houseboat', 'Private Sunset Shikara Cruise'],
-      image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=85&w=1400&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1400&auto=format&fit=crop',
     },
     {
       day: '02',

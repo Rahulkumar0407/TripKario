@@ -64,7 +64,7 @@ export default function TripMatcher({ onSelectTrip }: TripMatcherProps) {
         headline: "We have a feeling you'll like Kashmir.",
         reason: 'Misty mornings, mountain roads and absolutely no reason to check your work email.',
         price: '₹24,999',
-        image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=80&w=1200&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=80&w=1200&auto=format&fit=crop',
       };
     }
     if (mood === 'Beach') {

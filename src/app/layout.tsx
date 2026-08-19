@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: 'TripKario',
     images: [
       {
-        url: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=1200&auto=format&fit=crop',
+        url: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1200&auto=format&fit=crop',
         width: 1200,
         height: 630,
         alt: 'TripKario Curated Journeys',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'TripKario — Curated Tours & Travel Planning',
     description: 'Curated journeys across India and beyond, planned around the way you want to travel.',
-    images: ['https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=1200&auto=format&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1200&auto=format&fit=crop'],
   },
 };
 

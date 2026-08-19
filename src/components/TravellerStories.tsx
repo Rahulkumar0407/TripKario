@@ -22,7 +22,7 @@ export default function TravellerStories() {
       quote: 'Every morning felt like a painted postcard. The chauffeur, Bashir Bhai, knew every quiet tea stall along the Lidder River in Pahalgam. Zero stress.',
       rating: 5,
       reviewSummary: 'Beautifully planned from start to finish with confirmed boutique stays.',
-      image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=85&w=1600&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1600&auto=format&fit=crop',
     },
     {
       id: 'story-2',

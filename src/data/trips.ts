@@ -16,7 +16,7 @@ export const tripPackages: TripPackage[] = [
     reviewCount: 142,
     category: 'Signature',
     coverImage: {
-      src: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=2600&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=2600&auto=format&fit=crop',
       alt: 'Shikara cutting through morning mist on Dal Lake in Srinagar, Kashmir',
       photographer: 'Ayan Mukherjee',
       source: 'Unsplash Editorial',
@@ -25,7 +25,7 @@ export const tripPackages: TripPackage[] = [
     },
     galleryImages: [
       {
-        src: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=90&w=1600&auto=format&fit=crop',
+        src: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1600&auto=format&fit=crop',
         alt: 'Dal Lake shikara at dusk',
         photographer: 'Ayan Mukherjee',
         source: 'Unsplash Editorial',

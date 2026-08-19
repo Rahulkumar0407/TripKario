@@ -25,7 +25,7 @@ export default function SurpriseMeCTA({ onSelectDestination }: SurpriseMeCTAProp
       name: 'KASHMIR',
       tagline: 'Cedar houseboats, pine ridge walks, and zero work emails.',
       route: 'Srinagar → Gulmarg → Pahalgam',
-      image: 'https://images.unsplash.com/photo-1595846519845-68e298c2edd8?q=85&w=1200&auto=format&fit=crop',
+      image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
     },
     {
       name: 'RAJASTHAN',
