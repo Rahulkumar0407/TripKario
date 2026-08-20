@@ -228,10 +228,19 @@ export default function VariantHero({ onOpenPlanTrip, onSearchSubmit }: VariantH
                   intensity="deep"
                   className="rounded-full px-4 py-1.5 text-xs font-mono text-[#171512] dark:text-white shadow-xl border-white/80 dark:border-white/20 flex items-center gap-2"
                 >
-                  <Compass className="w-3.5 h-3.5 text-[#C95D39]" />
+                  <Compass className="w-3.5 h-3.5 text-[#C85D3A]" />
                   <span>Delhi → Srinagar → Gulmarg</span>
                 </VariantGlass>
               </motion.div>
+
+              {/* Delicate Stamp Metaphor: Circular Territorial Entry Seal */}
+              <div className="absolute bottom-3 right-4 pointer-events-none opacity-40 dark:opacity-25 select-none hidden sm:block">
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-[#174E48] dark:border-[#D4A467] flex items-center justify-center p-1 rotate-[-12deg]">
+                  <div className="text-[8px] font-mono text-center leading-tight uppercase font-semibold text-[#174E48] dark:text-[#D4A467]">
+                    TRIPKARIO<br />ENTRY<br />2026
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -14,15 +14,15 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
   return (
     <section
       id="pinboard-morph"
-      className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#E8DED0]/50 dark:bg-[#11100E] transition-colors duration-500"
+      className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#FBF8F1]/60 dark:bg-[#151310] transition-colors duration-500"
     >
       <div className="max-w-7xl mx-auto">
         {/* Editorial Subtitle */}
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C95D39] dark:text-[#E06A42] font-semibold">
+          <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
             FROM MEMORY TO DESTINATION
           </span>
-          <span className="h-px w-6 bg-[#C95D39]/30" />
+          <span className="h-px w-6 bg-[#C85D3A]/30" />
         </div>
 
         {/* The Expanded Destination Board Experience */}
@@ -31,7 +31,7 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="relative rounded-3xl overflow-hidden min-h-[560px] sm:min-h-[640px] lg:min-h-[700px] border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#E8DED0] dark:bg-[#171512] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14"
+          className="relative rounded-3xl overflow-hidden min-h-[560px] sm:min-h-[640px] lg:min-h-[700px] border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#FBF8F1] dark:bg-[#171512] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14"
         >
           {/* Main Background Master Photograph */}
           <div className="absolute inset-0 z-0">
@@ -60,7 +60,7 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             {/* Left Col: Giant Typography & Simple Pacing Words */}
             <div className="lg:col-span-7 space-y-4">
-              <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#E0B36E] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#D4A467] font-semibold">
                 LAKES · MOUNTAINS · QUIET MORNINGS
               </span>
               <h2 className="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none uppercase">
@@ -76,7 +76,7 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
                     key={item}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono text-white/90 bg-white/10 backdrop-blur-md border border-white/20"
                   >
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#E0B36E]" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#D4A467]" />
                     {item}
                   </span>
                 ))}
@@ -92,34 +92,34 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10">
                     <div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#756E64] dark:text-[#B3AA9E] block">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#6D665E] dark:text-[#B6ADA1] block">
                         Duration
                       </span>
-                      <span className="text-base font-bold text-[#171512] dark:text-[#F4EEE4]">
+                      <span className="text-base font-bold text-[#171512] dark:text-[#F5EFE6]">
                         6 Nights · 7 Days
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#756E64] dark:text-[#B3AA9E] block">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#6D665E] dark:text-[#B6ADA1] block">
                         From
                       </span>
-                      <span className="text-xl font-bold text-[#174D47] dark:text-[#E0B36E]">
+                      <span className="text-xl font-bold text-[#174E48] dark:text-[#D4A467]">
                         ₹24,999
                       </span>
-                      <span className="text-[10px] font-mono text-[#756E64] dark:text-[#B3AA9E] block">
+                      <span className="text-[10px] font-mono text-[#6D665E] dark:text-[#B6ADA1] block">
                         per person
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#756E64] dark:text-[#B3AA9E]">
+                  <p className="text-xs text-[#6D665E] dark:text-[#B6ADA1]">
                     Chauffeur pickup, daily breakfast & dinner, confirmed stays, and direct human concierge.
                   </p>
 
                   <button
                     type="button"
                     onClick={() => onOpenPlanTrip('Kashmir')}
-                    className="w-full py-4 rounded-2xl bg-[#C95D39] hover:bg-[#B34F2D] text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-lg shadow-[#C95D39]/30 transition-all duration-300 group"
+                    className="w-full py-4 rounded-2xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-lg shadow-[#C85D3A]/30 transition-all duration-300 group"
                   >
                     <span>EXPLORE KASHMIR</span>
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />

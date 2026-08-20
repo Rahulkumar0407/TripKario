@@ -53,8 +53,8 @@ export default function VariantNavbar({ onOpenPlanTrip }: VariantNavbarProps) {
                   showWordmark={true}
                   className="transition-transform duration-300 group-hover:scale-102"
                 />
-                <span className="hidden xl:inline-flex items-center gap-1 text-[10px] uppercase font-mono tracking-widest px-2 py-0.5 rounded-full bg-[#C95D39]/10 text-[#C95D39] border border-[#C95D39]/20 font-medium">
-                  Edition 02 · Mag
+                <span className="hidden xl:inline-flex items-center gap-1 text-[10px] uppercase font-mono tracking-widest px-2 py-0.5 rounded-full bg-[#C85D3A]/10 text-[#C85D3A] border border-[#C85D3A]/20 font-medium">
+                  Edition 02 · Desk
                 </span>
               </Link>
 
@@ -64,7 +64,7 @@ export default function VariantNavbar({ onOpenPlanTrip }: VariantNavbarProps) {
                   <a
                     key={link.label}
                     href={link.href}
-                    className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-medium tracking-tight text-[#171512]/80 dark:text-[#F4EEE4]/80 hover:text-[#C95D39] dark:hover:text-[#E06A42] hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200"
+                    className="px-3.5 py-1.5 rounded-full text-xs lg:text-sm font-medium tracking-tight text-[#171512]/80 dark:text-[#F5EFE6]/80 hover:text-[#C85D3A] dark:hover:text-[#E16A43] hover:bg-white/60 dark:hover:bg-white/10 transition-all duration-200"
                   >
                     {link.label}
                   </a>
@@ -78,9 +78,9 @@ export default function VariantNavbar({ onOpenPlanTrip }: VariantNavbarProps) {
                 {/* Back to Original View Link Pill */}
                 <Link
                   href="/"
-                  className="hidden lg:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider text-[#756E64] dark:text-[#B3AA9E] hover:text-[#171512] dark:hover:text-white bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] transition-colors"
+                  className="hidden lg:inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] font-mono uppercase tracking-wider text-[#6D665E] dark:text-[#B6ADA1] hover:text-[#171512] dark:hover:text-white bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.06] transition-colors"
                 >
-                  <Compass className="w-3 h-3 text-[#174D47] dark:text-[#1D5B54]" />
+                  <Compass className="w-3 h-3 text-[#174E48] dark:text-[#1E5A53]" />
                   Original View
                 </Link>
 
@@ -88,11 +88,11 @@ export default function VariantNavbar({ onOpenPlanTrip }: VariantNavbarProps) {
                 <button
                   type="button"
                   onClick={() => onOpenPlanTrip()}
-                  className="relative group overflow-hidden px-4 sm:px-5 py-2 rounded-full bg-[#C95D39] hover:bg-[#B34F2D] text-white text-xs sm:text-sm font-medium tracking-wide shadow-[0_4px_16px_rgba(201,93,57,0.3)] hover:shadow-[0_8px_24px_rgba(201,93,57,0.45)] transition-all duration-300 flex items-center gap-1.5"
+                  className="relative group overflow-hidden px-4 sm:px-5 py-2 rounded-full bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs sm:text-sm font-medium tracking-wide shadow-[0_4px_16px_rgba(200,93,58,0.3)] hover:shadow-[0_8px_24px_rgba(200,93,58,0.45)] transition-all duration-300 flex items-center gap-1.5"
                 >
                   <span className="relative z-10">Plan My Trip</span>
                   <ArrowUpRight className="w-3.5 h-3.5 relative z-10 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-[#E0B36E]/20 to-transparent transition-transform duration-500" />
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-0 bg-gradient-to-r from-[#D4A467]/20 to-transparent transition-transform duration-500" />
                 </button>
 
                 {/* Mobile Menu Button */}
