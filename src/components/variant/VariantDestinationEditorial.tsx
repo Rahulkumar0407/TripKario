@@ -47,7 +47,7 @@ export default function VariantDestinationEditorial({
     setProgress(0);
   }, [destinations.length]);
 
-  // Autoplay and continuous progress line without any play button
+  // Autoplay and continuous progress line
   useEffect(() => {
     if (isHovered) return;
 
@@ -83,7 +83,7 @@ export default function VariantDestinationEditorial({
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section Header: Clean Connected Layout with Adjacent Dock (No play button) */}
+        {/* Section Header: Clean Editorial Relationship with Integrated Controls (No isolated pill box) */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -98,38 +98,31 @@ export default function VariantDestinationEditorial({
             </h2>
           </div>
 
-          {/* Clean Connected Navigation Dock: 05 / 06 [ ← ] [ → ] */}
-          <div className="flex items-center gap-3 self-start md:self-end">
-            <VariantGlass
-              intensity="pill"
-              className="rounded-full px-4 py-2 flex items-center gap-3 border-white/70 dark:border-white/15 shadow-md"
-            >
-              <span className="text-xs font-mono text-[#6D665E] dark:text-[#B6ADA1] font-semibold tracking-widest">
-                {String(currentIndex + 1).padStart(2, '0')} / {String(destinations.length).padStart(2, '0')}
-              </span>
+          {/* Integrated Editorial Controls: 05 / 06    ←  → */}
+          <div className="flex items-center gap-4 self-start md:self-end">
+            <span className="text-xs font-mono font-bold text-[#171512] dark:text-white tracking-widest">
+              {String(currentIndex + 1).padStart(2, '0')} / {String(destinations.length).padStart(2, '0')}
+            </span>
 
-              <div className="h-4 w-px bg-black/10 dark:bg-white/15" />
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handlePrev}
+                aria-label="Previous destination"
+                className="p-2 text-[#171512] dark:text-[#F5EFE6] hover:text-[#C85D3A] dark:hover:text-[#E16A43] transition-all duration-200 hover:-translate-x-1 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
 
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={handlePrev}
-                  aria-label="Previous destination"
-                  className="w-8 h-8 rounded-full bg-white/70 dark:bg-white/10 hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  aria-label="Next destination"
-                  className="w-8 h-8 rounded-full bg-[#C85D3A] hover:bg-[#B54F2E] text-white flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
-                >
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </VariantGlass>
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="Next destination"
+                className="p-2 text-[#171512] dark:text-[#F5EFE6] hover:text-[#C85D3A] dark:hover:text-[#E16A43] transition-all duration-200 hover:translate-x-1 cursor-pointer"
+              >
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
