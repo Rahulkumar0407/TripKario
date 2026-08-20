@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import VariantGlass from './VariantGlass';
 import { variantHeroDestinations } from '@/data/variant/variantData';
-import { ArrowLeft, ArrowRight, Compass, CheckCircle2, Pause, Play } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Compass, CheckCircle2 } from 'lucide-react';
 
 interface VariantDestinationEditorialProps {
   onOpenPlanTrip: (destination?: string) => void;
 }
 
-const AUTOPLAY_DURATION = 7000; // 7 seconds per destination (#07)
+const AUTOPLAY_DURATION = 7000; // 7 seconds per destination
 
-// Subtle destination atmosphere ambient tints (#17)
+// Subtle destination atmosphere ambient tints
 const destinationAtmospheres: Record<string, string> = {
   kashmir: 'rgba(23, 77, 71, 0.12)',     // cool green-blue
   ladakh: 'rgba(29, 60, 84, 0.12)',      // cool stone-blue
@@ -28,7 +28,7 @@ export default function VariantDestinationEditorial({
 }: VariantDestinationEditorialProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isHoveredCard, setIsHoveredCard] = useState(false);
 
@@ -47,11 +47,11 @@ export default function VariantDestinationEditorial({
     setProgress(0);
   }, [destinations.length]);
 
-  // Autoplay and continuous progress line (#06, #13, #14)
+  // Autoplay and continuous progress line without any play button
   useEffect(() => {
-    if (isPaused) return;
+    if (isHovered) return;
 
-    const intervalStep = 50; // update progress every 50ms
+    const intervalStep = 50;
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -63,18 +63,18 @@ export default function VariantDestinationEditorial({
     }, intervalStep);
 
     return () => clearInterval(timer);
-  }, [isPaused, handleNext]);
+  }, [isHovered, handleNext]);
 
   const activeAtmosphere = destinationAtmospheres[activeDest.id] || 'rgba(200, 93, 58, 0.10)';
 
   return (
     <section
       id="destinations"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#F4EFE7] dark:bg-[#0D0C0A] transition-colors duration-700"
     >
-      {/* Subtle Atmospheric Ambient Tint (#17) */}
+      {/* Subtle Atmospheric Ambient Tint */}
       <div
         className="absolute inset-0 pointer-events-none transition-colors duration-1000"
         style={{
@@ -83,7 +83,7 @@ export default function VariantDestinationEditorial({
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section Header: Connected Editorial Relationship with Adjacent Controls */}
+        {/* Section Header: Clean Connected Layout with Adjacent Dock (No play button) */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -98,27 +98,15 @@ export default function VariantDestinationEditorial({
             </h2>
           </div>
 
-          {/* Connected Compact Navigation Dock with Progress Line (#13, #14, #15) */}
+          {/* Clean Connected Navigation Dock: 05 / 06 [ ← ] [ → ] */}
           <div className="flex items-center gap-3 self-start md:self-end">
             <VariantGlass
               intensity="pill"
-              className="rounded-full px-4 py-1.5 flex items-center gap-3 border-white/70 dark:border-white/15 shadow-md"
+              className="rounded-full px-4 py-2 flex items-center gap-3 border-white/70 dark:border-white/15 shadow-md"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono text-[#6D665E] dark:text-[#B6ADA1] font-medium tracking-widest">
-                  {String(currentIndex + 1).padStart(2, '0')} / {String(destinations.length).padStart(2, '0')}
-                </span>
-
-                {/* Micro Pause / Play Indicator */}
-                <button
-                  type="button"
-                  onClick={() => setIsPaused(!isPaused)}
-                  aria-label={isPaused ? 'Resume autoplay' : 'Pause autoplay'}
-                  className="text-[#6D665E] dark:text-[#B6ADA1] hover:text-[#C85D3A] transition-colors"
-                >
-                  {isPaused ? <Play className="w-2.5 h-2.5" /> : <Pause className="w-2.5 h-2.5" />}
-                </button>
-              </div>
+              <span className="text-xs font-mono text-[#6D665E] dark:text-[#B6ADA1] font-semibold tracking-widest">
+                {String(currentIndex + 1).padStart(2, '0')} / {String(destinations.length).padStart(2, '0')}
+              </span>
 
               <div className="h-4 w-px bg-black/10 dark:bg-white/15" />
 
@@ -127,7 +115,7 @@ export default function VariantDestinationEditorial({
                   type="button"
                   onClick={handlePrev}
                   aria-label="Previous destination"
-                  className="w-8 h-8 rounded-full bg-white/70 dark:bg-white/10 hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm"
+                  className="w-8 h-8 rounded-full bg-white/70 dark:bg-white/10 hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                 </button>
@@ -136,7 +124,7 @@ export default function VariantDestinationEditorial({
                   type="button"
                   onClick={handleNext}
                   aria-label="Next destination"
-                  className="w-8 h-8 rounded-full bg-[#C85D3A] hover:bg-[#B54F2E] text-white flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm"
+                  className="w-8 h-8 rounded-full bg-[#C85D3A] hover:bg-[#B54F2E] text-white flex items-center justify-center transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
                 >
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
@@ -145,16 +133,16 @@ export default function VariantDestinationEditorial({
           </div>
         </div>
 
-        {/* Physical Photo Stack Showcase Container (#08, #09, #10) */}
+        {/* Physical Photo Stack Showcase Container */}
         <div className="relative min-h-[580px] sm:min-h-[640px] lg:min-h-[680px] rounded-3xl overflow-hidden border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#12120A] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14">
-          {/* Animated Background Photograph Layer with Cinematic Motion (#09) */}
+          {/* Animated Background Photograph Layer with Storytelling Flow */}
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={activeDest.id}
               initial={{
                 opacity: 0,
-                scale: 1.08,
-                x: direction === 1 ? '3vw' : '-3vw',
+                scale: 1.07,
+                x: direction === 1 ? '4vw' : '-4vw',
               }}
               animate={{
                 opacity: 1,
@@ -163,11 +151,11 @@ export default function VariantDestinationEditorial({
               }}
               exit={{
                 opacity: 0,
-                scale: 1.06,
-                x: direction === 1 ? '-3vw' : '3vw',
+                scale: 1.04,
+                x: direction === 1 ? '-4vw' : '4vw',
               }}
               transition={{
-                duration: 0.95,
+                duration: 0.85,
                 ease: [0.16, 1, 0.3, 1],
               }}
               className="absolute inset-0 z-0 bg-[#12120A]"
@@ -180,12 +168,12 @@ export default function VariantDestinationEditorial({
                 sizes="(max-width: 1280px) 100vw, 1280px"
                 className="object-cover hero-camera-breathe"
               />
-              {/* Localized Bottom/Side Gradient Mask (#12) */}
+              {/* Localized Bottom/Side Gradient Mask for Text Contrast */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/20" />
             </motion.div>
           </AnimatePresence>
 
-          {/* Top Tag & Progress Line (#13 & #14) */}
+          {/* Top Tag & Subtle Progress Line */}
           <div className="relative z-10 flex items-center justify-between gap-4">
             <VariantGlass
               intensity="photo"
@@ -195,7 +183,7 @@ export default function VariantDestinationEditorial({
             </VariantGlass>
 
             {/* Continuous 7-Second Progress Line */}
-            <div className="w-32 sm:w-48 h-1 bg-white/20 rounded-full overflow-hidden backdrop-blur-md">
+            <div className="w-28 sm:w-44 h-1 bg-white/20 rounded-full overflow-hidden backdrop-blur-md">
               <div
                 className="h-full bg-[#C85D3A] transition-all duration-75 ease-linear rounded-full"
                 style={{ width: `${progress}%` }}
@@ -203,9 +191,9 @@ export default function VariantDestinationEditorial({
             </div>
           </div>
 
-          {/* Bottom Content: IMAGE → PLACE → TRIP → ACTION (#10 & #11) */}
+          {/* Bottom Content: IMAGE → PLACE → TRIP → ACTION */}
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
-            {/* Left Col: Place & Staggered Typography Integrated with Photograph (#11) */}
+            {/* Left Col: Place & Staggered Typography Integrated with Photograph */}
             <div className="lg:col-span-7 space-y-3">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -241,7 +229,7 @@ export default function VariantDestinationEditorial({
               </div>
             </div>
 
-            {/* Right Col: Dedicated Dark Premium Glass Information Card (#01, #02, #03, #04, #05, #22, #23) */}
+            {/* Right Col: Dedicated Dark Premium Glass Information Card */}
             <div className="lg:col-span-5">
               <motion.div
                 onMouseEnter={() => setIsHoveredCard(true)}

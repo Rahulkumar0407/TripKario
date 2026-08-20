@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import VariantGlass from './VariantGlass';
@@ -11,6 +11,8 @@ interface VariantPinboardMorphProps {
 }
 
 export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboardMorphProps) {
+  const [isHoveredCard, setIsHoveredCard] = useState(false);
+
   return (
     <section
       id="pinboard-morph"
@@ -31,7 +33,7 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="relative rounded-3xl overflow-hidden min-h-[560px] sm:min-h-[640px] lg:min-h-[700px] border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#FBF8F1] dark:bg-[#171512] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14"
+          className="relative rounded-3xl overflow-hidden min-h-[560px] sm:min-h-[640px] lg:min-h-[700px] border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#12120A] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14"
         >
           {/* Main Background Master Photograph */}
           <div className="absolute inset-0 z-0">
@@ -42,14 +44,14 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
               sizes="100vw"
               className="object-cover"
             />
-            {/* Cinematic Gradient Mask */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/20" />
+            {/* Cinematic Gradient Mask for Text Contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/45 to-black/20" />
           </div>
 
           {/* Top Board Tag */}
           <div className="relative z-10 self-start">
             <VariantGlass
-              intensity="deep"
+              intensity="photo"
               className="rounded-full px-4 py-1.5 text-xs font-mono tracking-widest text-white uppercase border-white/30"
             >
               Territory 01 · North India · 5,200 ft
@@ -60,13 +62,13 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             {/* Left Col: Giant Typography & Simple Pacing Words */}
             <div className="lg:col-span-7 space-y-4">
-              <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#D4A467] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#D4A467] font-semibold drop-shadow-sm">
                 LAKES · MOUNTAINS · QUIET MORNINGS
               </span>
-              <h2 className="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none uppercase">
+              <h2 className="text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight leading-none uppercase drop-shadow-md">
                 KASHMIR
               </h2>
-              <p className="text-base sm:text-lg text-white/90 max-w-xl font-normal leading-relaxed">
+              <p className="text-base sm:text-lg text-white/95 max-w-xl font-normal leading-relaxed drop-shadow-sm">
                 Cedar houseboats on Dal Lake, morning kahwa in misty valleys, and snow passes in Gulmarg.
               </p>
 
@@ -74,7 +76,7 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
                 {['Private Sunset Shikara', 'Gulmarg Gondola Passes', 'Lidder Riverside Chalet'].map((item) => (
                   <span
                     key={item}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono text-white/90 bg-white/10 backdrop-blur-md border border-white/20"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-mono text-white/95 bg-black/40 backdrop-blur-md border border-white/20"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 text-[#D4A467]" />
                     {item}
@@ -83,49 +85,66 @@ export default function VariantPinboardMorph({ onOpenPlanTrip }: VariantPinboard
               </div>
             </div>
 
-            {/* Right Col: Glass Action Island */}
+            {/* Right Col: Dark Premium Glass Action Island for High Contrast */}
             <div className="lg:col-span-5">
-              <VariantGlass
-                intensity="deep"
-                className="rounded-3xl p-6 sm:p-7 shadow-2xl border-white/80 dark:border-white/20"
+              <motion.div
+                onMouseEnter={() => setIsHoveredCard(true)}
+                onMouseLeave={() => setIsHoveredCard(false)}
+                animate={{
+                  y: isHoveredCard ? -3 : 0,
+                }}
+                transition={{ duration: 0.25 }}
+                className="relative rounded-3xl p-6 sm:p-7 transition-all duration-300 overflow-hidden"
+                style={{
+                  background: 'rgba(12, 12, 10, 0.78)',
+                  backdropFilter: 'blur(22px) saturate(120%)',
+                  WebkitBackdropFilter: 'blur(22px) saturate(120%)',
+                  border: '1px solid rgba(255, 255, 255, 0.16)',
+                  boxShadow: isHoveredCard
+                    ? '0 32px 85px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.14)'
+                    : '0 24px 70px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                }}
               >
+                {/* Subtle top edge crisp refraction highlight */}
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/10">
+                  <div className="flex items-center justify-between pb-3 border-b border-white/12">
                     <div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#6D665E] dark:text-[#B6ADA1] block">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#B8B0A4] block">
                         Duration
                       </span>
-                      <span className="text-base font-bold text-[#171512] dark:text-[#F5EFE6]">
+                      <span className="text-base font-bold text-[#F5EFE6]">
                         6 Nights · 7 Days
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#6D665E] dark:text-[#B6ADA1] block">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#B8B0A4] block">
                         From
                       </span>
-                      <span className="text-xl font-bold text-[#174E48] dark:text-[#D4A467]">
+                      <span className="text-xl font-bold text-[#D4A467]">
                         ₹24,999
                       </span>
-                      <span className="text-[10px] font-mono text-[#6D665E] dark:text-[#B6ADA1] block">
+                      <span className="text-[10px] font-mono text-[#B8B0A4] block">
                         per person
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#6D665E] dark:text-[#B6ADA1]">
+                  <p className="text-xs text-[#B8B0A4] leading-relaxed">
                     Chauffeur pickup, daily breakfast & dinner, confirmed stays, and direct human concierge.
                   </p>
 
                   <button
                     type="button"
                     onClick={() => onOpenPlanTrip('Kashmir')}
-                    className="w-full py-4 rounded-2xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-lg shadow-[#C85D3A]/30 transition-all duration-300 group"
+                    className="w-full py-4 rounded-2xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white font-bold text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-lg shadow-[#C85D3A]/35 transition-all duration-300 group cursor-pointer"
                   >
                     <span>EXPLORE KASHMIR</span>
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </button>
                 </div>
-              </VariantGlass>
+              </motion.div>
             </div>
           </div>
         </motion.div>
