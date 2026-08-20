@@ -15,24 +15,24 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   return (
-    <section id="moods" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#E8DED0]/40 dark:bg-[#0D0C0A] transition-colors duration-500">
+    <section id="moods" className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#FBF8F1]/60 dark:bg-[#151310] transition-colors duration-500">
       <div className="max-w-7xl mx-auto">
         {/* Section Header with Simple Plain Language */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C95D39] dark:text-[#E06A42] font-semibold">
+              <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
                 SCENE 04 · INTENT
               </span>
-              <span className="h-px w-6 bg-[#C95D39]/30" />
+              <span className="h-px w-6 bg-[#C85D3A]/30" />
             </div>
-            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#171512] dark:text-[#F4EEE4] leading-tight">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#171512] dark:text-[#F5EFE6] leading-tight">
               What kind of trip <br className="hidden sm:block" />
               do you want?
             </h2>
           </div>
 
-          <p className="text-sm sm:text-base text-[#756E64] dark:text-[#B3AA9E] max-w-md font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-[#6D665E] dark:text-[#B6ADA1] max-w-md font-normal leading-relaxed">
             Pick by the kind of break you need. Every trip is planned around how you and your companions actually travel.
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
 
                   <div
                     className={`w-7 h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white transition-transform duration-300 ${
-                      isHovered ? 'translate-x-0.5 -translate-y-0.5 bg-[#C95D39]' : ''
+                      isHovered ? 'translate-x-0.5 -translate-y-0.5 bg-[#C85D3A]' : ''
                     }`}
                   >
                     <ArrowUpRight className="w-3.5 h-3.5" />
@@ -99,7 +99,7 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
                     <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-none">
                       {tile.title}
                     </h3>
-                    <p className="text-[11px] text-[#E0B36E] font-medium tracking-wide mt-1">
+                    <p className="text-[11px] text-[#D4A467] font-medium tracking-wide mt-1">
                       {tile.subtitle}
                     </p>
                   </div>
@@ -111,7 +111,7 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
                     }`}
                   >
                     {tile.humorLine && (
-                      <p className="text-[10px] font-mono text-[#E0B36E] mb-1 font-semibold">
+                      <p className="text-[10px] font-mono text-[#D4A467] mb-1 font-semibold">
                         &ldquo;{tile.humorLine}&rdquo;
                       </p>
                     )}
@@ -120,7 +120,7 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
                     </p>
                     <div className="mt-2 pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-white/80">
                       <span>{tile.duration}</span>
-                      <span className="text-[#E0B36E] font-bold">from {tile.priceFrom}</span>
+                      <span className="text-[#D4A467] font-bold">from {tile.priceFrom}</span>
                     </div>
                   </VariantGlass>
                 </div>
