@@ -21,15 +21,18 @@
   --bg-primary: #F4EFE7;
   --bg-surface: #FBF8F1;
   --bg-surface-2: #FFFFFF;
+  --bg-card: #FFFFFF;
   --text-primary: #171512;
+  --text-secondary: #6D665E;
   --text-muted: #6D665E;
   --text-subtle: #8E877E;
-  --border-subtle: rgba(23, 21, 18, 0.10);
-  --border-card: rgba(23, 21, 18, 0.07);
+  --border-subtle: rgba(23, 21, 18, 0.12);
+  --border-card: rgba(23, 21, 18, 0.10);
   --accent: #C85D3A;
   --accent-hover: #B54F2E;
   --accent-soft: #D4A467;
   --teal-secondary: #174E48;
+  --brand-teal: #174E48;
 
   /* Layered Light Glass System */
   --glass-bg: rgba(255, 255, 255, 0.55);
@@ -45,15 +48,18 @@
   --bg-primary: #0D0C0A;
   --bg-surface: #151310;
   --bg-surface-2: #1C1916;
+  --bg-card: #1C1916;
   --text-primary: #F5EFE6;
+  --text-secondary: #B6ADA1;
   --text-muted: #B6ADA1;
   --text-subtle: #827A6E;
-  --border-subtle: rgba(245, 239, 230, 0.11);
-  --border-card: rgba(245, 239, 230, 0.07);
+  --border-subtle: rgba(245, 239, 230, 0.14);
+  --border-card: rgba(245, 239, 230, 0.10);
   --accent: #E16A43;
   --accent-hover: #ED7A53;
   --accent-soft: #C9A066;
   --teal-secondary: #1E5A53;
+  --brand-teal: #1E5A53;
 
   /* Layered Dark Glass System */
   --glass-bg: rgba(255, 255, 255, 0.07);
