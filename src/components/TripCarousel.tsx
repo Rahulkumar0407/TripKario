@@ -105,13 +105,12 @@ export default function TripCarousel({
         </div>
 
         {/* Carousel Controls & Progress Bar */}
-        <div className="flex items-center gap-5">
-          <div className="flex flex-col items-end gap-1.5">
-            <span className="text-xs font-mono tracking-widest text-[var(--text-muted)] font-semibold">
-              {activeIndex + 1 < 10 ? `0${activeIndex + 1}` : activeIndex + 1} /{' '}
-              {total < 10 ? `0${total}` : total}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-xs">
+            <span className="text-xs font-mono tracking-wider text-[var(--text-muted)] font-semibold">
+              {activeIndex + 1 < 10 ? `0${activeIndex + 1}` : activeIndex + 1} / {total < 10 ? `0${total}` : total}
             </span>
-            <div className="w-20 h-[1.5px] bg-[var(--border-subtle)] rounded-full overflow-hidden">
+            <div className="w-14 h-[2px] bg-[var(--border-subtle)] rounded-full overflow-hidden ml-1">
               <motion.div
                 style={{ width: `${progress}%` }}
                 className="h-full bg-[var(--accent)] transition-all ease-linear"
@@ -119,22 +118,24 @@ export default function TripCarousel({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <MagneticButton
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
               onClick={prevSlide}
               aria-label="Previous trip"
-              className="w-11 h-11 rounded-full glass-surface flex items-center justify-center text-[var(--text-primary)] hover:border-[var(--accent)] shadow-lg"
+              className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white text-[var(--text-primary)] border border-[var(--border-card)] flex items-center justify-center transition-colors shadow-xs cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-            </MagneticButton>
+            </button>
 
-            <MagneticButton
+            <button
+              type="button"
               onClick={nextSlide}
               aria-label="Next trip"
-              className="w-11 h-11 rounded-full glass-surface flex items-center justify-center text-[var(--text-primary)] hover:border-[var(--accent)] shadow-lg"
+              className="w-10 h-10 rounded-xl bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white text-[var(--text-primary)] border border-[var(--border-card)] flex items-center justify-center transition-colors shadow-xs cursor-pointer"
             >
               <ArrowRight className="w-4 h-4" />
-            </MagneticButton>
+            </button>
           </div>
         </div>
       </div>
@@ -157,11 +158,19 @@ export default function TripCarousel({
               initial={false}
               animate={{
                 x: `${position * 72}%`,
-                scale: isCenter ? 1 : 0.90,
-                rotateZ: position * 2,
-                opacity: isCenter ? 1 : 0.60,
-                filter: isCenter ? 'blur(0px)' : 'blur(1.5px)',
+                scale: isCenter ? 1 : 0.93,
+                rotateZ: position * 1.5,
+                opacity: isCenter ? 1 : 0.82,
+                filter: 'blur(0px)',
                 zIndex: isCenter ? 20 : 10,
+              }}
+              whileHover={{
+                y: -14,
+                scale: isCenter ? 1.025 : 0.98,
+                opacity: 1,
+                zIndex: 35,
+                boxShadow: '0 28px 70px -12px rgba(0, 0, 0, 0.35)',
+                transition: { duration: 0.25, ease: 'easeOut' },
               }}
               transition={{
                 type: 'spring',
@@ -186,7 +195,7 @@ export default function TripCarousel({
                 }
               }}
               data-cursor={isCenter ? 'EXPLORE' : 'VIEW'}
-              className="absolute w-[88vw] sm:w-[72vw] md:w-[62vw] max-w-[840px] bg-[var(--bg-surface)] rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] cursor-grab active:cursor-grabbing group select-none flex flex-col md:flex-row"
+              className="absolute w-[88vw] sm:w-[72vw] md:w-[62vw] max-w-[840px] bg-[var(--bg-surface)] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] cursor-pointer select-none flex flex-col md:flex-row transition-shadow duration-300"
             >
               {/* Image Column */}
               <div

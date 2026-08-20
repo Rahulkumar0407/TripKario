@@ -55,7 +55,7 @@ export default function WhyTripkario() {
             {pillars.map((p) => (
               <div
                 key={p.num}
-                className="p-6 sm:p-7 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-xs flex items-start gap-4 transition-all hover:shadow-md"
+                className="p-6 sm:p-7 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-xs flex items-start gap-4 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:border-[var(--accent)]/30 cursor-pointer"
               >
                 <span className="text-sm font-mono font-bold text-[var(--accent)] mt-0.5">
                   {p.num}
