@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import VariantGlass from './VariantGlass';
 import { variantHeroDestinations } from '@/data/variant/variantData';
 import { ArrowLeft, ArrowRight, Compass, CheckCircle2 } from 'lucide-react';
@@ -26,6 +26,9 @@ const destinationAtmospheres: Record<string, string> = {
 export default function VariantDestinationEditorial({
   onOpenPlanTrip,
 }: VariantDestinationEditorialProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { amount: 0.25 });
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [isHovered, setIsHovered] = useState(false);
@@ -47,9 +50,9 @@ export default function VariantDestinationEditorial({
     setProgress(0);
   }, [destinations.length]);
 
-  // Autoplay and continuous progress line
+  // Autoplay and continuous progress line (only active when section is in viewport)
   useEffect(() => {
-    if (isHovered) return;
+    if (!isInView || isHovered) return;
 
     const intervalStep = 50;
     const timer = setInterval(() => {
@@ -63,12 +66,13 @@ export default function VariantDestinationEditorial({
     }, intervalStep);
 
     return () => clearInterval(timer);
-  }, [isHovered, handleNext]);
+  }, [isInView, isHovered, handleNext]);
 
   const activeAtmosphere = destinationAtmospheres[activeDest.id] || 'rgba(200, 93, 58, 0.10)';
 
   return (
     <section
+      ref={sectionRef}
       id="destinations"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

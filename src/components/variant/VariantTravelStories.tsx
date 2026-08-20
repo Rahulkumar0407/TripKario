@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { testimonials, Testimonial } from '@/data/testimonials';
 import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 
@@ -58,6 +58,10 @@ const tripPhotographs: Record<string, { image: string; destination: string; rout
 };
 
 export default function VariantTravelStories() {
+  const sectionRef = useRef<HTMLElement>(null);
+  // Viewport trigger: only autoplay and trigger when the user scrolls to this section
+  const isInView = useInView(sectionRef, { amount: 0.25 });
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [isHovered, setIsHovered] = useState(false);
@@ -90,9 +94,9 @@ export default function VariantTravelStories() {
     setProgress(0);
   };
 
-  // Continuous frequent autoplay (3.5s cycle)
+  // Viewport-aware continuous autoplay (starts automatically when user stops at the review section)
   useEffect(() => {
-    if (isHovered) return;
+    if (!isInView || isHovered) return;
 
     const intervalStep = 40;
     const timer = setInterval(() => {
@@ -106,10 +110,11 @@ export default function VariantTravelStories() {
     }, intervalStep);
 
     return () => clearInterval(timer);
-  }, [isHovered, handleNext]);
+  }, [isInView, isHovered, handleNext]);
 
   return (
     <section
+      ref={sectionRef}
       id="stories"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
