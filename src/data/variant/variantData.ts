@@ -135,7 +135,7 @@ export const moodTiles: MoodTile[] = [
     subtitle: 'Short break. Big reset.',
     humorLine: 'Weekend aa gaya. Ab bahana kya hai?',
     description: 'Quick mountain chalets or heritage escapes just 3–5 hours away.',
-    image: 'https://images.unsplash.com/photo-1605649487212-47bdab064df8?q=90&w=1400&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=90&w=1400&auto=format&fit=crop',
     destinationHint: 'Himachal & Tirthan Valley',
     priceFrom: '₹14,999',
     duration: '2N / 3D',
