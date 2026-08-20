@@ -124,8 +124,8 @@ export const destinations: Destination[] = [
     tagline: 'Cedar forests, apple orchards & high Spiti valleys',
     description: 'Drive along the rugged Spiti river, sip steaming butter tea in remote mud-brick monasteries of Tabo, and stay in rustic cedar cottages overlooking apple orchards in Jibhi.',
     image: {
-      src: 'https://images.unsplash.com/photo-1605649487212-47bdab064df8?q=90&w=2600&auto=format&fit=crop',
-      alt: 'Old wooden Himalayan village home surrounded by cedar trees and snowy peaks in Himachal Pradesh',
+      src: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=85&w=2600&auto=format&fit=crop',
+      alt: 'Himalayan mountain village with cedar pine trees and snowy peaks in Himachal Pradesh',
       photographer: 'Nimit Nigam',
       source: 'Unsplash Editorial',
       license: 'Editorial / Commercial Stock',

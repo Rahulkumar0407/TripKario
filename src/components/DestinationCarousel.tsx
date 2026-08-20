@@ -23,6 +23,7 @@ export default function DestinationCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);
+  const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
 
   const total = destList.length;
@@ -42,7 +43,7 @@ export default function DestinationCarousel({
 
   // Autoplay with instant pause on interaction
   useEffect(() => {
-    if (isHovered) return;
+    if (isHovered || hoveredCardIdx !== null) return;
 
     const interval = 50;
     const step = (interval / AUTOPLAY_DURATION) * 100;
@@ -58,7 +59,7 @@ export default function DestinationCarousel({
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isHovered, activeIndex, total]);
+  }, [isHovered, hoveredCardIdx, activeIndex, total]);
 
   const activeDest = destList[activeIndex] || destList[0];
 
@@ -77,7 +78,10 @@ export default function DestinationCarousel({
     <section
       id="destinations"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setHoveredCardIdx(null);
+      }}
       className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-hidden relative"
     >
       {/* LAYER 1: Ambient Background Image & Color Wash (Scale 1.08, Blur 20px) */}
@@ -162,25 +166,44 @@ export default function DestinationCarousel({
 
           if (!isVisible) return null;
 
+          const isHoveredCard = hoveredCardIdx === idx;
+          const isAnyCardHovered = hoveredCardIdx !== null;
+
+          let cardOpacity = isCenter ? 1 : 0.82;
+          let cardScale = isCenter ? 1 : 0.93;
+          let cardY = 0;
+          let cardZIndex = isCenter ? 20 : 10;
+          let cardFilter = 'blur(0px) grayscale(0%) brightness(1)';
+
+          if (isHoveredCard) {
+            cardOpacity = 1;
+            cardScale = isCenter ? 1.03 : 0.98;
+            cardY = -14;
+            cardZIndex = 40;
+            cardFilter = 'blur(0px) grayscale(0%) brightness(1.05)';
+          } else if (isAnyCardHovered) {
+            cardOpacity = 0.35;
+            cardScale = isCenter ? 0.94 : 0.88;
+            cardY = 0;
+            cardZIndex = 5;
+            cardFilter = 'blur(1.5px) grayscale(35%) brightness(0.75)';
+          }
+
           return (
             <motion.div
               key={dest.id}
               initial={false}
               animate={{
                 x: `${position * 70}%`,
-                scale: isCenter ? 1 : 0.93,
+                scale: cardScale,
+                y: cardY,
                 rotateZ: position * 1.5,
-                opacity: isCenter ? 1 : 0.82,
-                zIndex: isCenter ? 20 : 10,
+                opacity: cardOpacity,
+                filter: cardFilter,
+                zIndex: cardZIndex,
               }}
-              whileHover={{
-                y: -14,
-                scale: isCenter ? 1.025 : 0.97,
-                opacity: 1,
-                zIndex: 35,
-                boxShadow: '0 28px 70px -12px rgba(0, 0, 0, 0.4)',
-                transition: { duration: 0.25, ease: 'easeOut' },
-              }}
+              onMouseEnter={() => setHoveredCardIdx(idx)}
+              onMouseLeave={() => setHoveredCardIdx(null)}
               transition={{
                 type: 'spring',
                 stiffness: 280,
