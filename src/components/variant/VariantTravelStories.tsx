@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { testimonials, Testimonial } from '@/data/testimonials';
-import { ArrowLeft, ArrowRight, Star, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
 
 const AUTOPLAY_DURATION = 3500; // Fast & lively 3.5s frequent transitions
 
@@ -116,8 +116,14 @@ export default function VariantTravelStories() {
       className="py-16 sm:py-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#F4EFE7] dark:bg-[#0D0C0A] transition-colors duration-500"
     >
       <div className="max-w-7xl mx-auto">
-        {/* Section Intro: Compact Editorial Heading */}
-        <div className="mb-8 sm:mb-10">
+        {/* Section Intro: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-8 sm:mb-10"
+        >
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
               TRAVELLER STORIES
@@ -130,10 +136,16 @@ export default function VariantTravelStories() {
           <p className="text-xs sm:text-sm text-[#6D665E] dark:text-[#B6ADA1] font-normal mt-1">
             A few words from people who travelled with us.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Main Composition: 55% Left Photo + Filmstrip & 45% Right Open Typography */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
+        {/* Main Composition: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.85, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start"
+        >
           {/* LEFT COLUMN: Large Travel Photo + Photo Filmstrip */}
           <div className="lg:col-span-7 space-y-4">
             {/* Main Authentic Travel Photograph with Cinematic Reveal */}
@@ -320,7 +332,7 @@ export default function VariantTravelStories() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

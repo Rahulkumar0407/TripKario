@@ -30,8 +30,14 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
       className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#FBF8F1]/70 dark:bg-[#151310] transition-colors duration-500"
     >
       <div className="max-w-7xl mx-auto">
-        {/* Section Header: Connected Editorial Relationship (#13) */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-6 max-w-5xl">
+        {/* Section Header: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-16 gap-6 max-w-5xl"
+        >
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
@@ -50,7 +56,7 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
               Pick by the break you need. Every journey is planned around how you and your companions actually travel.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Visual Hierarchy Grid: 1 Featured + 2 Medium + 3 Supporting Cards (#14) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
@@ -98,73 +104,49 @@ export default function VariantMoodTiles({ onSelectMood }: VariantMoodTilesProps
                     alt={tile.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    className={`object-cover transition-transform duration-700 ease-out ${
-                      isHovered ? 'scale-106' : 'scale-100'
-                    }`}
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
-                  {/* Localized Bottom Gradient Protection (top bright, lower 50% shaded for contrast) */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10" />
                 </div>
 
-                {/* Top Row: Pill Tag + Featured Badge + Arrow CTA */}
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <VariantGlass
-                      intensity="pill"
-                      className="rounded-full px-3 py-1 text-[9px] font-mono text-white tracking-widest uppercase bg-black/40 backdrop-blur-md border-white/20"
-                    >
-                      {tile.tag}
-                    </VariantGlass>
-
-                    {isFeatured && (
-                      <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#C85D3A] text-white text-[9px] font-mono tracking-wider font-semibold shadow-sm">
-                        <Sparkles className="w-2.5 h-2.5 text-[#D4A467]" />
-                        FEATURED
-                      </span>
-                    )}
-                  </div>
-
-                  <div
-                    className={`w-8 h-8 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center text-white transition-all duration-300 ${
-                      isHovered ? 'translate-x-0.5 -translate-y-0.5 bg-[#C85D3A]' : ''
-                    }`}
+                {/* Top Row: Tag + Featured Badge (#17) */}
+                <div className="relative z-10 flex items-center justify-between gap-2">
+                  <VariantGlass
+                    intensity="pill"
+                    className="rounded-full px-3 py-1 text-[11px] font-mono tracking-wider text-white uppercase border-white/20"
                   >
-                    <ArrowUpRight className="w-4 h-4" />
-                  </div>
+                    {tile.tag}
+                  </VariantGlass>
+
+                  {isFeatured && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#C85D3A] text-white text-[10px] font-mono uppercase font-bold tracking-wider shadow-sm flex items-center gap-1">
+                      <Sparkles className="w-2.5 h-2.5" />
+                      Popular
+                    </span>
+                  )}
                 </div>
 
-                {/* Bottom Row: Structured Compact Glass Caption (#17) */}
-                <div className="relative z-10 space-y-2.5">
+                {/* Bottom Content: Connected Text & Action (#18) */}
+                <div className="relative z-10 space-y-2">
                   <div>
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-none drop-shadow-sm">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight uppercase">
                       {tile.title}
                     </h3>
-                    <p className="text-xs text-[#D4A467] font-medium tracking-wide mt-1 drop-shadow-sm">
+                    <p className="text-xs sm:text-sm text-white/85 font-normal leading-relaxed line-clamp-2 mt-1">
                       {tile.subtitle}
                     </p>
                   </div>
 
-                  {/* Refined Translucent Glass Panel */}
-                  <VariantGlass
-                    intensity="photo"
-                    className={`rounded-2xl p-3 sm:p-3.5 border-white/25 transition-all duration-300 ${
-                      isHovered ? 'translate-y-[-2px] shadow-lg' : ''
-                    }`}
-                  >
-                    {tile.humorLine && (
-                      <p className="text-[10px] font-mono text-[#D4A467] mb-1 font-semibold truncate">
-                        &ldquo;{tile.humorLine}&rdquo;
-                      </p>
-                    )}
-                    <p className="text-[11px] text-white/90 leading-snug line-clamp-2">
-                      {tile.description}
-                    </p>
+                  <div className="flex items-center justify-between pt-2 border-t border-white/15">
+                    <span className="text-[11px] font-mono text-[#D4A467] flex items-center gap-1">
+                      <Compass className="w-3 h-3 text-[#C85D3A]" />
+                      {tile.destinationHint}
+                    </span>
 
-                    <div className="mt-2.5 pt-2 border-t border-white/15 flex items-center justify-between text-[10px] font-mono text-white/85">
-                      <span>{tile.duration}</span>
-                      <span className="text-[#D4A467] font-bold">from {tile.priceFrom}</span>
-                    </div>
-                  </VariantGlass>
+                    <span className="w-7 h-7 rounded-full bg-white/20 group-hover:bg-[#C85D3A] text-white flex items-center justify-center transition-all duration-300 group-hover:translate-x-0.5">
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             );

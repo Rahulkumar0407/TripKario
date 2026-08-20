@@ -14,8 +14,14 @@ export default function VariantBrandStory() {
   return (
     <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#F4EFE7] dark:bg-[#0D0C0A] transition-colors duration-500">
       <div className="max-w-7xl mx-auto">
-        {/* Section Header with Giant Editorial Statement */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-14 sm:mb-18">
+        {/* Section Header with Giant Editorial Statement: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mb-14 sm:mb-18"
+        >
           <div className="lg:col-span-7">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
@@ -54,10 +60,16 @@ export default function VariantBrandStory() {
               </div>
             </VariantGlass>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Interactive Perspectives Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#151310] rounded-3xl p-6 sm:p-10 lg:p-12 shadow-[0_24px_70px_rgba(23,21,18,0.08)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.6)] border border-black/5 dark:border-white/10">
+        {/* Interactive Perspectives Layout: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.85, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#151310] rounded-3xl p-6 sm:p-10 lg:p-12 shadow-[0_24px_70px_rgba(23,21,18,0.08)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.6)] border border-black/5 dark:border-white/10"
+        >
           {/* Left Col: Perspectives Selector Tabs */}
           <div className="lg:col-span-5 space-y-4">
             <div className="space-y-2">
@@ -67,7 +79,7 @@ export default function VariantBrandStory() {
                   <button
                     key={persp.id}
                     onClick={() => setActivePerspIdx(idx)}
-                    className={`w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center justify-between ${
+                    className={`w-full text-left p-4 rounded-2xl transition-all duration-300 flex items-center justify-between cursor-pointer ${
                       isActive
                         ? 'bg-[#174E48] text-white dark:bg-[#1E5A53] shadow-md'
                         : 'text-[#171512] dark:text-[#F5EFE6] hover:bg-black/5 dark:hover:bg-white/5'
@@ -144,7 +156,7 @@ export default function VariantBrandStory() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

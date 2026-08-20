@@ -33,8 +33,14 @@ export default function VariantItineraryEditorial() {
       className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#FBF8F1]/60 dark:bg-[#151310] transition-colors duration-500"
     >
       <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-6">
+        {/* Section Header: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-6"
+        >
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
@@ -51,17 +57,23 @@ export default function VariantItineraryEditorial() {
           <p className="text-sm sm:text-base text-[#6D665E] dark:text-[#B6ADA1] max-w-md font-normal leading-relaxed">
             No 5:00 AM rush. No chaos. Here is what an actual 4-day unhurried journey feels like on the ground.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Day Selector Navigation Pills */}
-        <div className="flex flex-wrap gap-2 sm:gap-3 mb-8 pb-2 border-b border-black/5 dark:border-white/10">
+        {/* Day Selector Navigation Pills: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="flex flex-wrap gap-2 sm:gap-3 mb-8 pb-2 border-b border-black/5 dark:border-white/10"
+        >
           {variantItineraryDays.map((day, idx) => {
             const isActive = idx === activeDayIdx;
             return (
               <button
                 key={day.dayNum}
                 onClick={() => setActiveDayIdx(idx)}
-                className={`relative px-4 sm:px-6 py-3 rounded-2xl text-xs sm:text-sm font-mono tracking-wider transition-all duration-300 flex items-center gap-2 ${
+                className={`relative px-4 sm:px-6 py-3 rounded-2xl text-xs sm:text-sm font-mono tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer ${
                   isActive
                     ? 'text-white font-bold bg-[#174E48] dark:bg-[#1E5A53] shadow-lg shadow-[#174E48]/25'
                     : 'text-[#6D665E] dark:text-[#B6ADA1] hover:text-[#171512] dark:hover:text-white bg-white/70 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10'
@@ -72,10 +84,16 @@ export default function VariantItineraryEditorial() {
               </button>
             );
           })}
-        </div>
+        </motion.div>
 
-        {/* Day Showcase Layout: Storytelling Flow */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#1C1916] rounded-3xl p-6 sm:p-10 lg:p-12 shadow-[0_24px_70px_rgba(23,21,18,0.08)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.6)] border border-black/5 dark:border-white/10">
+        {/* Day Showcase Layout: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.85, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-white dark:bg-[#1C1916] rounded-3xl p-6 sm:p-10 lg:p-12 shadow-[0_24px_70px_rgba(23,21,18,0.08)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.6)] border border-black/5 dark:border-white/10"
+        >
           {/* Left Col: Day Typography & Timing */}
           <div className="lg:col-span-6 space-y-5">
             <AnimatePresence mode="wait">
@@ -180,7 +198,7 @@ export default function VariantItineraryEditorial() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

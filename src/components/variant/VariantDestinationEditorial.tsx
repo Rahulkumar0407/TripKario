@@ -83,8 +83,14 @@ export default function VariantDestinationEditorial({
       />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Section Header: Clean Editorial Relationship with Integrated Controls (No isolated pill box) */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-6">
+        {/* Section Header: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-6"
+        >
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
@@ -124,10 +130,16 @@ export default function VariantDestinationEditorial({
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Physical Photo Stack Showcase Container */}
-        <div className="relative min-h-[580px] sm:min-h-[640px] lg:min-h-[680px] rounded-3xl overflow-hidden border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#12120A] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14">
+        {/* Physical Photo Stack Showcase Container: Scroll Triggered */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="relative min-h-[580px] sm:min-h-[640px] lg:min-h-[680px] rounded-3xl overflow-hidden border-4 sm:border-8 border-white dark:border-[#1F1C18] bg-[#12120A] shadow-[0_30px_90px_rgba(23,21,18,0.12)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.7)] flex flex-col justify-between p-6 sm:p-10 lg:p-14"
+        >
           {/* Animated Background Photograph Layer with Storytelling Flow */}
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -306,7 +318,7 @@ export default function VariantDestinationEditorial({
               />
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
