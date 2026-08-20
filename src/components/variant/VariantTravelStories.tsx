@@ -4,11 +4,11 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { testimonials, Testimonial } from '@/data/testimonials';
-import { ArrowLeft, ArrowRight, Star } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Star, Sparkles } from 'lucide-react';
 
-const AUTOPLAY_DURATION = 5000; // 5 seconds per memory (#11)
+const AUTOPLAY_DURATION = 3500; // Fast & lively 3.5s frequent transitions
 
-// Authentic trip destination photography matching each traveller's journey (#06 & #09)
+// Authentic trip destination photography matching each traveller's journey
 const tripPhotographs: Record<string, { image: string; destination: string; route: string }> = {
   't-abhishek-goswami': {
     image: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1600&auto=format&fit=crop',
@@ -90,11 +90,11 @@ export default function VariantTravelStories() {
     setProgress(0);
   };
 
-  // Autoplay with continuous 5.0s progress line (#11, #24)
+  // Continuous frequent autoplay (3.5s cycle)
   useEffect(() => {
     if (isHovered) return;
 
-    const intervalStep = 50;
+    const intervalStep = 40;
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -116,7 +116,7 @@ export default function VariantTravelStories() {
       className="py-16 sm:py-24 px-4 sm:px-6 lg:px-12 relative overflow-hidden bg-[#F4EFE7] dark:bg-[#0D0C0A] transition-colors duration-500"
     >
       <div className="max-w-7xl mx-auto">
-        {/* Section Intro: Compact Editorial Heading (#03) */}
+        {/* Section Intro: Compact Editorial Heading */}
         <div className="mb-8 sm:mb-10">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E16A43] font-semibold">
@@ -132,32 +132,35 @@ export default function VariantTravelStories() {
           </p>
         </div>
 
-        {/* Main Composition: 55% Left Photo + Filmstrip & 45% Right Open Typography (#04, #05, #08, #25) */}
+        {/* Main Composition: 55% Left Photo + Filmstrip & 45% Right Open Typography */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-start">
-          {/* LEFT COLUMN: Large Travel Photo + Photo Filmstrip (#06, #07, #09) */}
+          {/* LEFT COLUMN: Large Travel Photo + Photo Filmstrip */}
           <div className="lg:col-span-7 space-y-4">
-            {/* Main Authentic Travel Photograph (#06, #07, #12, #13) */}
+            {/* Main Authentic Travel Photograph with Cinematic Reveal */}
             <div className="relative w-full aspect-[4/3] sm:aspect-[16/11] rounded-[24px] overflow-hidden bg-[#12120A] shadow-[0_20px_60px_rgba(23,21,18,0.10)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.65)] border border-black/5 dark:border-white/10">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={currentStory.id}
                   initial={{
-                    opacity: 0.35,
-                    scale: 0.97,
-                    x: direction === 1 ? 65 : -65,
+                    opacity: 0.2,
+                    scale: 1.05,
+                    x: direction === 1 ? 55 : -55,
+                    filter: 'blur(4px)',
                   }}
                   animate={{
                     opacity: 1,
                     scale: 1,
                     x: 0,
+                    filter: 'blur(0px)',
                   }}
                   exit={{
-                    opacity: 0.35,
-                    scale: 0.97,
-                    x: direction === 1 ? -55 : 55,
+                    opacity: 0.2,
+                    scale: 0.96,
+                    x: direction === 1 ? -50 : 50,
+                    filter: 'blur(4px)',
                   }}
                   transition={{
-                    duration: 0.75,
+                    duration: 0.65,
                     ease: [0.16, 1, 0.3, 1],
                   }}
                   className="absolute inset-0 w-full h-full"
@@ -177,18 +180,18 @@ export default function VariantTravelStories() {
 
               {/* Small Glass Destination Label on Image */}
               <div className="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
-                <span className="px-3.5 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase bg-black/45 backdrop-blur-md text-white border border-white/20 font-bold">
+                <span className="px-3.5 py-1 rounded-full text-[10px] font-mono tracking-widest uppercase bg-black/50 backdrop-blur-md text-white border border-white/20 font-bold">
                   {photoMeta.destination} · {photoMeta.route.split('→')[0].trim()}
                 </span>
-                <span className="text-[10px] font-mono text-white/80 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 hidden sm:inline-block">
+                <span className="text-[10px] font-mono text-white/90 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 hidden sm:inline-block">
                   TripKario Travel Archive
                 </span>
               </div>
             </div>
 
-            {/* Photo Filmstrip: Contact Sheet of Upcoming Memories (#09, #10, #25) */}
+            {/* Photo Filmstrip: Contact Sheet of Upcoming Memories */}
             <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar pt-1">
-              {stories.slice(0, 6).map((story, idx) => {
+              {stories.map((story, idx) => {
                 const isSelected = idx === currentIndex;
                 const thumbMeta = tripPhotographs[story.id] || photoMeta;
 
@@ -200,8 +203,8 @@ export default function VariantTravelStories() {
                     aria-label={`View memory by ${story.name}`}
                     className={`relative shrink-0 w-16 sm:w-20 aspect-[4/3] rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
                       isSelected
-                        ? 'ring-2 ring-[#C85D3A] ring-offset-2 ring-offset-[#F4EFE7] dark:ring-offset-[#0D0C0A] opacity-100 scale-102'
-                        : 'opacity-40 hover:opacity-80'
+                        ? 'ring-2 ring-[#C85D3A] ring-offset-2 ring-offset-[#F4EFE7] dark:ring-offset-[#0D0C0A] opacity-100 scale-105 shadow-md'
+                        : 'opacity-40 hover:opacity-85'
                     }`}
                   >
                     <Image
@@ -211,9 +214,9 @@ export default function VariantTravelStories() {
                       sizes="80px"
                       className="object-cover"
                     />
-                    {/* Active Thin Terracotta Indicator */}
+                    {/* Active Indicator */}
                     {isSelected && (
-                      <div className="absolute bottom-0 inset-x-0 h-[2.5px] bg-[#C85D3A]" />
+                      <div className="absolute bottom-0 inset-x-0 h-[3px] bg-[#C85D3A]" />
                     )}
                   </button>
                 );
@@ -221,51 +224,71 @@ export default function VariantTravelStories() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Open Editorial Typography & Integrated Controls (#05, #14, #15, #16, #21, #22) */}
+          {/* RIGHT COLUMN: Open Editorial Typography & Integrated Controls */}
           <div className="lg:col-span-5 flex flex-col justify-between self-stretch space-y-6 pt-2">
-            {/* The Real Testimonial Quote with Line Reveal (#14, #15) */}
-            <div className="space-y-4">
+            {/* The Real Testimonial Quote with Line Reveal Animation */}
+            <div className="min-h-[140px] sm:min-h-[160px] flex items-center">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={currentStory.id}
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -14 }}
-                  transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                  initial={{ opacity: 0, y: 16, filter: 'blur(3px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -14, filter: 'blur(2px)' }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="space-y-3"
                 >
                   <blockquote className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#171512] dark:text-[#F5EFE6] tracking-tight leading-[1.3] drop-shadow-sm">
                     &ldquo;{currentStory.quote}&rdquo;
                   </blockquote>
+
+                  {currentStory.highlight && (
+                    <p className="text-xs font-mono text-[#C85D3A] dark:text-[#E16A43] font-semibold">
+                      ✦ {currentStory.highlight}
+                    </p>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </div>
 
-            {/* Traveller Identity, Rating & Integrated Editorial Controls (#16, #21, #22, #24) */}
+            {/* Traveller Identity, Rating & Integrated Editorial Controls */}
             <div className="space-y-5 pt-4 border-t border-black/5 dark:border-white/10">
-              {/* Name & Trip */}
-              <div>
-                <h3 className="text-base sm:text-lg font-bold text-[#171512] dark:text-white tracking-tight uppercase">
-                  {currentStory.name}
-                </h3>
-                <p className="text-xs font-mono text-[#6D665E] dark:text-[#B6ADA1] mt-0.5">
-                  {currentStory.trip || currentStory.tripDestination}
-                </p>
-                {/* Genuine 5-Star Rating (#16) */}
-                <div className="flex text-[#D4A467] mt-1.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                  ))}
-                </div>
-              </div>
+              {/* Name & Trip with Stagger Animation */}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={currentStory.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.35, delay: 0.1 }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base sm:text-lg font-bold text-[#171512] dark:text-white tracking-tight uppercase">
+                        {currentStory.name}
+                      </h3>
+                      <p className="text-xs font-mono text-[#6D665E] dark:text-[#B6ADA1] mt-0.5">
+                        {currentStory.trip || currentStory.tripDestination}
+                      </p>
+                    </div>
 
-              {/* Integrated Editorial Controls: 01 / 09 ——————— ← → (#21, #22, #24) */}
+                    {/* Genuine 5-Star Rating */}
+                    <div className="flex text-[#D4A467]">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Integrated Editorial Controls: 01 / 09 ——————— ← → */}
               <div className="flex items-center justify-between gap-4 pt-2">
                 <div className="flex items-center gap-3">
                   <span className="text-xs font-mono font-bold text-[#171512] dark:text-white tracking-widest">
                     {String(currentIndex + 1).padStart(2, '0')} / {String(stories.length).padStart(2, '0')}
                   </span>
 
-                  {/* Minimal Progress Line (#24) */}
+                  {/* Frequent Transition Progress Line */}
                   <div className="w-24 sm:w-36 h-[2px] bg-black/10 dark:bg-white/15 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#C85D3A] transition-all duration-75 ease-linear rounded-full"
@@ -274,7 +297,7 @@ export default function VariantTravelStories() {
                   </div>
                 </div>
 
-                {/* Standalone Editorial Arrows (#21, #22) */}
+                {/* Standalone Editorial Arrows */}
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
