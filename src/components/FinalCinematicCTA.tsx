@@ -130,7 +130,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
             className="border border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-8 h-13 glass-surface flex items-center font-medium"
           >
             <MessageCircle className="w-4 h-4 text-[#E46B3B]" />
-            <span>TALK TO AN EXPERT</span>
+            <span>TALK TO US</span>
           </MagneticButton>
         </motion.div>
 

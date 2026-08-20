@@ -66,7 +66,7 @@ export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
               className="border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-8 h-12"
             >
               <MessageCircle className="w-4 h-4 text-[#E86A3A]" />
-              <span>WHATSAPP AN EXPERT</span>
+              <span>CHAT ON WHATSAPP</span>
             </Button>
           </div>
         </div>

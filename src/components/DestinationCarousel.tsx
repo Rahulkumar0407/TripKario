@@ -8,18 +8,24 @@ import { destinations } from '@/data/destinations';
 import { formatPrice } from '@/lib/utils';
 import GlassSurface from './ui/GlassSurface';
 import MagneticButton from './ui/MagneticButton';
+import type { Destination } from '@/types';
 
 interface DestinationCarouselProps {
+  destinations?: Destination[];
   onSelectDestination: (destName: string) => void;
 }
 
-export default function DestinationCarousel({ onSelectDestination }: DestinationCarouselProps) {
+export default function DestinationCarousel({
+  destinations: destinationsProp,
+  onSelectDestination,
+}: DestinationCarouselProps) {
+  const destList = destinationsProp && destinationsProp.length > 0 ? destinationsProp : destinations;
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const total = destinations.length;
+  const total = destList.length;
   const AUTOPLAY_DURATION = 6000;
 
   const nextSlide = () => {
@@ -52,9 +58,9 @@ export default function DestinationCarousel({ onSelectDestination }: Destination
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isHovered, activeIndex]);
+  }, [isHovered, activeIndex, total]);
 
-  const activeDest = destinations[activeIndex];
+  const activeDest = destList[activeIndex] || destList[0];
 
   // Ambient atmosphere wash per destination
   const ambientGlowColors: Record<string, string> = {
@@ -145,7 +151,7 @@ export default function DestinationCarousel({ onSelectDestination }: Destination
 
       {/* LAYER 2 & 3: Layered 3D Depth Carousel Container with Momentum Physics */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[460px] sm:min-h-[540px] flex items-center justify-center">
-        {destinations.map((dest, idx) => {
+        {destList.map((dest, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;
           if (position > 2) position -= total;

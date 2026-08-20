@@ -147,9 +147,16 @@ function TestimonialCard({ item }: TestimonialCardProps) {
   );
 }
 
-export default function Testimonials() {
+interface TestimonialsProps {
+  testimonials?: Testimonial[];
+}
+
+export default function Testimonials({
+  testimonials: testimonialsProp,
+}: TestimonialsProps = {}) {
+  const testList = testimonialsProp && testimonialsProp.length > 0 ? testimonialsProp : testimonials;
   // Duplicate array for seamless continuous 100% infinite marquee loop
-  const marqueeItems = [...testimonials, ...testimonials];
+  const marqueeItems = [...testList, ...testList];
 
   return (
     <section className="py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]">

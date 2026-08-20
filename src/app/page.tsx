@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CustomCursor from '@/components/CustomCursor';
 import Preloader from '@/components/Preloader';
 import Navbar from '@/components/Navbar';
@@ -21,10 +21,19 @@ import Footer from '@/components/Footer';
 import TravelChatbot from '@/components/TravelChatbot';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import PlanTripModal from '@/components/PlanTripModal';
+import { getHomepageData, HomepageData } from '@/lib/supabase/homepageData';
 
 export default function Home() {
+  const [data, setData] = useState<HomepageData | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [preselectedDestination, setPreselectedDestination] = useState<string | undefined>(undefined);
+
+  // Load published database data with instant static fallback
+  useEffect(() => {
+    getHomepageData().then((res) => {
+      setData(res);
+    });
+  }, []);
 
   const handleOpenPlanTrip = (destination?: string) => {
     setPreselectedDestination(destination);
@@ -51,6 +60,13 @@ export default function Home() {
     }
   };
 
+  // Helper for section visibility controlled from Admin Homepage Manager
+  const isSectionActive = (key: string) => {
+    if (!data?.sections) return true;
+    const sec = data.sections.find((s) => s.key === key);
+    return sec ? sec.isActive : true;
+  };
+
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-500 relative">
       {/* Desktop Custom Cursor */}
@@ -62,57 +78,70 @@ export default function Home() {
       {/* Floating Glass Navigation */}
       <Navbar onOpenPlanTrip={() => handleOpenPlanTrip()} />
 
-      {/* 01. HERO CAROUSEL: Dynamic Destination Showcase */}
-      <Hero
-        onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)}
-        onSearch={handleSearchFilter}
-      />
+      {/* 01. HERO CAROUSEL: Dynamic Destination Showcase (Database-Driven) */}
+      {isSectionActive('hero') && (
+        <Hero
+          slides={data?.heroSlides}
+          onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)}
+          onSearch={handleSearchFilter}
+        />
+      )}
 
-      {/* 02. CURATED TRIPS: Discovery & Focus States + Quick View Glass Sheet */}
-      <TripCarousel onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)} />
+      {/* 02. CURATED TRIPS: Discovery & Focus States (Database-Driven) */}
+      {isSectionActive('featured_trips') && (
+        <TripCarousel
+          trips={data?.trips}
+          onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)}
+        />
+      )}
 
-      {/* 03. DESTINATION CAROUSEL: 3D Layered Depth + Ambient Lighting */}
-      <DestinationCarousel
-        onSelectDestination={(dest) => handleOpenPlanTrip(dest)}
-      />
+      {/* 03. DESTINATION CAROUSEL: 3D Layered Depth (Database-Driven) */}
+      {isSectionActive('destinations') && (
+        <DestinationCarousel
+          destinations={data?.destinations}
+          onSelectDestination={(dest) => handleOpenPlanTrip(dest)}
+        />
+      )}
 
       {/* 04. NEW SCENE: THE TRIPKARIO FIELD NOTES (Horizontal Photographic Strip) */}
-      <PhotoStrip />
+      {isSectionActive('field_notes') && <PhotoStrip />}
 
       {/* 05. INDIA TERRITORY STORY: North, West, South, Northeast Editorial Stories */}
-      <IndiaStory
-        onSelectDestination={(dest) => handleOpenPlanTrip(dest)}
-      />
+      {isSectionActive('travel_styles') && (
+        <IndiaStory onSelectDestination={(dest) => handleOpenPlanTrip(dest)} />
+      )}
 
       {/* 06. MICRO-MOMENT: SURPRISE ME */}
-      <SurpriseMeCTA
-        onSelectDestination={(dest) => handleOpenPlanTrip(dest)}
-      />
+      <SurpriseMeCTA onSelectDestination={(dest) => handleOpenPlanTrip(dest)} />
 
       {/* 07. STICKY ITINERARY: What the Journey Actually Feels Like */}
       <ItineraryStory />
 
       {/* 08. CONVERSATIONAL MATCHER */}
-      <TripMatcher
-        onSelectTrip={(dest) => handleOpenPlanTrip(dest)}
-      />
+      <TripMatcher onSelectTrip={(dest) => handleOpenPlanTrip(dest)} />
 
       {/* 09. TRAVELLER STORIES: Real Photography + Glass Review Overlays */}
       <TravellerStories />
 
-      {/* 10. GOOGLE REVIEWS TESTIMONIALS: Smooth Moving Right-to-Left Ticker */}
-      <Testimonials />
+      {/* 10. GOOGLE REVIEWS TESTIMONIALS: Smooth Moving Right-to-Left Ticker (Database-Driven) */}
+      {isSectionActive('testimonials') && (
+        <Testimonials testimonials={data?.testimonials} />
+      )}
 
       {/* 11. PHILOSOPHY: You Enjoy the Trip. We Handle the Chaos. */}
-      <WhyTripkario />
+      {isSectionActive('team') && <WhyTripkario />}
 
-      {/* 11. BESPOKE CUSTOM TRIP: Your Route. Your Rules. */}
-      <CustomJourney onOpenPlanTrip={() => handleOpenPlanTrip()} />
+      {/* 12. BESPOKE CUSTOM TRIP: Your Route. Your Rules. */}
+      {isSectionActive('custom_trip') && (
+        <CustomJourney onOpenPlanTrip={() => handleOpenPlanTrip()} />
+      )}
 
-      {/* 12. FINAL DEPARTURE: Ready to Go Somewhere? */}
-      <FinalCinematicCTA onOpenPlanTrip={() => handleOpenPlanTrip()} />
+      {/* 13. FINAL DEPARTURE: Ready to Go Somewhere? */}
+      {isSectionActive('final_cta') && (
+        <FinalCinematicCTA onOpenPlanTrip={() => handleOpenPlanTrip()} />
+      )}
 
-      {/* 13. MINIMAL FOOTER */}
+      {/* 14. MINIMAL FOOTER */}
       <Footer />
 
       {/* Floating Concierge & Subtle WhatsApp */}

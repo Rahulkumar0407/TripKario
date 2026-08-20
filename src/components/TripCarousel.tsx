@@ -18,10 +18,15 @@ import { formatPrice } from '@/lib/utils';
 import TripDetailModal from './TripDetailModal';
 
 interface TripCarouselProps {
+  trips?: TripPackage[];
   onOpenPlanTrip: (destination?: string) => void;
 }
 
-export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
+export default function TripCarousel({
+  trips: tripsProp,
+  onOpenPlanTrip,
+}: TripCarouselProps) {
+  const tripsList = tripsProp && tripsProp.length > 0 ? tripsProp : tripPackages;
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);
@@ -29,7 +34,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
   const [quickViewTrip, setQuickViewTrip] = useState<TripPackage | null>(null);
   const [activeModalTrip, setActiveModalTrip] = useState<TripPackage | null>(null);
 
-  const total = tripPackages.length;
+  const total = tripsList.length;
   const AUTOPLAY_DURATION = 7000;
 
   const nextSlide = () => {
@@ -61,9 +66,9 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isHovered, activeIndex, quickViewTrip, activeModalTrip]);
+  }, [isHovered, activeIndex, quickViewTrip, activeModalTrip, total]);
 
-  const activeTrip = tripPackages[activeIndex];
+  const activeTrip = tripsList[activeIndex] || tripsList[0];
 
   // Ambient atmosphere washes per destination
   const ambientGlowColors: Record<string, string> = {
@@ -136,7 +141,7 @@ export default function TripCarousel({ onOpenPlanTrip }: TripCarouselProps) {
 
       {/* Layered Package Carousel Container with Spring Physics */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[500px] sm:min-h-[580px] flex items-center justify-center">
-        {tripPackages.map((trip, idx) => {
+        {tripsList.map((trip, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;
           if (position > 2) position -= total;

@@ -38,14 +38,14 @@ export default function PlanTripModal({
   };
 
   const handleWhatsAppHandoff = () => {
-    const text = `Hi Tripkario! I would like to plan a custom holiday:
+    const text = `Hi TripKario! I would like to plan a custom trip:
 • Destination: ${destination || 'Flexible'}
 • Duration: ${duration}
 • Travellers: ${travellerCount}
 • Budget: ${budget}
 • Notes: ${notes || 'None'}
 
-Please share availability and customized itinerary quote.`;
+Please share availability and a day-by-day plan.`;
 
     openWhatsApp(text);
     onClose();
@@ -56,10 +56,10 @@ Please share availability and customized itinerary quote.`;
       <DialogContent className="max-w-lg p-6 sm:p-8">
         <DialogHeader>
           <Badge variant="secondary" className="w-fit mb-1">
-            Bespoke Custom Plan
+            Custom Trip Plan
           </Badge>
           <DialogTitle className="text-xl">
-            {submitted ? 'Request Received' : 'Plan your ideal holiday'}
+            {submitted ? 'Request Received' : 'Plan your trip'}
           </DialogTitle>
         </DialogHeader>
 
@@ -70,7 +70,7 @@ Please share availability and customized itinerary quote.`;
             </div>
             <h4 className="text-base font-serif font-medium mb-1">We are on it!</h4>
             <p className="text-xs text-[var(--text-secondary)] mb-6 max-w-sm mx-auto">
-              Our destination specialist is preparing a customized itinerary. For instant assistance, connect on WhatsApp directly.
+              Our travel specialist is preparing a customized day-by-day plan. Connect on WhatsApp for instant assistance.
             </p>
             <Button
               variant="saffron"
@@ -85,10 +85,10 @@ Please share availability and customized itinerary quote.`;
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div>
               <label className="block text-[11px] font-mono uppercase text-[var(--text-secondary)] mb-1">
-                Where would you like to go?
+                Where do you want to go?
               </label>
               <Input
-                placeholder="e.g. Kashmir, Rajasthan, Kerala, Goa"
+                placeholder="e.g. Kashmir, Rajasthan, Kerala, Meghalaya, Ladakh"
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
               />
@@ -134,7 +134,7 @@ Please share availability and customized itinerary quote.`;
                 Any specific preferences or dates?
               </label>
               <Textarea
-                placeholder="Preferred hotels, food preferences, flight requirements..."
+                placeholder="Preferred stays, quiet mornings, scenic breaks..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -148,7 +148,7 @@ Please share availability and customized itinerary quote.`;
                 className="flex-1 gap-2"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Send to WhatsApp</span>
+                <span>Chat on WhatsApp</span>
               </Button>
 
               <Button

@@ -164,6 +164,7 @@ const SCENE_SETTLED = {
 // ════════════════════════════════════════════════════════════════
 
 interface HeroProps {
+  slides?: HeroDestination[];
   onOpenPlanTrip: (destination?: string) => void;
   onSearch: (filters: {
     destination: string;
@@ -173,7 +174,10 @@ interface HeroProps {
   }) => void;
 }
 
-export default function Hero({ onOpenPlanTrip, onSearch }: HeroProps) {
+export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
+  const slidesList = slides && slides.length > 0 ? slides : heroDestinations;
+  const slideCount = slidesList.length;
+
   // ── Scene State ──────────────────────────────────────────────
   const [activeIdx, setActiveIdx] = useState(0);
   const [exitingIdx, setExitingIdx] = useState<number | null>(null);
@@ -217,9 +221,9 @@ export default function Hero({ onOpenPlanTrip, onSearch }: HeroProps) {
   const scrollInviteOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
 
   // ── Derived ──────────────────────────────────────────────────
-  const current = heroDestinations[activeIdx] ?? heroDestinations[0];
+  const current = slidesList[activeIdx] ?? slidesList[0];
   const exiting =
-    exitingIdx !== null ? heroDestinations[exitingIdx] : null;
+    exitingIdx !== null ? slidesList[exitingIdx] : null;
 
   // Pre-transition anticipation: ~500ms before auto-transition (>93% progress)
   const isAnticipating = sceneProgress > 93;
@@ -257,20 +261,20 @@ export default function Hero({ onOpenPlanTrip, onSearch }: HeroProps) {
 
   const nextScene = useCallback(
     (isManual = false) => {
-      goTo((activeIdx + 1) % HERO_DESTINATION_COUNT, 'next', isManual);
+      goTo((activeIdx + 1) % slideCount, 'next', isManual);
     },
-    [activeIdx, goTo]
+    [activeIdx, goTo, slideCount]
   );
 
   const prevScene = useCallback(
     (isManual = false) => {
       goTo(
-        (activeIdx - 1 + HERO_DESTINATION_COUNT) % HERO_DESTINATION_COUNT,
+        (activeIdx - 1 + slideCount) % slideCount,
         'prev',
         isManual
       );
     },
-    [activeIdx, goTo]
+    [activeIdx, goTo, slideCount]
   );
 
   // ── Transition Cleanup ───────────────────────────────────────
@@ -285,9 +289,11 @@ export default function Hero({ onOpenPlanTrip, onSearch }: HeroProps) {
 
   // ── Preload Next Image ───────────────────────────────────────
   useEffect(() => {
-    const nextIdx = (activeIdx + 1) % HERO_DESTINATION_COUNT;
-    preloadHeroImage(heroDestinations[nextIdx].image);
-  }, [activeIdx]);
+    const nextIdx = (activeIdx + 1) % slideCount;
+    if (slidesList[nextIdx]?.image) {
+      preloadHeroImage(slidesList[nextIdx].image);
+    }
+  }, [activeIdx, slideCount, slidesList]);
 
   // ── Auto-Rotation (7.5s smoothly paced, pauses on scroll/search) ───
   useEffect(() => {

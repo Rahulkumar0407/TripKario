@@ -1,0 +1,37 @@
+<svg viewBox="0 0 240 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="clientLogoHexClip">
+      <path d="M120 12 L224 68 L224 182 L120 238 L16 182 L16 68 Z" />
+    </clipPath>
+  </defs>
+  <!-- Outer Hexagon -->
+  <path d="M120 12 L224 68 L224 182 L120 238 L16 182 L16 68 Z" fill="#FAF4E8" stroke="#1B4947" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M120 22 L214 73 L214 177 L120 228 L26 177 L26 73 Z" fill="none" stroke="#FFFDF9" stroke-width="3" opacity="0.8"/>
+  <g clip-path="url(#clientLogoHexClip)">
+    <rect x="0" y="0" width="240" height="250" fill="#FAF4E8"/>
+    <!-- Sunset with cuts -->
+    <circle cx="120" cy="106" r="48" fill="#EE582C"/>
+    <rect x="68" y="98" width="104" height="4" fill="#FAF4E8"/>
+    <rect x="74" y="108" width="92" height="4" fill="#FAF4E8"/>
+    <rect x="84" y="118" width="72" height="4" fill="#FAF4E8"/>
+    <rect x="98" y="128" width="44" height="4" fill="#FAF4E8"/>
+    <!-- Desert Mountains -->
+    <path d="M12 110 L44 102 L54 118 L78 126 L104 136 L12 136 Z" fill="#1B4947"/>
+    <path d="M228 110 L196 102 L186 118 L162 126 L136 136 L228 136 Z" fill="#1B4947"/>
+    <!-- Airliner -->
+    <path d="M120 80 L28 88 L28 98 L112 94 L120 94 L128 94 L212 98 L212 88 Z" fill="#1B4947"/>
+    <rect x="62" y="92" width="16" height="20" rx="8" fill="#1B4947" stroke="#FFFDF9" stroke-width="2.5"/>
+    <circle cx="70" cy="102" r="3.5" fill="#FAF4E8"/>
+    <rect x="162" y="92" width="16" height="20" rx="8" fill="#1B4947" stroke="#FFFDF9" stroke-width="2.5"/>
+    <circle cx="170" cy="102" r="3.5" fill="#FAF4E8"/>
+    <path d="M120 40 C108 40 102 54 102 88 C102 112 108 134 120 134 C132 134 138 112 138 88 C138 54 132 40 120 40 Z" fill="#1B4947"/>
+    <path d="M110 56 C110 52 114 50 120 50 C126 50 130 52 130 56 L127 63 H113 Z" fill="#FFFDF9"/>
+    <!-- Lower Stars & T -->
+    <polygon points="72,192 76,204 88,204 78,212 82,224 72,216 62,224 66,212 56,204 68,204" fill="#EE582C"/>
+    <polygon points="168,192 172,204 184,204 174,212 178,224 168,216 158,224 162,212 152,204 164,204" fill="#EE582C"/>
+    <text x="120" y="222" text-anchor="middle" font-family="Times New Roman, serif" font-weight="900" font-size="42" fill="#1B4947">T</text>
+  </g>
+  <!-- Ribbon Banner -->
+  <path d="M4 140 H236 C238 140 240 143 238 147 L226 174 C225 177 222 179 219 179 H21 C18 179 15 177 14 174 L2 147 C0 143 2 140 4 140 Z" fill="#FAF4E8" stroke="#1B4947" stroke-width="6" stroke-linejoin="round"/>
+  <text x="120" y="168" text-anchor="middle" font-family="Impact, Arial Black, sans-serif" font-weight="900" font-size="25" letter-spacing="2" fill="#1B4947">TRIPKARIO</text>
+</svg>
