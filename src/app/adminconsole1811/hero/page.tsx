@@ -21,6 +21,10 @@ import {
   Edit2,
 } from 'lucide-react';
 
+function generateSlideId(): string {
+  return `hero_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export default function AdminHeroPage() {
   const [slides, setSlides] = useState<SeedHeroSlide[]>(initialHeroSlides);
   const [editingSlide, setEditingSlide] = useState<SeedHeroSlide | null>(null);
@@ -58,7 +62,7 @@ export default function AdminHeroPage() {
   const handleDuplicate = (slide: SeedHeroSlide) => {
     const duplicated: SeedHeroSlide = {
       ...slide,
-      id: `hero_${Date.now()}`,
+      id: generateSlideId(),
       destination: `${slide.destination} (Copy)`,
       displayOrder: slides.length + 1,
     };
