@@ -24,8 +24,11 @@ export default function DestinationCarousel({
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+
+  const FALLBACK_DESTINATION_IMAGE = 'https://ik.imagekit.io/tripkario/tripkario/itineraries/kashmir/kashmir-signature/hero.jpg';
 
   const total = destList.length;
   const AUTOPLAY_DURATION = 6000;
@@ -222,11 +225,14 @@ export default function DestinationCarousel({
                 className="w-full aspect-[16/10] sm:aspect-[16/9] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] cursor-pointer select-none transition-shadow duration-300 relative"
               >
                 <Image
-                  src={dest.image.src}
+                  src={failedImages[dest.id] ? FALLBACK_DESTINATION_IMAGE : dest.image.src}
                   alt={dest.image.alt}
                   fill
                   sizes="(max-width: 1024px) 90vw, 60vw"
                   className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
+                  onError={() => {
+                    setFailedImages((prev) => ({ ...prev, [dest.id]: true }));
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 

@@ -170,7 +170,6 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
   const [exitingIdx, setExitingIdx] = useState<number | null>(null);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [sceneProgress, setSceneProgress] = useState(0);
 
   // ── Pause / Manual Resume State ──────────────────────────────
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -212,8 +211,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
   const exiting =
     exitingIdx !== null ? slidesList[exitingIdx] : null;
 
-  // Pre-transition anticipation: ~500ms before auto-transition (>93% progress)
-  const isAnticipating = sceneProgress > 93;
+  const isAnticipating = false;
 
   // Paused when: scrolled away, user focusing search input, search dropdown open, or manual pause cooldown
   const isPaused =
@@ -222,7 +220,6 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
   // ── Trigger Manual Interaction (cancels autoplay, resets, waits 4s) ──
   const registerManualInteraction = useCallback(() => {
     setManualPause(true);
-    setSceneProgress(0);
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
     resumeTimerRef.current = setTimeout(() => {
       setManualPause(false);
@@ -240,7 +237,6 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
       setExitingIdx(activeIdx);
       setActiveIdx(nextIdx);
       setIsTransitioning(true);
-      setSceneProgress(0);
       lastValidIdx.current = activeIdx;
     },
     [activeIdx, isTransitioning, registerManualInteraction]
@@ -285,18 +281,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
   // ── Auto-Rotation (7.5s smoothly paced, pauses on scroll/search) ───
   useEffect(() => {
     if (isPaused || isTransitioning) return;
-    const tickMs = 50;
-    const step = (tickMs / HERO_AUTOPLAY_MS) * 100;
-    const timer = setInterval(() => {
-      setSceneProgress((old) => {
-        if (old >= 100) {
-          nextScene(false);
-          return 0;
-        }
-        return old + step;
-      });
-    }, tickMs);
-    return () => clearInterval(timer);
+    const timer = setTimeout(() => {
+      nextScene(false);
+    }, HERO_AUTOPLAY_MS);
+    return () => clearTimeout(timer);
   }, [isPaused, isTransitioning, activeIdx, nextScene]);
 
   // ── Scroll Detection (pauses on scroll, resumes only when back at top and idle) ──
@@ -843,9 +831,12 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                 </span>
                 {/* 1.5px Progress Line (Section 11) */}
                 <div className="w-16 h-[1.5px] bg-white/15 rounded-full overflow-hidden">
-                  <motion.div
-                    style={{ width: `${sceneProgress}%` }}
-                    className="h-full bg-[#E46B3B] transition-all ease-linear"
+                  <div
+                    key={`hero-progress-${activeIdx}`}
+                    className="h-full bg-[#E46B3B]"
+                    style={{
+                      animation: isPaused || isTransitioning ? 'none' : `progressAnim ${HERO_AUTOPLAY_MS}ms linear forwards`,
+                    }}
                   />
                 </div>
               </div>
@@ -920,19 +911,24 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
           })}
         </div>
 
-        {/* Mobile: single glass button */}
+        {/* Mobile: single prominent search CTA */}
         <div className="sm:hidden">
           <button
             type="button"
             onClick={() => onOpenPlanTrip()}
-            className="w-full px-5 py-3.5 rounded-2xl glass-surface text-white text-left flex items-center gap-3 cursor-pointer"
+            className="w-full px-4 py-3.5 rounded-2xl bg-[var(--bg-surface)]/95 backdrop-blur-xl border border-[var(--border-card)] text-left flex items-center gap-3 cursor-pointer shadow-xl active:scale-98 transition-all"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#E46B3B]/20 text-[#E46B3B] flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-[#E46B3B]/15 text-[#E46B3B] flex items-center justify-center shrink-0">
               <Search className="w-4 h-4" />
             </div>
-            <span className="text-sm text-white/70 font-medium">
-              Where are you going?
-            </span>
+            <div className="flex-1 min-w-0">
+              <span className="block text-[10px] font-mono uppercase tracking-wider text-[#6B625A] dark:text-[#A89F91] font-bold">
+                WHERE ARE YOU GOING?
+              </span>
+              <span className="block text-sm text-[#24211F] dark:text-[#FAF4E8] font-medium truncate">
+                Search destinations across India →
+              </span>
+            </div>
           </button>
         </div>
 
@@ -942,7 +938,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
             variant="frost"
             enableRefraction
             rounded="3xl"
-            className="px-2 py-2 text-white shadow-2xl border border-white/15"
+            className="px-2 py-2 shadow-2xl border border-[var(--border-card)] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-[var(--text-primary)]"
           >
             <form
               onSubmit={handleSearchSubmit}
@@ -958,16 +954,16 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                   }
                   className={`px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer ${
                     activeDropdown === 'dest'
-                      ? 'bg-white/12 ring-1 ring-[#E46B3B]/30'
-                      : 'hover:bg-white/8'
+                      ? 'bg-black/5 dark:bg-white/10 ring-1 ring-[#E46B3B]/40'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <MapPin className="w-3.5 h-3.5 text-[#E46B3B] shrink-0" />
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-white/50 font-semibold">
+                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-[#6B625A] dark:text-[#A89F91] font-bold">
                       WHERE
                     </span>
-                    <span className="block text-[13px] font-medium truncate text-white">
+                    <span className={`block text-[13px] font-medium truncate ${selectedDestination ? 'text-[#24211F] dark:text-[#FAF4E8]' : 'text-[#857B72] dark:text-[#A89F91]'}`}>
                       {selectedDestination || 'Search destination'}
                     </span>
                   </div>
@@ -979,7 +975,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                         setSelectedDestination('');
                         setDestinationQuery('');
                       }}
-                      className="p-0.5 text-white/50 hover:text-white"
+                      className="p-0.5 text-[#857B72] hover:text-[#24211F] dark:text-white/50 dark:hover:text-white cursor-pointer"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -994,10 +990,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.98 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 mt-2 w-80 rounded-2xl shadow-2xl p-3 z-50 overflow-hidden bg-[#11100E]/95 text-white border border-white/15 backdrop-blur-2xl"
+                      className="absolute top-full left-0 mt-2 w-80 rounded-2xl shadow-2xl p-3 z-50 overflow-hidden bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)] backdrop-blur-2xl"
                     >
                       <div className="relative mb-2">
-                        <Search className="w-3.5 h-3.5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Search className="w-3.5 h-3.5 text-[#857B72] dark:text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           type="text"
                           placeholder="Search (e.g. Kashmir, Rajasthan)"
@@ -1005,12 +1001,12 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                           onChange={(e) =>
                             setDestinationQuery(e.target.value)
                           }
-                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-white/8 text-white placeholder:text-white/35 border border-white/8 focus:outline-none focus:border-[#E46B3B]/60"
+                          className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-[var(--bg-surface-2)] dark:bg-white/10 text-[#24211F] dark:text-[#FAF4E8] placeholder:text-[#857B72] dark:placeholder:text-white/40 border border-[var(--border-subtle)] focus:outline-none focus:border-[#E46B3B]"
                           autoFocus
                         />
                       </div>
 
-                      <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-white/40 font-semibold px-1 block mb-1.5">
+                      <span className="text-[9px] font-mono uppercase tracking-[0.15em] text-[#6B625A] dark:text-white/50 font-bold px-1 block mb-1.5">
                         Popular Destinations
                       </span>
 
@@ -1018,7 +1014,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                         <button
                           type="button"
                           onClick={() => handleSelectDest('')}
-                          className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-white/8 flex items-center justify-between text-white"
+                          className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium hover:bg-black/5 dark:hover:bg-white/10 flex items-center justify-between text-[#24211F] dark:text-[#FAF4E8] cursor-pointer"
                         >
                           <span>Search anywhere in India</span>
                           {!selectedDestination && (
@@ -1034,10 +1030,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                             className={`w-full text-left p-1.5 rounded-lg text-xs transition-all flex items-center gap-2.5 cursor-pointer ${
                               selectedDestination === dest.name
                                 ? 'bg-[#E46B3B] text-white'
-                                : 'hover:bg-white/8 text-white'
+                                : 'hover:bg-black/5 dark:hover:bg-white/10 text-[#24211F] dark:text-[#FAF4E8]'
                             }`}
                           >
-                            <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-black/20">
+                            <div className="relative w-9 h-9 rounded-lg overflow-hidden shrink-0 bg-black/10">
                               <Image
                                 src={dest.image.src}
                                 alt={dest.name}
@@ -1046,10 +1042,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <span className="font-medium block truncate text-[12px]">
+                              <span className="font-semibold block truncate text-[12px]">
                                 {dest.name}
                               </span>
-                              <span className="text-[10px] text-white/60">
+                              <span className={`text-[10px] ${selectedDestination === dest.name ? 'text-white/80' : 'text-[#6B625A] dark:text-white/60'}`}>
                                 {dest.durationDays}D / {dest.durationNights}N · {dest.region}
                               </span>
                             </div>
@@ -1063,7 +1059,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
 
               {/* Divider */}
               <div className="col-span-0 hidden lg:flex justify-center">
-                <div className="w-px h-8 bg-white/10" />
+                <div className="w-px h-8 bg-[var(--border-subtle)]" />
               </div>
 
               {/* Field 2: Travel Style */}
@@ -1076,16 +1072,16 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                   }
                   className={`px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer ${
                     activeDropdown === 'style'
-                      ? 'bg-white/12 ring-1 ring-[#E46B3B]/30'
-                      : 'hover:bg-white/8'
+                      ? 'bg-black/5 dark:bg-white/10 ring-1 ring-[#E46B3B]/40'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <Compass className="w-3.5 h-3.5 text-[#E46B3B] shrink-0" />
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-white/50 font-semibold">
+                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-[#6B625A] dark:text-[#A89F91] font-bold">
                       TRAVELLING AS
                     </span>
-                    <span className="block text-[13px] font-medium truncate text-white">
+                    <span className="block text-[13px] font-medium truncate text-[#24211F] dark:text-[#FAF4E8]">
                       {selectedStyle || 'Couple'}
                     </span>
                   </div>
@@ -1098,7 +1094,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.98 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute top-full left-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[#11100E]/95 text-white border border-white/15 backdrop-blur-2xl"
+                      className="absolute top-full left-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)] backdrop-blur-2xl"
                     >
                       <div className="space-y-0.5">
                         {styleOptions.map((opt) => (
@@ -1112,7 +1108,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between cursor-pointer ${
                               selectedStyle === opt
                                 ? 'bg-[#E46B3B] text-white'
-                                : 'hover:bg-white/8 text-white'
+                                : 'hover:bg-black/5 dark:hover:bg-white/10 text-[#24211F] dark:text-[#FAF4E8]'
                             }`}
                           >
                             <span>{opt}</span>
@@ -1137,16 +1133,16 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                   }
                   className={`flex-1 px-3 py-2.5 rounded-xl transition-all flex items-center gap-2.5 cursor-pointer ${
                     activeDropdown === 'budget'
-                      ? 'bg-white/12 ring-1 ring-[#E46B3B]/30'
-                      : 'hover:bg-white/8'
+                      ? 'bg-black/5 dark:bg-white/10 ring-1 ring-[#E46B3B]/40'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
                   <IndianRupee className="w-3.5 h-3.5 text-[#E46B3B] shrink-0" />
                   <div className="flex-1 min-w-0 text-left">
-                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-white/50 font-semibold">
+                    <span className="block text-[9px] font-mono uppercase tracking-[0.15em] text-[#6B625A] dark:text-[#A89F91] font-bold">
                       BUDGET
                     </span>
-                    <span className="block text-[13px] font-medium truncate text-white">
+                    <span className="block text-[13px] font-medium truncate text-[#24211F] dark:text-[#FAF4E8]">
                       {selectedBudget || '₹25K'}
                     </span>
                   </div>
@@ -1159,7 +1155,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.98 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute top-full right-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[#11100E]/95 text-white border border-white/15 backdrop-blur-2xl"
+                      className="absolute top-full right-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)] backdrop-blur-2xl"
                     >
                       <div className="space-y-0.5">
                         {budgetOptions.map((b) => (
@@ -1173,7 +1169,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                             className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between cursor-pointer ${
                               selectedBudget === b
                                 ? 'bg-[#E46B3B] text-white'
-                                : 'hover:bg-white/8 text-white'
+                                : 'hover:bg-black/5 dark:hover:bg-white/10 text-[#24211F] dark:text-[#FAF4E8]'
                             }`}
                           >
                             <span>{b}</span>
@@ -1190,7 +1186,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                 {/* Submit */}
                 <MagneticButton
                   type="submit"
-                  className="px-5 h-[42px] rounded-xl bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-lg text-[12px] font-semibold tracking-wide shrink-0"
+                  className="px-5 h-[42px] rounded-xl bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-lg text-[12px] font-semibold tracking-wide shrink-0 cursor-pointer"
                 >
                   <span>Find My Trip</span>
                   <ArrowRight className="w-3.5 h-3.5 ml-1" />

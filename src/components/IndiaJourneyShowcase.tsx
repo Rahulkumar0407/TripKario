@@ -512,8 +512,8 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
                     fill
                     sizes="(max-width: 1280px) 70vw, 850px"
                     className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
-                    priority
-                    quality={90}
+                    loading="lazy"
+                    quality={85}
                   />
                   {/* Subtle Cinematic Vignette & Bottom Gradient */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#11100E] via-[#11100E]/75 via-45% to-black/25" />
@@ -727,8 +727,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
                     fill
                     sizes="(max-width: 640px) 100vw, 50vw"
                     className="object-cover"
-                    priority={idx === 0}
-                    loading={idx === 0 ? 'eager' : 'lazy'}
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
