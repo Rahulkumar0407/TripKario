@@ -80,13 +80,62 @@ export function getImageKitUrl(
 /**
  * Convenience helper for responsive itinerary card image URLs
  */
-export function getCardImageUrl(pathOrUrl: string | undefined | null): string {
+export function getCardImageUrl(
+  pathOrUrl: string | undefined | null,
+  options?: { isFeatured?: boolean; width?: number; quality?: number }
+): string {
+  const isFeatured = options?.isFeatured ?? false;
+  const width = options?.width || (isFeatured ? 960 : 720);
+  const quality = options?.quality || (isFeatured ? 82 : 80);
+
   return getImageKitUrl(pathOrUrl, {
-    width: 900,
-    quality: 85,
+    width,
+    quality,
     format: 'auto',
   });
 }
+
+/**
+ * Normalizes any image URL (ImageKit, Unsplash, external) for catalogue cards
+ * to ensure fast decoding, low memory footprint, and high visual fidelity.
+ */
+export function getOptimizedCardImageUrl(
+  imageInput: string | { src: string } | undefined | null,
+  options?: { isFeatured?: boolean; width?: number; quality?: number } | boolean
+): string {
+  if (!imageInput) return IMAGEKIT_FALLBACK_HERO;
+
+  const rawUrl = typeof imageInput === 'string' ? imageInput.trim() : imageInput.src?.trim();
+  if (!rawUrl) return IMAGEKIT_FALLBACK_HERO;
+
+  const opts = typeof options === 'boolean' ? { isFeatured: options } : options;
+  const isFeatured = opts?.isFeatured ?? false;
+  const width = opts?.width || (isFeatured ? 960 : 720);
+  const quality = opts?.quality || (isFeatured ? 82 : 80);
+
+  // ImageKit URLs & Relative Paths
+  if (rawUrl.includes('ik.imagekit.io') || !rawUrl.startsWith('http')) {
+    return getCardImageUrl(rawUrl, { isFeatured, width, quality });
+  }
+
+  // Unsplash URLs
+  if (rawUrl.includes('images.unsplash.com')) {
+    try {
+      const urlObj = new URL(rawUrl);
+      urlObj.searchParams.set('w', String(width));
+      urlObj.searchParams.set('q', String(quality));
+      urlObj.searchParams.set('auto', 'format');
+      urlObj.searchParams.set('fit', 'crop');
+      return urlObj.toString();
+    } catch {
+      return rawUrl;
+    }
+  }
+
+  // Other external URLs (Wikimedia, etc.)
+  return rawUrl;
+}
+
 
 /**
  * Convenience helper for high-resolution modal hero image URLs
@@ -109,3 +158,4 @@ export function getThumbnailImageUrl(pathOrUrl: string | undefined | null): stri
     format: 'auto',
   });
 }
+
