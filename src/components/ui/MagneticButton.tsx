@@ -22,19 +22,26 @@ export default function MagneticButton({
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!buttonRef.current) return;
+    // Only apply physics displacement on fine pointer devices (desktop)
+    if (!buttonRef.current || typeof window === 'undefined' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
     const { clientX, clientY } = e;
     const { left, top, width, height } = buttonRef.current.getBoundingClientRect();
     const middleX = clientX - (left + width / 2);
     const middleY = clientY - (top + height / 2);
 
-    // Limit maximum displacement to 6px
-    const clampedX = Math.max(-6, Math.min(6, middleX * magneticStrength));
-    const clampedY = Math.max(-6, Math.min(6, middleY * magneticStrength));
+    // Limit maximum displacement to 5px
+    const clampedX = Math.max(-5, Math.min(5, middleX * magneticStrength));
+    const clampedY = Math.max(-5, Math.min(5, middleY * magneticStrength));
     setPosition({ x: clampedX, y: clampedY });
   };
 
-  const handleMouseEnter = () => setIsHovered(true);
+  const handleMouseEnter = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      setIsHovered(true);
+    }
+  };
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     setPosition({ x: 0, y: 0 });
@@ -50,7 +57,7 @@ export default function MagneticButton({
       animate={{ x: position.x, y: position.y }}
       transition={{ type: 'spring', stiffness: 450, damping: 28, mass: 0.15 }}
       className={cn(
-        'relative inline-flex items-center justify-center rounded-full font-semibold uppercase tracking-wider text-xs transition-colors duration-200 cursor-pointer disabled:pointer-events-none disabled:opacity-50',
+        'relative inline-flex items-center justify-center rounded-full font-semibold uppercase tracking-wider text-xs transition-colors duration-200 cursor-pointer disabled:pointer-events-none disabled:opacity-50 active:scale-95',
         className
       )}
       {...(props as any)}
@@ -65,4 +72,3 @@ export default function MagneticButton({
     </motion.button>
   );
 }
-

@@ -56,21 +56,18 @@ function getTransitionValues(
           y: 0,
           scale: 1.08,
           opacity: 0,
-          filter: 'blur(3px)',
         },
         enterAnimate: {
           x: [`${-5 * f}vw`, `${0.3 * f}vw`, '0vw'],
           y: ['0vh', '0vh', '0vh'],
           scale: [1.08, 0.996, 1.0],
           opacity: [0, 0.85, 1],
-          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
         },
         exitAnimate: {
           x: `${5 * f}vw`,
           y: 0,
           scale: 1.08,
           opacity: 0.2,
-          filter: 'blur(2px)',
         },
       };
     case 'bottom-to-top':
@@ -80,21 +77,18 @@ function getTransitionValues(
           y: `${5 * f}vh`,
           scale: 1.08,
           opacity: 0,
-          filter: 'blur(3px)',
         },
         enterAnimate: {
           x: ['0vw', '0vw', '0vw'],
           y: [`${5 * f}vh`, `${-0.3 * f}vh`, '0vh'],
           scale: [1.08, 0.996, 1.0],
           opacity: [0, 0.85, 1],
-          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
         },
         exitAnimate: {
           x: 0,
           y: `${-5 * f}vh`,
           scale: 1.08,
           opacity: 0.2,
-          filter: 'blur(2px)',
         },
       };
     case 'diagonal':
@@ -104,21 +98,18 @@ function getTransitionValues(
           y: `${3 * f}vh`,
           scale: 1.08,
           opacity: 0,
-          filter: 'blur(3px)',
         },
         enterAnimate: {
           x: [`${4 * f}vw`, `${-0.2 * f}vw`, '0vw'],
           y: [`${3 * f}vh`, `${-0.2 * f}vh`, '0vh'],
           scale: [1.08, 0.996, 1.0],
           opacity: [0, 0.85, 1],
-          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
         },
         exitAnimate: {
           x: `${-4 * f}vw`,
           y: `${-3 * f}vh`,
           scale: 1.08,
           opacity: 0.2,
-          filter: 'blur(2px)',
         },
       };
     case 'right-to-left':
@@ -129,21 +120,18 @@ function getTransitionValues(
           y: 0,
           scale: 1.08,
           opacity: 0,
-          filter: 'blur(3px)',
         },
         enterAnimate: {
           x: [`${5 * f}vw`, `${-0.3 * f}vw`, '0vw'],
           y: ['0vh', '0vh', '0vh'],
           scale: [1.08, 0.996, 1.0],
           opacity: [0, 0.85, 1],
-          filter: ['blur(3px)', 'blur(0.5px)', 'blur(0px)'],
         },
         exitAnimate: {
           x: `${-5 * f}vw`,
           y: 0,
           scale: 1.08,
           opacity: 0.2,
-          filter: 'blur(2px)',
         },
       };
   }
@@ -155,7 +143,6 @@ const SCENE_SETTLED = {
   y: 0,
   scale: 1,
   opacity: 1,
-  filter: 'blur(0px)',
 };
 
 // ════════════════════════════════════════════════════════════════
@@ -334,6 +321,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
 
   // ── Mouse Parallax ───────────────────────────────────────────
   useEffect(() => {
+    // Only register mouse parallax on desktop devices with fine pointer
+    if (typeof window === 'undefined' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      return;
+    }
     const handler = (e: MouseEvent) => {
       if (!heroRef.current) return;
       const { innerWidth, innerHeight } = window;

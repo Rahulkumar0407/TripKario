@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { MotionConfig } from 'framer-motion';
 
 type Theme = 'light' | 'dark';
 
@@ -73,7 +74,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, isTransitioning, toggleTheme, setTheme }}>
-      {children}
+      <MotionConfig reducedMotion="user">
+        {children}
+      </MotionConfig>
 
       {/* Global Top → Bottom Synchronized Lighting Wipe Overlay */}
       {isTransitioning && (

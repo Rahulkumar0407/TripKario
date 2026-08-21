@@ -542,7 +542,7 @@ function ItinerariesCatalogueContent() {
                         fill
                         sizes={isFirstHero ? '(max-width: 1024px) 100vw, 60vw' : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'}
                         className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                        priority={index < 4}
+                        priority={index === 0}
                       />
 
                       {/* Protective Charcoal Gradient */}

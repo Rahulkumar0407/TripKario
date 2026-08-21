@@ -157,9 +157,27 @@ export default function Testimonials({
   const testList = testimonialsProp && testimonialsProp.length > 0 ? testimonialsProp : testimonials;
   // Duplicate array for seamless continuous 100% infinite marquee loop
   const marqueeItems = [...testList, ...testList];
+  const sectionRef = React.useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section id="testimonials" className="py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]">
+    <section
+      ref={sectionRef}
+      id="testimonials"
+      className="py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]"
+    >
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[var(--brand-saffron, #E85D30)]/5 rounded-full blur-[120px] pointer-events-none" />
 
@@ -237,7 +255,10 @@ export default function Testimonials({
         <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-28 z-10 bg-gradient-to-l from-[var(--bg-primary)] via-[var(--bg-primary)]/70 to-transparent pointer-events-none" />
 
         {/* Marquee Row: Smooth Right-to-Left Continuous Movement */}
-        <div className="animate-marquee-rtl flex items-stretch gap-2 py-2">
+        <div
+          className="animate-marquee-rtl flex items-stretch gap-2 py-2"
+          style={{ animationPlayState: isVisible ? 'running' : 'paused' }}
+        >
           {marqueeItems.map((item, idx) => (
             <TestimonialCard key={`${item.id}-m1-${idx}`} item={item} />
           ))}

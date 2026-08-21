@@ -38,8 +38,9 @@ export default function TripCarousel({
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
   const [activeModalTrip, setActiveModalTrip] = useState<TripPackage | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = React.useRef<HTMLElement>(null);
 
   const total = tripsList.length;
   const AUTOPLAY_DURATION = 8000;
@@ -47,33 +48,36 @@ export default function TripCarousel({
   const nextSlide = () => {
     setDirection('next');
     setActiveIndex((prev) => (prev + 1) % total);
-    setProgress(0);
   };
 
   const prevSlide = () => {
     setDirection('prev');
     setActiveIndex((prev) => (prev - 1 + total) % total);
-    setProgress(0);
   };
 
+  // IntersectionObserver: only autoplay when visible in viewport
   useEffect(() => {
-    if (isHovered || hoveredCardIdx !== null || activeModalTrip) return;
+    if (!sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
-    const interval = 50;
-    const step = (interval / AUTOPLAY_DURATION) * 100;
+  // Single-timeout autoplay (zero 50ms re-render intervals)
+  useEffect(() => {
+    if (!isVisible || isHovered || hoveredCardIdx !== null || activeModalTrip) return;
 
-    const timer = setInterval(() => {
-      setProgress((old) => {
-        if (old >= 100) {
-          nextSlide();
-          return 0;
-        }
-        return old + step;
-      });
-    }, interval);
+    const timer = setTimeout(() => {
+      nextSlide();
+    }, AUTOPLAY_DURATION);
 
-    return () => clearInterval(timer);
-  }, [isHovered, hoveredCardIdx, activeIndex, activeModalTrip, total]);
+    return () => clearTimeout(timer);
+  }, [isVisible, isHovered, hoveredCardIdx, activeIndex, activeModalTrip, total]);
 
   const activeTrip = tripsList[activeIndex] || tripsList[0];
 
@@ -89,6 +93,7 @@ export default function TripCarousel({
 
   return (
     <section
+      ref={sectionRef}
       id="packages"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -118,9 +123,12 @@ export default function TripCarousel({
               {activeIndex + 1 < 10 ? `0${activeIndex + 1}` : activeIndex + 1} / {total < 10 ? `0${total}` : total}
             </span>
             <div className="w-14 h-[2px] bg-[var(--border-subtle)] rounded-full overflow-hidden ml-1">
-              <motion.div
-                style={{ width: `${progress}%` }}
-                className="h-full bg-[var(--accent)] transition-all ease-linear"
+              <div
+                key={`progress-${activeIndex}`}
+                className="h-full bg-[var(--accent)]"
+                style={{
+                  animation: !isVisible || isHovered || hoveredCardIdx !== null || activeModalTrip ? 'none' : `progressAnim ${AUTOPLAY_DURATION}ms linear forwards`,
+                }}
               />
             </div>
           </div>

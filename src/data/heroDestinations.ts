@@ -59,7 +59,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Ladakh',
     region: 'Trans-Himalayas · 17,590 ft',
     image:
-      'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?q=75&w=1400&auto=format&fit=crop',
     alt: 'Dramatic winding road cutting through stark barren Himalayan mountain ranges in Ladakh',
     caption: 'High passes. Monasteries. Roads worth getting lost on.',
     route: 'Leh → Nubra → Pangong',
@@ -93,7 +93,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Kashmir',
     region: 'Jammu & Kashmir · Pir Panjal',
     image:
-      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=75&w=1400&auto=format&fit=crop',
     alt: 'Panoramic view of lush green Kashmir valley surrounded by snow-dusted Himalayan peaks and pine forests',
     caption:
       'Misty mornings, cedar valleys and one very good excuse to disappear.',
@@ -129,7 +129,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Rajasthan',
     region: 'Thar Desert · Marwar Citadel',
     image:
-      'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=75&w=1400&auto=format&fit=crop',
     alt: 'Warm golden-hour light falling on ancient sandstone haveli archways with long shadows in Jaisalmer, Rajasthan',
     caption: 'Where sandstone turns gold before sunset.',
     route: 'Jaipur → Jodhpur → Jaisalmer',
@@ -164,7 +164,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Kerala',
     region: 'Malabar Coast · Backwaters',
     image:
-      'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=75&w=1400&auto=format&fit=crop',
     alt: 'Boatman navigating a wooden canoe through palm-lined backwater channels in golden evening light, Alleppey, Kerala',
     caption: 'Some mornings are better taken slowly.',
     route: 'Kochi → Munnar → Alleppey',
@@ -198,7 +198,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Meghalaya',
     region: 'Khasi Hills · Cloud Rainforest',
     image:
-      'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=75&w=1400&auto=format&fit=crop',
     alt: 'Double-decker living root bridge suspended over rainforest stream in mist, Cherrapunji, Meghalaya',
     caption: 'Follow the road into the clouds.',
     route: 'Shillong → Cherrapunji → Dawki',
@@ -233,7 +233,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Himachal',
     region: 'Western Himalayas · Cedar Valley',
     image:
-      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=75&w=1400&auto=format&fit=crop',
     alt: 'Traditional wooden Himalayan village home nestled among cedar trees with snow-capped peaks in the background, Himachal Pradesh',
     caption: 'A little mountain air never hurt.',
     route: 'Shimla → Jibhi → Spiti',
@@ -268,7 +268,7 @@ export const heroDestinations: HeroDestination[] = [
     destination: 'Goa',
     region: 'Konkan Coast · Latin Quarter',
     image:
-      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=90&w=2800&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=75&w=1400&auto=format&fit=crop',
     alt: 'Serene coastal palm-fringed shoreline and gentle waves in Goa',
     caption: 'Take the scenic route. Stay longer than planned.',
     route: 'Panaji → Divar Island → South Goa',

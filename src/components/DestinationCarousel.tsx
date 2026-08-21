@@ -24,7 +24,8 @@ export default function DestinationCarousel({
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const total = destList.length;
   const AUTOPLAY_DURATION = 6000;
@@ -32,34 +33,36 @@ export default function DestinationCarousel({
   const nextSlide = () => {
     setDirection('next');
     setActiveIndex((prev) => (prev + 1) % total);
-    setProgress(0);
   };
 
   const prevSlide = () => {
     setDirection('prev');
     setActiveIndex((prev) => (prev - 1 + total) % total);
-    setProgress(0);
   };
 
-  // Autoplay with instant pause on interaction
+  // IntersectionObserver: only autoplay when visible in viewport
   useEffect(() => {
-    if (isHovered || hoveredCardIdx !== null) return;
+    if (!sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
-    const interval = 50;
-    const step = (interval / AUTOPLAY_DURATION) * 100;
+  // Single-timeout autoplay (zero 50ms intervals)
+  useEffect(() => {
+    if (!isVisible || isHovered || hoveredCardIdx !== null) return;
 
-    const timer = setInterval(() => {
-      setProgress((old) => {
-        if (old >= 100) {
-          nextSlide();
-          return 0;
-        }
-        return old + step;
-      });
-    }, interval);
+    const timer = setTimeout(() => {
+      nextSlide();
+    }, AUTOPLAY_DURATION);
 
-    return () => clearInterval(timer);
-  }, [isHovered, hoveredCardIdx, activeIndex, total]);
+    return () => clearTimeout(timer);
+  }, [isVisible, isHovered, hoveredCardIdx, activeIndex, total]);
 
   const activeDest = destList[activeIndex] || destList[0];
 
@@ -76,6 +79,7 @@ export default function DestinationCarousel({
 
   return (
     <section
+      ref={sectionRef}
       id="destinations"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
@@ -84,27 +88,12 @@ export default function DestinationCarousel({
       }}
       className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative"
     >
-      {/* LAYER 1: Ambient Background Image & Color Wash (Scale 1.08, Blur 20px) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-        <motion.div
-          key={`bg-${activeDest.id}`}
-          initial={{ opacity: 0, scale: 1.12 }}
-          animate={{ opacity: 1, scale: 1.08 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
-          className="relative w-full h-full"
-        >
-          <Image
-            src={activeDest.image.src}
-            alt={activeDest.image.alt}
-            fill
-            className="object-cover blur-[20px]"
-          />
-        </motion.div>
+      {/* LAYER 1: Ambient Background Color Wash */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
         <motion.div
           animate={{ backgroundColor: activeGlow }}
-          transition={{ duration: 1.2 }}
-          className="absolute inset-0 mix-blend-color-dodge"
+          transition={{ duration: 1.0 }}
+          className="absolute inset-0"
         />
       </div>
 
@@ -125,9 +114,12 @@ export default function DestinationCarousel({
               {activeIndex + 1 < 10 ? `0${activeIndex + 1}` : activeIndex + 1} / {total < 10 ? `0${total}` : total}
             </span>
             <div className="w-14 h-[2px] bg-[var(--border-subtle)] rounded-full overflow-hidden ml-1">
-              <motion.div
-                style={{ width: `${progress}%` }}
-                className="h-full bg-[var(--accent)] transition-all ease-linear"
+              <div
+                key={`dest-progress-${activeIndex}`}
+                className="h-full bg-[var(--accent)]"
+                style={{
+                  animation: !isVisible || isHovered || hoveredCardIdx !== null ? 'none' : `progressAnim ${AUTOPLAY_DURATION}ms linear forwards`,
+                }}
               />
             </div>
           </div>

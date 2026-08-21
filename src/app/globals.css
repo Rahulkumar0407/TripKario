@@ -237,6 +237,15 @@ body {
   animation-play-state: paused;
 }
 
+@keyframes progressAnim {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

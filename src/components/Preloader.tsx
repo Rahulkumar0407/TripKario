@@ -9,16 +9,32 @@ interface PreloaderProps {
 }
 
 export default function Preloader({ onComplete }: PreloaderProps) {
-  const [isFinished, setIsFinished] = useState(false);
+  const [isFinished, setIsFinished] = useState(true); // Default to finished to prevent mobile flash
 
   useEffect(() => {
+    // Skip preloader entirely on mobile viewports (<768px) and for returning visits to maximize FCP & LCP
+    const isMobile = window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024);
+    const hasSeenPreloader = sessionStorage.getItem('tripkario_preloader_seen');
+
+    if (isMobile || hasSeenPreloader) {
+      setIsFinished(true);
+      if (onComplete) onComplete();
+      return;
+    }
+
+    // First-time desktop visit: brief brand greeting (400ms max)
+    setIsFinished(false);
+    sessionStorage.setItem('tripkario_preloader_seen', '1');
+
     const timer = setTimeout(() => {
       setIsFinished(true);
       if (onComplete) onComplete();
-    }, 600);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
+
+  if (isFinished) return null;
 
   return (
     <AnimatePresence>
@@ -29,29 +45,27 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           initial={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            scale: 1.01,
-            transition: { duration: 0.35, ease: [0.76, 0, 0.24, 1] },
+            transition: { duration: 0.25, ease: [0.76, 0, 0.24, 1] },
           }}
         >
           <div className="relative z-20 flex flex-col items-center text-center px-6 max-w-sm">
             {/* Logo Emblem */}
             <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
               className="mb-4"
             >
               <TripkarioLogo
                 variant="animated"
-                badgeSize={60}
+                badgeSize={54}
                 showWordmark={false}
               />
             </motion.div>
 
             {/* Airplane Traveling Along Drawing Route */}
-            <div className="relative w-48 h-6 flex items-center justify-center my-2">
+            <div className="relative w-40 h-6 flex items-center justify-center my-1.5">
               <svg viewBox="0 0 200 24" className="w-full h-full overflow-visible">
-                {/* Dashed Route Path */}
                 <motion.path
                   d="M 10 12 Q 60 4, 100 12 T 190 12"
                   fill="none"
@@ -60,16 +74,15 @@ export default function Preloader({ onComplete }: PreloaderProps) {
                   strokeDasharray="4 4"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: 1.1, ease: 'easeInOut' }}
+                  transition={{ duration: 0.7, ease: 'easeInOut' }}
                 />
               </svg>
 
-              {/* Moving Airplane Motif */}
               <motion.div
                 className="absolute text-[var(--brand-saffron, #E85D30)]"
-                initial={{ x: -90, y: 0, opacity: 0 }}
-                animate={{ x: 85, y: 0, opacity: 1 }}
-                transition={{ duration: 1.1, ease: 'easeInOut' }}
+                initial={{ x: -75, y: 0, opacity: 0 }}
+                animate={{ x: 75, y: 0, opacity: 1 }}
+                transition={{ duration: 0.7, ease: 'easeInOut' }}
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 transform rotate-90">
                   <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
@@ -79,17 +92,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
             {/* Wordmark Reveal */}
             <motion.div
-              initial={{ opacity: 0, y: 6 }}
+              initial={{ opacity: 0, y: 4 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
               className="flex flex-col items-center mt-1"
             >
-              <h2 className="text-xl font-serif font-bold tracking-[0.2em] uppercase text-[var(--brand-teal)] dark:text-white">
+              <h2 className="text-lg font-serif font-bold tracking-[0.2em] uppercase text-[var(--brand-teal)] dark:text-white">
                 Tripkario
               </h2>
-              <span className="text-[9px] font-mono tracking-[0.25em] text-[var(--text-secondary)] uppercase mt-1">
-                Curated Holidays • India & Beyond
-              </span>
             </motion.div>
           </div>
         </motion.div>
