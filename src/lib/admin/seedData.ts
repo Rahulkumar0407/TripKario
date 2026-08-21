@@ -37,6 +37,14 @@ export interface SeedDestination {
   highlights: string[];
 }
 
+export interface SeedItineraryDay {
+  dayNumber: number;
+  title: string;
+  location: string;
+  description: string;
+  images: string[];
+}
+
 export interface SeedTrip {
   slug: string;
   destinationName: string;
@@ -51,6 +59,7 @@ export interface SeedTrip {
   inclusions: string[];
   exclusions: string[];
   galleryUrls: string[];
+  itineraryDays?: SeedItineraryDay[];
 }
 
 export interface SeedTestimonial {
@@ -73,8 +82,19 @@ export interface SeedTeamMember {
   role: string;
   bio: string;
   photoUrl: string;
+  phone?: string;
+  email?: string;
   displayOrder: number;
   isActive: boolean;
+}
+
+export interface SeedPastVisit {
+  id: string;
+  destination: string;
+  date: string;
+  title?: string;
+  coverImageUrl: string;
+  photos: string[];
 }
 
 export interface SeedStory {
@@ -222,7 +242,74 @@ export const initialTrips: SeedTrip[] = tripPackages.map((t) => ({
   inclusions: t.inclusions || ['Chauffeur transport', 'Breakfast & Dinner', 'Entry permits'],
   exclusions: t.exclusions || ['Flights', 'Personal expenses'],
   galleryUrls: t.galleryImages?.map((g) => g.src) || [t.coverImage.src],
+  itineraryDays: t.itinerary && t.itinerary.length > 0
+    ? t.itinerary.map((d) => ({
+        dayNumber: d.dayNumber,
+        title: d.title,
+        location: d.location || t.destination,
+        description: d.description,
+        images: d.images || [t.coverImage.src],
+      }))
+    : [
+        {
+          dayNumber: 1,
+          title: 'Arrival & Welcome Stays',
+          location: t.destination,
+          description: 'Chauffeur pickup, check-in to boutique verified accommodations, and relaxed evening stroll.',
+          images: [t.coverImage.src],
+        },
+        {
+          dayNumber: 2,
+          title: 'Scenic Exploration & Local Discoveries',
+          location: t.destination,
+          description: 'Unhurried sightseeing, authentic local culinary stops, and sunset photo points.',
+          images: t.galleryImages?.[0] ? [t.galleryImages[0].src] : [t.coverImage.src],
+        },
+      ],
 }));
+
+export const initialPastVisits: SeedPastVisit[] = [
+  {
+    id: 'visit-kashmir-mar-2026',
+    destination: 'Kashmir',
+    date: 'March 2026',
+    title: 'Spring Blooms & Snow Peaks in Srinagar',
+    coverImageUrl: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1548013146-72479768bada?q=90&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=90&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=90&w=1600&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=90&w=1400&auto=format&fit=crop',
+    ],
+  },
+  {
+    id: 'visit-kerala-feb-2026',
+    destination: 'Kerala',
+    date: 'February 2026',
+    title: 'Alleppey Canals & Munnar Tea Slopes',
+    coverImageUrl: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=1200&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=90&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=1200&auto=format&fit=crop',
+    ],
+  },
+  {
+    id: 'visit-rajasthan-jan-2026',
+    destination: 'Rajasthan',
+    date: 'January 2026',
+    title: 'Winter Havelis & Jaisalmer Stargazing',
+    coverImageUrl: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=85&w=1200&auto=format&fit=crop',
+    photos: [
+      'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=85&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=90&w=1200&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=90&w=1400&auto=format&fit=crop',
+    ],
+  },
+];
 
 export const initialTestimonials: SeedTestimonial[] = testimonials.map((t, idx) => ({
   id: t.id,

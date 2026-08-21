@@ -164,12 +164,12 @@ export default function MediaPickerModal({
         {isUploading && (
           <div className="p-3 bg-[#FAF7F2] dark:bg-[#1A1815] border-b border-[#E5DFD5] dark:border-[#262420] flex items-center justify-between text-xs font-mono">
             <span className="text-[#C85D3A] flex items-center gap-2 font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-[#D4A467]" />
-              {uploadStatus === 'uploading' && 'Uploading image to ImageKit CDN...'}
-              {uploadStatus === 'optimizing' && 'Auto-compressing to WebP/AVIF...'}
+              <Sparkles className="w-3.5 h-3.5 text-[#D4A467] animate-spin" />
+              {uploadStatus === 'uploading' && 'Uploading photograph...'}
+              {uploadStatus === 'optimizing' && 'Optimizing photo...'}
               {uploadStatus === 'ready' && 'Ready!'}
             </span>
-            <span className="text-[#8C8479]">Auto-Optimizing</span>
+            <span className="text-[#8C8479]">Processing</span>
           </div>
         )}
 

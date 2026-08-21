@@ -288,9 +288,11 @@ export default function TripCarousel({
 
                 <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-3">
                   <div>
-                    <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">From</span>
+                    <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">
+                      {!trip.isPriceOnRequest && trip.pricePerPerson > 0 ? 'From' : 'Pricing'}
+                    </span>
                     <span className="text-lg sm:text-xl font-serif font-bold text-[var(--text-primary)]">
-                      {formatPrice(trip.pricePerPerson)}
+                      {formatPrice(trip.pricePerPerson, trip.isPriceOnRequest)}
                     </span>
                   </div>
 
@@ -371,11 +373,15 @@ export default function TripCarousel({
                 className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between"
               >
                 <div>
-                  <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">From</span>
-                  <span className="text-2xl font-serif font-bold text-[var(--accent)]">
-                    {formatPrice(quickViewTrip.pricePerPerson)}
+                  <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">
+                    {!quickViewTrip.isPriceOnRequest && quickViewTrip.pricePerPerson > 0 ? 'From' : 'Pricing'}
                   </span>
-                  <span className="text-xs font-mono text-[var(--text-muted)]"> / person</span>
+                  <span className="text-2xl font-serif font-bold text-[var(--accent)]">
+                    {formatPrice(quickViewTrip.pricePerPerson, quickViewTrip.isPriceOnRequest)}
+                  </span>
+                  {!quickViewTrip.isPriceOnRequest && quickViewTrip.pricePerPerson > 0 && (
+                    <span className="text-xs font-mono text-[var(--text-muted)]"> / person</span>
+                  )}
                 </div>
 
                 <MagneticButton

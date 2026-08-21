@@ -83,12 +83,15 @@ export interface TripPackage {
   durationNights: number;
   durationDays: number;
   pricePerPerson: number;
+  isPriceOnRequest?: boolean;
   originalPrice?: number;
   rating: number;
   reviewCount: number;
-  category?: 'Popular' | 'Signature' | 'Luxury' | 'Boutique' | 'Adventure';
+  category?: 'Popular' | 'Signature' | 'Luxury' | 'Boutique' | 'Adventure' | 'Weekend' | 'Offbeat';
   travelStyle?: string;
   badge?: string;
+  featured?: boolean;
+  popular?: boolean;
   coverImage: EditorialImage;
   galleryImages?: EditorialImage[];
   route?: string;
@@ -97,6 +100,18 @@ export interface TripPackage {
   exclusions?: string[];
   bestSeason?: string;
   difficulty?: 'Easy' | 'Moderate' | 'Active';
+  sourceMetadata?: {
+    sourceName: string;
+    sourceUrl: string;
+    sourceCheckedAt: string;
+  };
+  itinerary?: Array<{
+    dayNumber: number;
+    title: string;
+    location?: string;
+    description: string;
+    images?: string[];
+  }>;
 }
 
 export interface TravellerStory {

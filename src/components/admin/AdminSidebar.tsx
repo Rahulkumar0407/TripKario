@@ -32,49 +32,58 @@ interface AdminSidebarProps {
   onCloseMobile?: () => void;
 }
 
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}
+
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
 export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAdminAuth();
 
-  const navGroups = [
+  const navGroups: NavGroup[] = [
     {
-      label: 'OVERVIEW',
+      label: 'TRIPKARIO',
       items: [
-        { label: 'Dashboard', href: '/adminconsole1811', icon: LayoutDashboard },
+        { label: 'Overview', href: '/adminconsole1811', icon: LayoutDashboard },
       ],
     },
     {
-      label: 'WEBSITE CONTENT',
+      label: 'TRIPS',
       items: [
-        { label: 'Homepage', href: '/adminconsole1811/homepage', icon: Home },
-        { label: 'Hero Slides', href: '/adminconsole1811/hero', icon: Sparkles },
-        { label: 'Destinations', href: '/adminconsole1811/destinations', icon: MapPin },
-        { label: 'Trips & Packages', href: '/adminconsole1811/trips', icon: Compass },
-        { label: 'Travel Styles', href: '/adminconsole1811/styles', icon: Palette },
-        { label: 'Past Trips & Stories', href: '/adminconsole1811/stories', icon: BookOpen },
-        { label: 'Testimonials', href: '/adminconsole1811/testimonials', icon: MessageSquareQuote },
+        { label: 'Itineraries', href: '/adminconsole1811/trips?tab=itineraries', icon: Sparkles },
+        { label: 'Trip Details', href: '/adminconsole1811/trips', icon: Compass },
+      ],
+    },
+    {
+      label: 'TEAM',
+      items: [
         { label: 'Team Members', href: '/adminconsole1811/team', icon: Users },
+      ],
+    },
+    {
+      label: 'VISITS',
+      items: [
+        { label: 'Past Trip Photos', href: '/adminconsole1811/past-visits', icon: BookOpen },
       ],
     },
     {
       label: 'MEDIA',
       items: [
-        { label: 'Media Library', href: '/adminconsole1811/media', icon: ImageIcon },
-      ],
-    },
-    {
-      label: 'CUSTOMERS',
-      items: [
-        { label: 'Enquiries', href: '/adminconsole1811/enquiries', icon: Inbox, badge: 'New' },
-        { label: 'Chatbot Flow', href: '/adminconsole1811/chatbot', icon: Bot },
-        { label: 'WhatsApp Concierge', href: '/adminconsole1811/whatsapp', icon: MessageCircle },
+        { label: 'Photos', href: '/adminconsole1811/media', icon: ImageIcon },
       ],
     },
     {
       label: 'SETTINGS',
       items: [
-        { label: 'Site Settings', href: '/adminconsole1811/settings', icon: Settings },
-        { label: 'Security & Password', href: '/adminconsole1811/settings/security', icon: ShieldCheck },
+        { label: 'Security', href: '/adminconsole1811/settings/security', icon: ShieldCheck },
       ],
     },
   ];
@@ -101,10 +110,11 @@ export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
             <div className="space-y-0.5 mt-1">
               {group.items.map((item) => {
                 const Icon = item.icon;
+                const baseHref = item.href.split('?')[0];
                 const isActive =
                   item.href === '/adminconsole1811'
                     ? pathname === '/adminconsole1811' || pathname === '/adminconsole1811/dashboard'
-                    : pathname.startsWith(item.href);
+                    : pathname.startsWith(baseHref);
 
                 return (
                   <Link

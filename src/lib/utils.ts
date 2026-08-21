@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(amount: number): string {
+export function formatPrice(amount?: number | null, isPriceOnRequest?: boolean): string {
+  if (isPriceOnRequest || !amount || amount <= 0) {
+    return 'Price on request';
+  }
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',

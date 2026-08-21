@@ -12,7 +12,6 @@ import IndiaStory from '@/components/IndiaStory';
 import SurpriseMeCTA from '@/components/SurpriseMeCTA';
 import ItineraryStory from '@/components/ItineraryStory';
 import TripMatcher from '@/components/TripMatcher';
-import TravellerStories from '@/components/TravellerStories';
 import Testimonials from '@/components/Testimonials';
 import WhyTripkario from '@/components/WhyTripkario';
 import CustomJourney from '@/components/CustomJourney';
@@ -120,10 +119,7 @@ export default function Home() {
       {/* 08. CONVERSATIONAL MATCHER */}
       <TripMatcher onSelectTrip={(dest) => handleOpenPlanTrip(dest)} />
 
-      {/* 09. TRAVELLER STORIES: Real Photography + Glass Review Overlays */}
-      <TravellerStories />
-
-      {/* 10. GOOGLE REVIEWS TESTIMONIALS: Smooth Moving Right-to-Left Ticker (Database-Driven) */}
+      {/* 09. GOOGLE REVIEWS TESTIMONIALS: Smooth Moving Right-to-Left Ticker (Database-Driven) */}
       {isSectionActive('testimonials') && (
         <Testimonials testimonials={data?.testimonials} />
       )}

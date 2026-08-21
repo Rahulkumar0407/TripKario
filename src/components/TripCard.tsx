@@ -53,9 +53,11 @@ export default function TripCard({ trip, onSelect }: TripCardProps) {
 
         <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">From</span>
-            <span className="text-lg font-serif font-bold text-[var(--text-primary)]">
-              {formatPrice(trip.pricePerPerson)}
+            <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">
+              {!trip.isPriceOnRequest && trip.pricePerPerson > 0 ? 'From' : 'Pricing'}
+            </span>
+            <span className="text-base sm:text-lg font-serif font-bold text-[var(--text-primary)]">
+              {formatPrice(trip.pricePerPerson, trip.isPriceOnRequest)}
             </span>
           </div>
 

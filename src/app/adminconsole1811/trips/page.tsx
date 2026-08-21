@@ -1,64 +1,59 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Image from 'next/image';
-import { initialTrips, SeedTrip } from '@/lib/admin/seedData';
+import { useSearchParams } from 'next/navigation';
+import { initialTrips, SeedTrip, SeedItineraryDay } from '@/lib/admin/seedData';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import {
   Plus,
-  Eye,
   Trash2,
+  Edit2,
   Check,
   X,
   MapPin,
   Clock,
   IndianRupee,
   Sparkles,
-  ArrowRight,
   ArrowLeft,
-  Calendar,
-  Layers,
-  Edit2,
+  ArrowRight,
   Upload,
+  ImageIcon,
+  ChevronDown,
+  ChevronUp,
+  Save,
+  CheckCircle2,
 } from 'lucide-react';
 
-interface ItineraryDay {
-  dayNumber: number;
-  title: string;
-  location: string;
-  description: string;
-  imageUrl?: string;
-  activities: string[];
-}
+function AdminTripsContent() {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab');
 
-export default function AdminTripsPage() {
   const [trips, setTrips] = useState<SeedTrip[]>(initialTrips);
   const [activeTrip, setActiveTrip] = useState<SeedTrip | null>(null);
-  const [wizardStep, setWizardStep] = useState<number>(1);
+  const [editorSection, setEditorSection] = useState<'details' | 'photos' | 'itinerary'>('details');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Quick inline price editing state
+  const [quickPriceTripSlug, setQuickPriceTripSlug] = useState<string | null>(null);
+  const [quickPriceValue, setQuickPriceValue] = useState<number>(0);
+
+  // Media Picker state
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
-  const [mediaTarget, setMediaTarget] = useState<'cover' | 'gallery' | number>('cover');
+  const [mediaTarget, setMediaTarget] = useState<
+    | { type: 'cover' }
+    | { type: 'gallery' }
+    | { type: 'itinerary'; dayIndex: number; imageIndex?: number; isAdd?: boolean }
+  >({ type: 'cover' });
 
-  // Itinerary state for current trip
-  const [itineraryDays, setItineraryDays] = useState<ItineraryDay[]>([
-    {
-      dayNumber: 1,
-      title: 'Arrival & Dal Lake Houseboat Check-in',
-      location: 'Srinagar',
-      description: 'Chauffeur pickup at Srinagar airport. Sunset shikara ride along the serene lotus waters of Dal Lake.',
-      imageUrl: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=800&auto=format&fit=crop',
-      activities: ['Airport Meet & Greet', 'Boutique Houseboat Check-in', 'Sunset Shikara'],
-    },
-    {
-      dayNumber: 2,
-      title: 'Meadow of Flowers & Gondola Ride',
-      location: 'Gulmarg',
-      description: 'Scenic high-altitude drive through pine forests. Phase 1 & 2 Gondola ride overlooking snow-capped Apharwat Peak.',
-      imageUrl: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=800&auto=format&fit=crop',
-      activities: ['Gondola Phase 2 Pass', 'Pine Forest Chai Break', 'Evening Return to Srinagar'],
-    },
-  ]);
+  // If URL has ?tab=itineraries, default editor to itinerary when a trip is selected
+  useEffect(() => {
+    if (initialTab === 'itineraries') {
+      setEditorSection('itinerary');
+    }
+  }, [initialTab]);
 
-  const handleAddNewTrip = () => {
+  const handleCreateNewTrip = () => {
     const newTrip: SeedTrip = {
       slug: `trip-${Date.now()}`,
       destinationName: 'Kashmir',
@@ -67,63 +62,140 @@ export default function AdminTripsPage() {
       coverImageUrl: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1600&auto=format&fit=crop',
       durationNights: 5,
       durationDays: 6,
-      pricePerPerson: 29999,
-      status: 'draft',
-      highlights: ['Private chauffeur for all transfers', 'Boutique heritage stays', 'Curated slow-paced route'],
-      inclusions: ['Private sanitized vehicle', 'Daily breakfast & dinner', 'Entry tickets & passes'],
-      exclusions: ['Flight tickets', 'Personal expenses', 'Emergency travel insurance'],
+      pricePerPerson: 24999,
+      status: 'published',
+      highlights: ['Private sanitized car', 'Boutique stays', 'Scenic drives'],
+      inclusions: ['Chauffeur transport', 'Breakfast & Dinner', 'Entry permits'],
+      exclusions: ['Flights', 'Personal expenses'],
       galleryUrls: [
         'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=800&auto=format&fit=crop',
         'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=800&auto=format&fit=crop',
       ],
+      itineraryDays: [
+        {
+          dayNumber: 1,
+          title: 'Arrival & Welcome Stays',
+          location: 'Srinagar',
+          description: 'Airport pickup, check-in to boutique verified accommodations, and relaxed evening shikara ride.',
+          images: ['https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=800&auto=format&fit=crop'],
+        },
+        {
+          dayNumber: 2,
+          title: 'Scenic Mountain Exploration',
+          location: 'Gulmarg',
+          description: 'High-altitude scenic drive through pine glades with gondola pass access and meadow tea stops.',
+          images: ['https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=800&auto=format&fit=crop'],
+        },
+      ],
     };
     setActiveTrip(newTrip);
-    setWizardStep(1);
+    setEditorSection('details');
   };
 
-  const handleSaveAndClose = (status: 'published' | 'draft') => {
+  const handleSaveTrip = () => {
     if (!activeTrip) return;
-    const finalTrip: SeedTrip = { ...activeTrip, status };
     setTrips((prev) => {
-      const exists = prev.some((t) => t.slug === finalTrip.slug);
+      const exists = prev.some((t) => t.slug === activeTrip.slug);
       if (exists) {
-        return prev.map((t) => (t.slug === finalTrip.slug ? finalTrip : t));
+        return prev.map((t) => (t.slug === activeTrip.slug ? activeTrip : t));
       }
-      return [finalTrip, ...prev];
+      return [activeTrip, ...prev];
     });
-    setActiveTrip(null);
+
+    setSaveSuccess(true);
+    setTimeout(() => {
+      setSaveSuccess(false);
+      setActiveTrip(null);
+    }, 1200);
   };
 
   const handleDeleteTrip = (slug: string) => {
-    setTrips((prev) => prev.filter((t) => t.slug !== slug));
-    if (activeTrip?.slug === slug) setActiveTrip(null);
+    if (confirm('Are you sure you want to delete this trip package?')) {
+      setTrips((prev) => prev.filter((t) => t.slug !== slug));
+      if (activeTrip?.slug === slug) setActiveTrip(null);
+    }
   };
 
-  const handleAddItineraryDay = () => {
-    const nextDay: ItineraryDay = {
-      dayNumber: itineraryDays.length + 1,
-      title: `Day ${itineraryDays.length + 1} Scenic Route`,
-      location: activeTrip?.destinationName || 'Destination',
+  const handleSaveQuickPrice = (slug: string) => {
+    setTrips((prev) =>
+      prev.map((t) => (t.slug === slug ? { ...t, pricePerPerson: quickPriceValue } : t))
+    );
+    setQuickPriceTripSlug(null);
+  };
+
+  // Itinerary Day actions
+  const handleAddDay = () => {
+    if (!activeTrip) return;
+    const currentDays = activeTrip.itineraryDays || [];
+    const nextDayNum = currentDays.length + 1;
+    const newDay: SeedItineraryDay = {
+      dayNumber: nextDayNum,
+      title: `Day ${nextDayNum} Discovery`,
+      location: activeTrip.destinationName || 'Destination',
       description: 'Relaxed morning exploration with private chauffeur transfers and local discoveries.',
-      activities: ['Guided walking tour', 'Scenic photo stops'],
+      images: [activeTrip.coverImageUrl],
     };
-    setItineraryDays([...itineraryDays, nextDay]);
+    setActiveTrip({
+      ...activeTrip,
+      itineraryDays: [...currentDays, newDay],
+    });
   };
 
+  const handleRemoveDay = (dayIndex: number) => {
+    if (!activeTrip) return;
+    const updated = (activeTrip.itineraryDays || [])
+      .filter((_, idx) => idx !== dayIndex)
+      .map((day, idx) => ({ ...day, dayNumber: idx + 1 }));
+    setActiveTrip({ ...activeTrip, itineraryDays: updated });
+  };
+
+  const handleMoveDay = (dayIndex: number, direction: 'up' | 'down') => {
+    if (!activeTrip || !activeTrip.itineraryDays) return;
+    const days = [...activeTrip.itineraryDays];
+    const targetIdx = direction === 'up' ? dayIndex - 1 : dayIndex + 1;
+    if (targetIdx < 0 || targetIdx >= days.length) return;
+
+    const temp = days[dayIndex];
+    days[dayIndex] = days[targetIdx];
+    days[targetIdx] = temp;
+
+    const reordered = days.map((d, idx) => ({ ...d, dayNumber: idx + 1 }));
+    setActiveTrip({ ...activeTrip, itineraryDays: reordered });
+  };
+
+  // Media selection handler
   const handleMediaSelected = (url: string) => {
     if (!activeTrip) return;
 
-    if (mediaTarget === 'cover') {
+    if (mediaTarget.type === 'cover') {
       setActiveTrip({ ...activeTrip, coverImageUrl: url });
-    } else if (mediaTarget === 'gallery') {
+    } else if (mediaTarget.type === 'gallery') {
       const currentGallery = activeTrip.galleryUrls || [];
       setActiveTrip({ ...activeTrip, galleryUrls: [...currentGallery, url] });
-    } else if (typeof mediaTarget === 'number') {
-      const dayIdx = mediaTarget;
-      setItineraryDays((prev) =>
-        prev.map((d, i) => (i === dayIdx ? { ...d, imageUrl: url } : d))
-      );
+    } else if (mediaTarget.type === 'itinerary') {
+      const { dayIndex, imageIndex, isAdd } = mediaTarget;
+      const days = [...(activeTrip.itineraryDays || [])];
+      if (!days[dayIndex]) return;
+
+      const currentImages = [...(days[dayIndex].images || [])];
+      if (isAdd) {
+        currentImages.push(url);
+      } else if (typeof imageIndex === 'number') {
+        currentImages[imageIndex] = url;
+      } else {
+        currentImages[0] = url;
+      }
+      days[dayIndex].images = currentImages;
+      setActiveTrip({ ...activeTrip, itineraryDays: days });
     }
+  };
+
+  const handleRemoveItineraryImage = (dayIndex: number, imageIndex: number) => {
+    if (!activeTrip || !activeTrip.itineraryDays) return;
+    const days = [...activeTrip.itineraryDays];
+    const images = (days[dayIndex].images || []).filter((_, idx) => idx !== imageIndex);
+    days[dayIndex].images = images;
+    setActiveTrip({ ...activeTrip, itineraryDays: days });
   };
 
   return (
@@ -132,279 +204,369 @@ export default function AdminTripsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5DFD5] dark:border-[#262420]">
         <div>
           <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E06A42] font-semibold">
-            CURATED TRIPS & ITINERARIES
+            TRIPS & ITINERARIES
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171512] dark:text-white tracking-tight mt-0.5">
-            Trip Package Editor ({trips.length} packages)
+            {activeTrip ? `Editing: ${activeTrip.title}` : `Trip Management (${trips.length})`}
           </h1>
           <p className="text-xs sm:text-sm text-[#6D665E] dark:text-[#B8B0A4] font-normal">
-            Manage handpicked travel circuits, day-by-day itineraries, inclusions, and photo galleries.
+            {activeTrip
+              ? 'Update price, trip overview, photos, and day-by-day itinerary images.'
+              : 'Easily update prices, trip details, and itinerary photos.'}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleAddNewTrip}
-            className="px-5 py-2.5 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-bold font-mono tracking-wider uppercase flex items-center gap-2 shadow-md shadow-[#C85D3A]/25 transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Trip (Wizard)</span>
-          </button>
+          {activeTrip ? (
+            <button
+              type="button"
+              onClick={() => setActiveTrip(null)}
+              className="px-4 py-2.5 rounded-xl border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold uppercase text-[#6D665E] dark:text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Trip List</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleCreateNewTrip}
+              className="px-5 py-2.5 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-bold font-mono tracking-wider uppercase flex items-center gap-2 shadow-md shadow-[#C85D3A]/25 transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New Trip</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Trips Grid View */}
+      {/* ══════════════════════════════════════════════════
+          VIEW 1: SIMPLE TRIP LIST (#03)
+          ══════════════════════════════════════════════════ */}
       {!activeTrip && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {trips.map((trip) => (
-            <div
-              key={trip.slug}
-              className="rounded-3xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#262420] overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div className="relative aspect-[16/10] bg-[#E8DED0] dark:bg-[#1A1815]">
-                <Image
-                  src={trip.coverImageUrl}
-                  alt={trip.title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3.5">
+            {trips.map((trip) => {
+              const isEditingPrice = quickPriceTripSlug === trip.slug;
 
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-mono font-bold text-white uppercase">
-                  {trip.destinationName}
-                </span>
-
-                <span
-                  className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase ${
-                    trip.status === 'published' ? 'bg-[#174E48] text-white' : 'bg-black/60 text-white/70'
-                  }`}
+              return (
+                <div
+                  key={trip.slug}
+                  className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#262420] shadow-sm hover:border-[#C85D3A]/30 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                 >
-                  {trip.status}
-                </span>
+                  {/* Left: Thumbnail + Title + Duration */}
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-black/10 shrink-0 border border-black/5 dark:border-white/10">
+                      <Image
+                        src={trip.coverImageUrl}
+                        alt={trip.title}
+                        fill
+                        sizes="100px"
+                        className="object-cover"
+                      />
+                    </div>
 
-                <div className="absolute bottom-3 left-4 right-4 text-white">
-                  <span className="text-[10px] font-mono text-[#F4A261] uppercase tracking-wider block">
-                    {trip.durationNights}N / {trip.durationDays}D
-                  </span>
-                  <h3 className="text-xl font-bold font-serif line-clamp-1">{trip.title}</h3>
-                </div>
-              </div>
-
-              <div className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-                <p className="text-xs text-[#6D665E] dark:text-[#B8B0A4] line-clamp-2 leading-relaxed">
-                  {trip.overview}
-                </p>
-
-                <div className="pt-3 border-t border-[#E5DFD5] dark:border-[#262420] flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-mono text-[#8C8479] uppercase block">Price per person</span>
-                    <span className="text-sm font-bold text-[#174E48] dark:text-[#D4A467] font-mono">
-                      ₹{trip.pricePerPerson.toLocaleString('en-IN')}
-                    </span>
+                    <div className="space-y-1 min-w-0">
+                      <span className="text-[10px] font-mono text-[#C85D3A] uppercase font-bold tracking-wider">
+                        {trip.destinationName}
+                      </span>
+                      <h2 className="text-base sm:text-lg font-bold text-[#171512] dark:text-white truncate">
+                        {trip.title}
+                      </h2>
+                      <div className="flex items-center gap-2 text-xs font-mono text-[#6D665E] dark:text-[#8C8479]">
+                        <span>{trip.durationNights} Nights · {trip.durationDays} Days</span>
+                        <span>•</span>
+                        <span>{trip.itineraryDays?.length || 0} Itinerary Days</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTrip(trip);
-                        setWizardStep(1);
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-[#FAF7F2] dark:bg-white/5 hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white text-xs font-bold font-mono tracking-wider uppercase transition-colors"
-                    >
-                      Edit Trip
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteTrip(trip.slug)}
-                      className="p-1.5 rounded-xl text-red-500 hover:bg-red-500/10"
-                      title="Delete Trip"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                  {/* Right: Simple Price Display & Action Buttons */}
+                  <div className="flex items-center gap-4 sm:gap-6 self-end sm:self-center shrink-0">
+                    {/* Price Section */}
+                    <div className="text-right">
+                      <span className="text-[10px] font-mono text-[#8C8479] uppercase block font-semibold">
+                        Starting Price
+                      </span>
+
+                      {isEditingPrice ? (
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-sm font-bold font-mono text-[#171512] dark:text-white">₹</span>
+                          <input
+                            type="number"
+                            autoFocus
+                            value={quickPriceValue}
+                            onChange={(e) => setQuickPriceValue(Number(e.target.value))}
+                            className="w-24 p-1 text-sm font-bold font-mono rounded-lg border border-[#C85D3A] bg-white dark:bg-[#1C1916] text-[#171512] dark:text-white outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleSaveQuickPrice(trip.slug)}
+                            className="p-1.5 rounded-lg bg-[#174E48] text-white hover:bg-[#143E3A]"
+                            title="Save Price"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setQuickPriceTripSlug(null)}
+                            className="p-1.5 rounded-lg bg-black/5 dark:bg-white/10 text-[#8C8479]"
+                            title="Cancel"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-base sm:text-lg font-bold font-mono text-[#174E48] dark:text-[#D4A467]">
+                            ₹{trip.pricePerPerson.toLocaleString('en-IN')}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuickPriceTripSlug(trip.slug);
+                              setQuickPriceValue(trip.pricePerPerson);
+                            }}
+                            className="text-[10px] font-mono text-[#C85D3A] hover:underline font-bold"
+                            title="Quick Edit Price"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Edit & Delete Buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTrip(trip);
+                          setEditorSection('details');
+                        }}
+                        className="px-4 py-2 rounded-xl bg-[#FAF7F2] dark:bg-white/5 hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white text-xs font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
+                      >
+                        Edit Trip
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTrip(trip.slug)}
+                        className="p-2 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors"
+                        title="Delete Trip"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
       )}
 
       {/* ══════════════════════════════════════════════════
-          TRIP WIZARD (#15)
+          VIEW 2: SIMPLE EDIT TRIP (#04, #05, #06)
           ══════════════════════════════════════════════════ */}
       {activeTrip && (
-        <div className="bg-white dark:bg-[#14120F] rounded-3xl border border-[#E5DFD5] dark:border-[#262420] shadow-xl overflow-hidden animate-in fade-in duration-200">
-          {/* Wizard Header Bar */}
-          <div className="p-6 border-b border-[#E5DFD5] dark:border-[#262420] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#FAF7F2] dark:bg-[#11100E]">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[#C85D3A] font-bold">
-                TRIP BUILDER WIZARD
-              </span>
-              <h2 className="text-xl font-bold text-[#171512] dark:text-white">
-                {activeTrip.title}
-              </h2>
-            </div>
-
-            {/* Step Indicators */}
+        <div className="bg-white dark:bg-[#14120F] rounded-3xl border border-[#E5DFD5] dark:border-[#262420] shadow-xl overflow-hidden space-y-6">
+          {/* Section Navigation Tabs & Save Button */}
+          <div className="p-4 sm:p-6 border-b border-[#E5DFD5] dark:border-[#262420] flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#FAF7F2] dark:bg-[#11100E]">
             <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
               {[
-                { step: 1, label: '1. Basic Details' },
-                { step: 2, label: '2. Photos' },
-                { step: 3, label: '3. Itinerary' },
-                { step: 4, label: '4. Inclusions' },
-                { step: 5, label: '5. Preview & Publish' },
-              ].map((s) => (
+                { id: 'details', label: '1. Basic Details & Price' },
+                { id: 'photos', label: '2. Photos & Gallery' },
+                { id: 'itinerary', label: `3. Itinerary & Images (${activeTrip.itineraryDays?.length || 0} Days)` },
+              ].map((tab) => (
                 <button
-                  key={s.step}
+                  key={tab.id}
                   type="button"
-                  onClick={() => setWizardStep(s.step)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-colors shrink-0 cursor-pointer ${
-                    wizardStep === s.step
-                      ? 'bg-[#174E48] text-white'
-                      : 'bg-white dark:bg-[#1C1916] text-[#6D665E] dark:text-[#8C8479] border border-[#E5DFD5] dark:border-[#262420]'
+                  onClick={() => setEditorSection(tab.id as any)}
+                  className={`px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all shrink-0 cursor-pointer ${
+                    editorSection === tab.id
+                      ? 'bg-[#174E48] text-white shadow-sm'
+                      : 'bg-white dark:bg-[#1C1916] text-[#6D665E] dark:text-[#B8B0A4] border border-[#E5DFD5] dark:border-[#262420]'
                   }`}
                 >
-                  {s.label}
+                  {tab.label}
                 </button>
               ))}
             </div>
+
+            <div className="flex items-center gap-3">
+              {saveSuccess && (
+                <span className="text-xs font-mono text-[#174E48] dark:text-[#D4A467] font-bold flex items-center gap-1.5 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Changes Saved!</span>
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={handleSaveTrip}
+                className="px-6 py-2.5 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-bold font-mono tracking-wider uppercase flex items-center gap-2 shadow-md shadow-[#C85D3A]/25 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                <span>Save Changes</span>
+              </button>
+            </div>
           </div>
 
-          {/* Wizard Body */}
-          <div className="p-6 sm:p-8 min-h-[420px]">
-            {/* STEP 1: Basic Details */}
-            {wizardStep === 1 && (
-              <div className="max-w-2xl space-y-5 text-xs font-mono">
+          <div className="p-6 sm:p-8">
+            {/* SECTION 1: BASIC DETAILS & PRICE (#04 & #05) */}
+            {editorSection === 'details' && (
+              <div className="max-w-2xl space-y-6 text-xs font-mono">
                 <div>
-                  <label className="text-[#8C8479] uppercase block mb-1">Trip Name</label>
+                  <label className="text-[#8C8479] uppercase block mb-1 font-bold">Trip Name</label>
                   <input
                     type="text"
                     value={activeTrip.title}
                     onChange={(e) => setActiveTrip({ ...activeTrip, title: e.target.value })}
-                    className="w-full p-3 rounded-2xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-base outline-none focus:border-[#C85D3A]"
+                    placeholder="e.g. The Great Kashmir Escape"
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-sm outline-none focus:border-[#C85D3A]"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[#8C8479] uppercase block mb-1">Destination Name</label>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">Destination</label>
                     <input
                       type="text"
                       value={activeTrip.destinationName}
                       onChange={(e) =>
                         setActiveTrip({ ...activeTrip, destinationName: e.target.value })
                       }
-                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white outline-none focus:border-[#C85D3A]"
+                      placeholder="e.g. Kashmir, Kerala, Rajasthan"
+                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none focus:border-[#C85D3A]"
                     />
                   </div>
 
+                  {/* PRICE EDITING (#05) */}
                   <div>
-                    <label className="text-[#8C8479] uppercase block mb-1">Price Per Person (₹)</label>
-                    <input
-                      type="number"
-                      value={activeTrip.pricePerPerson}
-                      onChange={(e) =>
-                        setActiveTrip({ ...activeTrip, pricePerPerson: Number(e.target.value) })
-                      }
-                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white outline-none focus:border-[#C85D3A]"
-                    />
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">
+                      Price per person (₹ INR)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-[#8C8479] font-bold">₹</span>
+                      <input
+                        type="number"
+                        value={activeTrip.pricePerPerson}
+                        onChange={(e) =>
+                          setActiveTrip({ ...activeTrip, pricePerPerson: Number(e.target.value) })
+                        }
+                        placeholder="24999"
+                        className="w-full p-2.5 pl-8 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-mono text-sm font-bold outline-none focus:border-[#C85D3A]"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[#8C8479] uppercase block mb-1">Duration Nights</label>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">Duration (Nights)</label>
                     <input
                       type="number"
                       value={activeTrip.durationNights}
                       onChange={(e) =>
                         setActiveTrip({ ...activeTrip, durationNights: Number(e.target.value) })
                       }
-                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white outline-none focus:border-[#C85D3A]"
+                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none focus:border-[#C85D3A]"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[#8C8479] uppercase block mb-1">Duration Days</label>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">Duration (Days)</label>
                     <input
                       type="number"
                       value={activeTrip.durationDays}
                       onChange={(e) =>
                         setActiveTrip({ ...activeTrip, durationDays: Number(e.target.value) })
                       }
-                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white outline-none focus:border-[#C85D3A]"
+                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none focus:border-[#C85D3A]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[#8C8479] uppercase block mb-1">Overview / Short Story</label>
+                  <label className="text-[#8C8479] uppercase block mb-1 font-bold">Short Description / Overview</label>
                   <textarea
                     rows={3}
                     value={activeTrip.overview}
                     onChange={(e) => setActiveTrip({ ...activeTrip, overview: e.target.value })}
-                    className="w-full p-3 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs outline-none focus:border-[#C85D3A]"
+                    placeholder="Short summary of the holiday experience..."
+                    className="w-full p-3 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs leading-relaxed outline-none focus:border-[#C85D3A]"
                   />
                 </div>
               </div>
             )}
 
-            {/* STEP 2: Photos (#16) */}
-            {wizardStep === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <label className="text-xs font-mono uppercase text-[#8C8479] block font-bold mb-2">
-                    Cover Photograph
-                  </label>
-                  <div className="relative w-full max-w-md aspect-[16/10] rounded-2xl overflow-hidden bg-[#E8DED0] dark:bg-[#1C1916] border border-black/5 dark:border-white/10 group">
-                    <Image
-                      src={activeTrip.coverImageUrl}
-                      alt={activeTrip.title}
-                      fill
-                      sizes="400px"
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            {/* SECTION 2: PHOTOS (#04 & #07) */}
+            {editorSection === 'photos' && (
+              <div className="space-y-8 max-w-3xl">
+                {/* Cover Photo */}
+                <div className="space-y-3">
+                  <span className="text-xs font-mono uppercase text-[#8C8479] font-bold block">
+                    Cover Photo
+                  </span>
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <div className="relative w-full sm:w-72 aspect-[16/10] rounded-2xl overflow-hidden bg-black/10 border border-black/5 dark:border-white/10">
+                      <Image
+                        src={activeTrip.coverImageUrl}
+                        alt={activeTrip.title}
+                        fill
+                        sizes="300px"
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <button
                         type="button"
                         onClick={() => {
-                          setMediaTarget('cover');
+                          setMediaTarget({ type: 'cover' });
                           setIsMediaPickerOpen(true);
                         }}
-                        className="px-4 py-2 rounded-xl bg-white text-[#171512] text-xs font-bold font-mono tracking-wider uppercase shadow-md cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold text-[#C85D3A] hover:bg-[#FAF7F2]/80 flex items-center gap-2 cursor-pointer"
                       >
-                        Choose from Library
+                        <ImageIcon className="w-4 h-4" />
+                        <span>Change Cover Photo</span>
                       </button>
+                      <p className="text-[11px] font-mono text-[#8C8479]">
+                        Select or upload a high-resolution photo for the main card and hero.
+                      </p>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="text-xs font-mono uppercase text-[#8C8479] font-bold">
-                      Trip Gallery ({activeTrip.galleryUrls?.length || 0} photos)
-                    </label>
+                {/* Trip Gallery */}
+                <div className="space-y-3 pt-6 border-t border-[#E5DFD5] dark:border-[#262420]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-mono uppercase text-[#8C8479] font-bold block">
+                        Trip Gallery ({activeTrip.galleryUrls?.length || 0} photos)
+                      </span>
+                      <p className="text-[11px] font-mono text-[#8C8479]">
+                        Additional photos displayed in the trip package view
+                      </p>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => {
-                        setMediaTarget('gallery');
+                        setMediaTarget({ type: 'gallery' });
                         setIsMediaPickerOpen(true);
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold text-[#C85D3A] hover:bg-[#FAF7F2]/80 flex items-center gap-1.5"
+                      className="px-3.5 py-1.5 rounded-xl bg-[#174E48] hover:bg-[#143E3A] text-white text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-sm"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>Add Gallery Photo</span>
+                      <span>Add Photo</span>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                     {activeTrip.galleryUrls?.map((url, idx) => (
                       <div
                         key={idx}
-                        className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-[#E8DED0] dark:bg-[#1C1916] border border-black/5 dark:border-white/10 group"
+                        className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-black/10 border border-black/5 dark:border-white/10 group"
                       >
                         <Image src={url} alt={`Gallery ${idx}`} fill sizes="200px" className="object-cover" />
                         <button
@@ -413,7 +575,8 @@ export default function AdminTripsPage() {
                             const updated = activeTrip.galleryUrls?.filter((_, i) => i !== idx);
                             setActiveTrip({ ...activeTrip, galleryUrls: updated });
                           }}
-                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                          title="Remove Photo"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -424,239 +587,246 @@ export default function AdminTripsPage() {
               </div>
             )}
 
-            {/* STEP 3: Itinerary Builder (#17) */}
-            {wizardStep === 3 && (
+            {/* SECTION 3: ITINERARY & ITINERARY IMAGES (#06) */}
+            {editorSection === 'itinerary' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E5DFD5] dark:border-[#262420]">
                   <div>
-                    <h3 className="text-base font-bold text-[#171512] dark:text-white">
-                      Day-by-Day Itinerary ({itineraryDays.length} Days)
-                    </h3>
+                    <h2 className="text-base font-bold text-[#171512] dark:text-white">
+                      Day-by-Day Itinerary ({activeTrip.itineraryDays?.length || 0} Days)
+                    </h2>
                     <p className="text-xs text-[#6D665E] dark:text-[#8C8479]">
-                      Add pacing, stays, chauffeur routes, and daily photographs.
+                      Manage each day&apos;s title, destination location, narrative, and attached photos.
                     </p>
                   </div>
 
                   <button
                     type="button"
-                    onClick={handleAddItineraryDay}
+                    onClick={handleAddDay}
                     className="px-4 py-2 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-mono font-bold uppercase flex items-center gap-1.5 shadow-sm cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>Add Day {itineraryDays.length + 1}</span>
+                    <span>+ Add Day {(activeTrip.itineraryDays?.length || 0) + 1}</span>
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  {itineraryDays.map((day, idx) => (
+                <div className="space-y-5">
+                  {activeTrip.itineraryDays?.map((day, dayIdx) => (
                     <div
-                      key={day.dayNumber}
-                      className="p-5 rounded-3xl bg-[#FAF7F2] dark:bg-[#1A1815] border border-[#E5DFD5] dark:border-[#262420] flex flex-col sm:flex-row gap-5 items-start justify-between"
+                      key={day.dayNumber || dayIdx}
+                      className="p-5 sm:p-6 rounded-3xl bg-[#FAF7F2] dark:bg-[#1A1815] border border-[#E5DFD5] dark:border-[#262420] space-y-4"
                     >
-                      {/* Left Day Pill */}
-                      <span className="w-12 h-12 rounded-2xl bg-[#174E48] text-white flex items-center justify-center font-mono font-bold text-sm shrink-0">
-                        0{day.dayNumber}
-                      </span>
+                      {/* Top Bar for Day */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <span className="px-3 py-1 rounded-xl bg-[#174E48] text-white font-mono font-bold text-xs">
+                            DAY {String(day.dayNumber).padStart(2, '0')}
+                          </span>
+                          <span className="text-xs font-bold text-[#171512] dark:text-white">
+                            {day.title || `Day ${day.dayNumber}`}
+                          </span>
+                        </div>
 
-                      {/* Middle Content Fields */}
-                      <div className="space-y-3 flex-1 min-w-0 text-xs font-mono">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[#8C8479] uppercase block mb-1">Day Title</label>
-                            <input
-                              type="text"
-                              value={day.title}
-                              onChange={(e) => {
-                                const updated = [...itineraryDays];
-                                updated[idx].title = e.target.value;
-                                setItineraryDays(updated);
-                              }}
-                              className="w-full p-2 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans font-bold text-xs"
-                            />
-                          </div>
+                        {/* Reorder and Delete Day buttons */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            disabled={dayIdx === 0}
+                            onClick={() => handleMoveDay(dayIdx, 'up')}
+                            className="p-1.5 rounded-lg text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
+                            title="Move Day Up"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={dayIdx === (activeTrip.itineraryDays?.length || 0) - 1}
+                            onClick={() => handleMoveDay(dayIdx, 'down')}
+                            className="p-1.5 rounded-lg text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
+                            title="Move Day Down"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDay(dayIdx)}
+                            className="p-1.5 rounded-lg text-red-500 hover:bg-red-500/10 ml-2"
+                            title="Remove Day"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
 
-                          <div>
-                            <label className="text-[#8C8479] uppercase block mb-1">Location</label>
-                            <input
-                              type="text"
-                              value={day.location}
-                              onChange={(e) => {
-                                const updated = [...itineraryDays];
-                                updated[idx].location = e.target.value;
-                                setItineraryDays(updated);
-                              }}
-                              className="w-full p-2 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs"
-                            />
-                          </div>
+                      {/* Day Details Inputs */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
+                        <div>
+                          <label className="text-[#8C8479] uppercase block mb-1">Day Title</label>
+                          <input
+                            type="text"
+                            value={day.title}
+                            onChange={(e) => {
+                              const updated = [...(activeTrip.itineraryDays || [])];
+                              updated[dayIdx].title = e.target.value;
+                              setActiveTrip({ ...activeTrip, itineraryDays: updated });
+                            }}
+                            className="w-full p-2.5 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs"
+                          />
                         </div>
 
                         <div>
-                          <label className="text-[#8C8479] uppercase block mb-1">Description</label>
-                          <textarea
-                            rows={2}
-                            value={day.description}
+                          <label className="text-[#8C8479] uppercase block mb-1">Location</label>
+                          <input
+                            type="text"
+                            value={day.location}
                             onChange={(e) => {
-                              const updated = [...itineraryDays];
-                              updated[idx].description = e.target.value;
-                              setItineraryDays(updated);
+                              const updated = [...(activeTrip.itineraryDays || [])];
+                              updated[dayIdx].location = e.target.value;
+                              setActiveTrip({ ...activeTrip, itineraryDays: updated });
                             }}
-                            className="w-full p-2 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs"
+                            className="w-full p-2.5 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs"
                           />
                         </div>
                       </div>
 
-                      {/* Right Photo Preview */}
-                      <div className="w-full sm:w-28 space-y-1.5 shrink-0">
-                        {day.imageUrl ? (
-                          <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-black/10 dark:border-white/10">
-                            <Image src={day.imageUrl} alt={day.title} fill sizes="120px" className="object-cover" />
-                          </div>
-                        ) : null}
-
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMediaTarget(idx);
-                            setIsMediaPickerOpen(true);
+                      <div className="text-xs font-mono">
+                        <label className="text-[#8C8479] uppercase block mb-1">Description</label>
+                        <textarea
+                          rows={2}
+                          value={day.description}
+                          onChange={(e) => {
+                            const updated = [...(activeTrip.itineraryDays || [])];
+                            updated[dayIdx].description = e.target.value;
+                            setActiveTrip({ ...activeTrip, itineraryDays: updated });
                           }}
-                          className="w-full py-1 rounded-lg bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#262420] text-[10px] font-mono font-bold text-[#C85D3A]"
-                        >
-                          {day.imageUrl ? 'Change Photo' : '+ Add Photo'}
-                        </button>
+                          className="w-full p-2.5 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs"
+                        />
+                      </div>
+
+                      {/* Day Photos Grid (#06) */}
+                      <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-mono uppercase text-[#8C8479] font-bold">
+                            Itinerary Photos ({day.images?.length || 0})
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMediaTarget({ type: 'itinerary', dayIndex: dayIdx, isAdd: true });
+                              setIsMediaPickerOpen(true);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#262420] text-[11px] font-mono font-bold text-[#C85D3A] hover:bg-[#C85D3A] hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>+ Add Photo</span>
+                          </button>
+                        </div>
+
+                        {(!day.images || day.images.length === 0) ? (
+                          <div className="p-4 rounded-xl border border-dashed border-[#E5DFD5] dark:border-[#262420] text-center text-[11px] font-mono text-[#8C8479]">
+                            No photos added for this day yet.{' '}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMediaTarget({ type: 'itinerary', dayIndex: dayIdx, isAdd: true });
+                                setIsMediaPickerOpen(true);
+                              }}
+                              className="text-[#C85D3A] font-bold underline ml-1"
+                            >
+                              Add photo
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
+                            {day.images.map((imgUrl, imgIdx) => (
+                              <div
+                                key={imgIdx}
+                                className="relative aspect-[4/3] rounded-xl overflow-hidden bg-black/10 border border-black/5 dark:border-white/10 group"
+                              >
+                                <Image
+                                  src={imgUrl}
+                                  alt={`Day ${day.dayNumber} Photo ${imgIdx + 1}`}
+                                  fill
+                                  sizes="120px"
+                                  className="object-cover"
+                                />
+
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setMediaTarget({
+                                        type: 'itinerary',
+                                        dayIndex: dayIdx,
+                                        imageIndex: imgIdx,
+                                      });
+                                      setIsMediaPickerOpen(true);
+                                    }}
+                                    className="p-1 rounded-md bg-white text-[#171512] hover:bg-[#C85D3A] hover:text-white transition-colors"
+                                    title="Change Photo"
+                                  >
+                                    <ImageIcon className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveItineraryImage(dayIdx, imgIdx)}
+                                    className="p-1 rounded-md bg-white text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+                                    title="Remove Photo"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-
-            {/* STEP 4: Inclusions & Highlights */}
-            {wizardStep === 4 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs font-mono">
-                <div className="space-y-3">
-                  <label className="text-[#174E48] dark:text-[#D4A467] font-bold uppercase block">
-                    What is Included
-                  </label>
-                  <textarea
-                    rows={6}
-                    value={activeTrip.inclusions?.join('\n')}
-                    onChange={(e) =>
-                      setActiveTrip({ ...activeTrip, inclusions: e.target.value.split('\n') })
-                    }
-                    placeholder="One item per line (e.g. Private chauffeur transfers)"
-                    className="w-full p-3 rounded-2xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs leading-relaxed"
-                  />
-                </div>
-
-                <div className="space-y-3">
-                  <label className="text-red-500 font-bold uppercase block">
-                    What is Not Included
-                  </label>
-                  <textarea
-                    rows={6}
-                    value={activeTrip.exclusions?.join('\n')}
-                    onChange={(e) =>
-                      setActiveTrip({ ...activeTrip, exclusions: e.target.value.split('\n') })
-                    }
-                    placeholder="One item per line (e.g. Flight tickets)"
-                    className="w-full p-3 rounded-2xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs leading-relaxed"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 5: Preview & Publish */}
-            {wizardStep === 5 && (
-              <div className="space-y-6 max-w-2xl">
-                <div className="relative aspect-[16/9] rounded-3xl overflow-hidden shadow-xl border border-black/10 dark:border-white/10">
-                  <Image
-                    src={activeTrip.coverImageUrl}
-                    alt={activeTrip.title}
-                    fill
-                    sizes="700px"
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20" />
-
-                  <div className="absolute bottom-6 left-6 right-6 text-white space-y-1">
-                    <span className="text-[11px] font-mono text-[#F4A261] uppercase tracking-widest font-bold">
-                      {activeTrip.destinationName} · {activeTrip.durationNights}N / {activeTrip.durationDays}D
-                    </span>
-                    <h2 className="text-3xl font-serif">{activeTrip.title}</h2>
-                    <span className="text-sm font-mono text-[#10B981] font-bold block pt-1">
-                      ₹{activeTrip.pricePerPerson.toLocaleString('en-IN')} / person
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-[#6D665E] dark:text-[#B8B0A4] leading-relaxed">
-                  {activeTrip.overview}
-                </p>
-              </div>
-            )}
           </div>
 
-          {/* Wizard Footer Navigation */}
+          {/* Bottom Save Bar */}
           <div className="p-6 border-t border-[#E5DFD5] dark:border-[#262420] flex items-center justify-between bg-[#FAF7F2] dark:bg-[#11100E]">
-            <div className="flex items-center gap-3">
-              {wizardStep > 1 && (
-                <button
-                  type="button"
-                  onClick={() => setWizardStep((prev) => prev - 1)}
-                  className="px-4 py-2.5 rounded-xl border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold uppercase text-[#6D665E] dark:text-[#8C8479]"
-                >
-                  Previous
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setActiveTrip(null)}
-                className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase text-[#8C8479] hover:bg-black/5"
-              >
-                Close Editor
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTrip(null)}
+              className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5"
+            >
+              Cancel
+            </button>
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleSaveAndClose('draft')}
-                className="px-4 py-2.5 rounded-xl bg-black/5 dark:bg-white/10 text-xs font-mono font-bold uppercase text-[#171512] dark:text-white"
-              >
-                Save as Draft
-              </button>
-
-              {wizardStep < 5 ? (
-                <button
-                  type="button"
-                  onClick={() => setWizardStep((prev) => prev + 1)}
-                  className="px-5 py-2.5 rounded-xl bg-[#174E48] hover:bg-[#143E3A] text-white text-xs font-mono font-bold uppercase flex items-center gap-1.5 shadow-sm"
-                >
-                  <span>Next Step</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleSaveAndClose('published')}
-                  className="px-6 py-2.5 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-mono font-bold uppercase shadow-md shadow-[#C85D3A]/25 cursor-pointer"
-                >
-                  Publish Trip to Website
-                </button>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={handleSaveTrip}
+              className="px-8 py-3 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-bold font-mono tracking-wider uppercase shadow-md shadow-[#C85D3A]/25 cursor-pointer flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Changes</span>
+            </button>
           </div>
         </div>
       )}
 
-      {/* Media Picker Modal */}
+      {/* Reusable Simple Media Picker (#07 & #11) */}
       <MediaPickerModal
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}
         onSelectImage={handleMediaSelected}
         categoryFilter="Trip"
-        title="Select Photograph for Trip"
+        title="Select Photograph"
       />
     </div>
+  );
+}
+
+export default function AdminTripsPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-xs font-mono text-[#8C8479]">Loading trips...</div>}>
+      <AdminTripsContent />
+    </Suspense>
   );
 }

@@ -656,6 +656,26 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
             </AnimatePresence>
           </div>
 
+          {/* ─── YASHI BRAND SIGNATURE (Brand layer: mounts once, stable across slide transitions) ─── */}
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.5,
+              delay: 0.85,
+              ease: EASE.out as [number, number, number, number],
+            }}
+            className="pt-1 flex items-baseline gap-1.5 select-none"
+            aria-label="with love, Yashi"
+          >
+            <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/55">
+              with love,
+            </span>
+            <span className="text-sm sm:text-[15px] font-serif font-normal text-[#F4A261] tracking-normal">
+              Yashi
+            </span>
+          </motion.div>
+
           {/* Brand Wit */}
           <p className="text-[11px] font-mono tracking-[0.06em] text-white/40 max-w-xs">
             Planning a trip shouldn&apos;t require 47 WhatsApp messages.

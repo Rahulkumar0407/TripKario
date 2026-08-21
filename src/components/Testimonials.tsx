@@ -159,7 +159,7 @@ export default function Testimonials({
   const marqueeItems = [...testList, ...testList];
 
   return (
-    <section className="py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]">
+    <section id="testimonials" className="py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[var(--brand-saffron, #E85D30)]/5 rounded-full blur-[120px] pointer-events-none" />
 

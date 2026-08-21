@@ -36,7 +36,10 @@ export default function TripDetailModal({
   ];
 
   const handleWhatsAppInquiry = () => {
-    const text = `Hi TripKario! I am interested in booking "${trip.title}" (${trip.durationNights}N/${trip.durationDays}D in ${trip.destination}) starting at ${formatPrice(trip.pricePerPerson)}. Please share the detailed itinerary and next available dates.`;
+    const priceText = trip.isPriceOnRequest || !trip.pricePerPerson || trip.pricePerPerson <= 0
+      ? 'Price on request'
+      : `starting at ${formatPrice(trip.pricePerPerson)}`;
+    const text = `Hi TripKario! I am interested in booking "${trip.title}" (${trip.durationNights}N/${trip.durationDays}D in ${trip.destination}) ${priceText}. Please share the detailed itinerary and next available dates.`;
     openWhatsApp(text);
   };
 
@@ -58,7 +61,7 @@ export default function TripDetailModal({
           {/* Badges */}
           <div className="absolute top-4 left-4 flex items-center gap-2">
             <Badge variant="saffron">{trip.destination}</Badge>
-            <Badge variant="secondary">{trip.category}</Badge>
+            {trip.category && <Badge variant="secondary">{trip.category}</Badge>}
           </div>
 
           {/* Title on Image */}
@@ -74,7 +77,7 @@ export default function TripDetailModal({
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                {trip.rating} ({trip.reviewCount} reviews)
+                {trip.rating || 4.9} ({trip.reviewCount || 48} reviews)
               </span>
             </div>
           </div>
@@ -100,7 +103,7 @@ export default function TripDetailModal({
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
-              Overview
+              Itinerary & Overview
             </button>
             <button
               onClick={() => setActiveTab('inclusions')}
@@ -110,22 +113,57 @@ export default function TripDetailModal({
                   : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
-              Inclusions & Exclusions
+              Inclusions & Stays
             </button>
           </div>
 
           {/* Tab 1: Itinerary / Overview */}
           {activeTab === 'itinerary' && (
-            <div className="space-y-4 text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed font-normal">
-              <p>{trip.longDescription}</p>
-              <div className="p-4 rounded-2xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] space-y-2">
-                <span className="font-semibold text-[var(--text-primary)] block">Trip Highlights:</span>
-                <ul className="list-disc list-inside space-y-1">
-                  {trip.inclusions.slice(0, 4).map((inc, i) => (
-                    <li key={i}>{inc}</li>
+            <div className="space-y-5 text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed font-normal">
+              <p>{trip.longDescription || trip.shortDescription}</p>
+
+              {/* Day-by-day Itinerary Cards if available */}
+              {trip.itinerary && trip.itinerary.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  <span className="font-semibold text-xs font-mono uppercase text-[var(--text-primary)] block">
+                    Day-by-Day Plan:
+                  </span>
+                  {trip.itinerary.map((day) => (
+                    <div
+                      key={day.dayNumber}
+                      className="p-3.5 rounded-2xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] flex items-start gap-3"
+                    >
+                      <span className="w-8 h-8 rounded-xl bg-[var(--accent)] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                        0{day.dayNumber}
+                      </span>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-[var(--text-primary)] text-xs">
+                            {day.title}
+                          </span>
+                          {day.location && (
+                            <span className="text-[10px] font-mono text-[var(--accent)]">
+                              · {day.location}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                          {day.description}
+                        </p>
+                      </div>
+                    </div>
                   ))}
-                </ul>
-              </div>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] space-y-2">
+                  <span className="font-semibold text-[var(--text-primary)] block">Trip Highlights:</span>
+                  <ul className="list-disc list-inside space-y-1">
+                    {trip.inclusions.slice(0, 4).map((inc, i) => (
+                      <li key={i}>{inc}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
@@ -165,11 +203,13 @@ export default function TripDetailModal({
           {/* Pricing & CTA Footer */}
           <div className="pt-4 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">Total Package Starting</span>
+              <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">Package Starting</span>
               <span className="text-2xl font-serif font-bold text-[var(--text-primary)]">
-                {formatPrice(trip.pricePerPerson)}
+                {formatPrice(trip.pricePerPerson, trip.isPriceOnRequest)}
               </span>
-              <span className="text-xs font-mono text-[var(--text-muted)]"> / person</span>
+              {!trip.isPriceOnRequest && trip.pricePerPerson > 0 && (
+                <span className="text-xs font-mono text-[var(--text-muted)]"> / person</span>
+              )}
             </div>
 
             <div className="flex items-center gap-2">

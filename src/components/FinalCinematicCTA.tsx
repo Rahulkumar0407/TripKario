@@ -7,7 +7,6 @@ import { ArrowRight, MessageCircle, Plane } from 'lucide-react';
 import { openWhatsApp } from '@/lib/whatsapp';
 import TripkarioLogo from './TripkarioLogo';
 import MagneticButton from './ui/MagneticButton';
-import GlassSurface from './ui/GlassSurface';
 
 interface FinalCinematicCTAProps {
   onOpenPlanTrip: () => void;
@@ -36,31 +35,42 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
 
       {/* Animated Final Journey Path Route Line & Airplane */}
       <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
-        <svg viewBox="0 0 1440 800" fill="none" className="w-full h-full opacity-50">
+        <svg viewBox="0 0 1440 800" fill="none" className="w-full h-full opacity-40">
           <motion.path
             d="M 80 720 Q 680 380, 1380 120"
             stroke="#E46B3B"
-            strokeWidth="2"
+            strokeWidth="1.5"
             strokeDasharray="6 8"
             initial={{ pathLength: 0 }}
             whileInView={{ pathLength: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 2.2, ease: 'easeInOut' }}
           />
+          {/* Endpoint marker at the end of the trajectory */}
+          <motion.circle
+            cx="1380"
+            cy="120"
+            r="3.5"
+            fill="#E46B3B"
+            initial={{ scale: 0, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 0.8 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 2.2, ease: 'easeOut' }}
+          />
         </svg>
 
-        {/* Minimal Airplane brand marker traveling on the route */}
+        {/* Minimal Airplane marker traveling along the route */}
         <motion.div
           initial={{ offsetDistance: '0%', opacity: 0 }}
-          whileInView={{ offsetDistance: '88%', opacity: [0, 1, 1, 0] }}
+          whileInView={{ offsetDistance: '98%', opacity: [0, 1, 1, 0] }}
           viewport={{ once: true }}
-          transition={{ duration: 2.6, ease: 'easeInOut', delay: 0.2 }}
+          transition={{ duration: 2.4, ease: 'easeInOut', delay: 0.1 }}
           style={{
             offsetPath: 'path("M 80 720 Q 680 380, 1380 120")',
           }}
           className="absolute text-[#E46B3B] drop-shadow-[0_0_8px_rgba(228,107,59,0.8)]"
         >
-          <Plane className="w-5 h-5 -rotate-12" />
+          <Plane className="w-4 h-4 -rotate-12" />
         </motion.div>
       </div>
 
@@ -134,9 +144,66 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
           </MagneticButton>
         </motion.div>
 
-        <div className="pt-6 text-[10px] font-mono text-white/40 tracking-widest uppercase">
-          Road into the Himalayas · Ladakh · Photo — Rohit Sharma
-        </div>
+        {/* End-of-Journey Personal Brand Signature: with love, Yashi */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 2.1 }}
+          className="pt-10 flex flex-col items-center justify-center gap-3 select-none"
+        >
+          {/* Connecting route line & endpoint */}
+          <div className="flex items-center gap-2">
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              whileInView={{ width: 44, opacity: 0.4 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 2.1, ease: 'easeOut' }}
+              className="h-[1px] bg-gradient-to-r from-transparent via-[#E46B3B] to-[#E46B3B]"
+            />
+            <motion.span
+              initial={{ scale: 0, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: 2.3, ease: 'easeOut' }}
+              className="w-1.5 h-1.5 rounded-full bg-[#E46B3B] shadow-[0_0_8px_rgba(228,107,59,0.8)]"
+            />
+          </div>
+
+          {/* Signature text: with love, Yashi */}
+          <div
+            tabIndex={0}
+            role="note"
+            aria-label="with love, Yashi"
+            className="group inline-flex items-baseline gap-1.5 cursor-default focus:outline-none transition-all duration-300"
+          >
+            {/* 'with love,' - small, calm, font-mono */}
+            <motion.span
+              initial={{ opacity: 0, x: -4 }}
+              whileInView={{ opacity: 0.7, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 2.4, ease: 'easeOut' }}
+              className="text-xs sm:text-[13px] font-mono font-normal tracking-wide text-white/60 group-hover:text-white/85 group-focus-visible:text-white/85 transition-colors"
+            >
+              with love,
+            </motion.span>
+
+            {/* 'Yashi' - elegant, warm gold tone, strictly font-normal (zero italics) */}
+            <motion.span
+              initial={{ opacity: 0, x: 4 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 2.55, ease: 'easeOut' }}
+              className="text-base sm:text-lg font-serif font-normal text-[#F4A261] group-hover:text-[#ED7B4D] group-focus-visible:text-[#ED7B4D] group-hover:tracking-[0.02em] group-focus-visible:tracking-[0.02em] transition-all duration-300"
+            >
+              Yashi
+            </motion.span>
+          </div>
+
+          <div className="text-[9px] font-mono text-white/25 tracking-widest uppercase">
+            Road into the Himalayas · Ladakh · Photo — Rohit Sharma
+          </div>
+        </motion.div>
       </div>
     </section>
   );
