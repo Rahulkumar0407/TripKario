@@ -8,14 +8,12 @@ interface MagneticButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   children: React.ReactNode;
   className?: string;
   magneticStrength?: number;
-  dataCursor?: string;
 }
 
 export default function MagneticButton({
   children,
   className = '',
   magneticStrength = 0.2,
-  dataCursor,
   onClick,
   ...props
 }: MagneticButtonProps) {
@@ -51,7 +49,6 @@ export default function MagneticButton({
       onClick={onClick}
       animate={{ x: position.x, y: position.y }}
       transition={{ type: 'spring', stiffness: 450, damping: 28, mass: 0.15 }}
-      data-cursor={dataCursor}
       className={cn(
         'relative inline-flex items-center justify-center rounded-full font-semibold uppercase tracking-wider text-xs transition-colors duration-200 cursor-pointer disabled:pointer-events-none disabled:opacity-50',
         className
@@ -68,3 +65,4 @@ export default function MagneticButton({
     </motion.button>
   );
 }
+

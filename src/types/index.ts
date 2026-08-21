@@ -3,10 +3,12 @@ export interface EditorialImage {
   alt: string;
   photographer?: string;
   source?: string;
+  sourceUrl?: string;
   license?: string;
   location?: string;
   year?: string;
   time?: string;
+  verified?: boolean;
   orientation?: 'landscape' | 'portrait';
   heroSafeArea?: 'left' | 'right' | 'center';
   focalPosition?: string;
@@ -72,6 +74,18 @@ export interface Destination {
   route?: string;
 }
 
+export interface ItineraryDay {
+  dayNumber: number;
+  title: string;
+  location?: string;
+  description: string;
+  images?: string[];
+  places?: string[];
+  activities?: string[];
+  meals?: string;
+  overnight?: string;
+}
+
 export interface TripPackage {
   id: string;
   destinationId: string;
@@ -108,13 +122,7 @@ export interface TripPackage {
     sourceCheckedAt: string;
     pricingVariantsNote?: string;
   };
-  itinerary?: Array<{
-    dayNumber: number;
-    title: string;
-    location?: string;
-    description: string;
-    images?: string[];
-  }>;
+  itinerary?: ItineraryDay[];
 }
 
 export interface TravellerStory {

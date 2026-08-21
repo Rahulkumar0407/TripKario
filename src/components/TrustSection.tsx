@@ -3,13 +3,14 @@
 import React from 'react';
 import { ShieldCheck, Award, HeartHandshake, Sparkles } from 'lucide-react';
 import { siteConfig } from '@/data/site';
+import { getItineraryCount, getUniqueDestinationCount } from '@/data/trips';
 
 export default function TrustSection() {
   const stats = [
-    { label: 'Happy Travellers', value: siteConfig.stats?.happyTravelers || '5,000+', icon: HeartHandshake },
-    { label: 'Destinations', value: siteConfig.stats?.destinationsCovered || '15+', icon: Sparkles },
-    { label: 'Curated Itineraries', value: siteConfig.stats?.curatedItineraries || '40+', icon: Award },
-    { label: 'Average Rating', value: siteConfig.stats?.averageRating || '4.9/5', icon: ShieldCheck },
+    { label: 'Happy Travellers', value: siteConfig.stats?.happyTravellers || '5,000+', icon: HeartHandshake },
+    { label: 'Destinations', value: `${getUniqueDestinationCount()}+`, icon: Sparkles },
+    { label: 'Curated Itineraries', value: `${getItineraryCount()}+`, icon: Award },
+    { label: 'Average Rating', value: '4.9/5', icon: ShieldCheck },
   ];
 
   return (

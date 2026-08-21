@@ -111,7 +111,6 @@ export default function IndiaStory({ onSelectDestination }: IndiaStoryProps) {
               <div
                 key={d.id}
                 onClick={() => onSelectDestination(d.name)}
-                data-cursor="EXPLORE"
                 className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] hover:border-[var(--accent)] shadow-xs hover:shadow-xl transition-all cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-2">

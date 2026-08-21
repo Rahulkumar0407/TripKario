@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Compass, Shield } from 'lucide-react';
 import { tripPackages } from '@/data/trips';
+import { formatPrice } from '@/lib/utils';
 
 interface DestinationStoryProps {
   onSelectTrip: (tripId: string) => void;
@@ -11,6 +12,8 @@ interface DestinationStoryProps {
 }
 
 export default function DestinationStory({ onSelectTrip, onOpenPlanTrip }: DestinationStoryProps) {
+  const signatureTrip = tripPackages.find((t) => t.id === 'kashmir-signature');
+
   return (
     <section className="relative py-32 md:py-44 bg-[#121316] text-[#FAF8F5] overflow-hidden">
       {/* Cinematic Background with Parallax Feel */}
@@ -80,7 +83,7 @@ export default function DestinationStory({ onSelectTrip, onOpenPlanTrip }: Desti
             className="flex flex-wrap items-center gap-3 mb-10 text-xs font-mono uppercase tracking-wider text-white/90"
           >
             <span className="px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
-              6 Nights · 7 Days
+              {signatureTrip?.durationNights || 6} Nights · {signatureTrip?.durationDays || 7} Days
             </span>
             <span className="px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10">
               Heritage Cedar Houseboat
@@ -102,17 +105,21 @@ export default function DestinationStory({ onSelectTrip, onOpenPlanTrip }: Desti
             className="flex flex-wrap items-center gap-4"
           >
             <button
-              onClick={() => onOpenPlanTrip('Kashmir')}
-              data-cursor="KASHMIR"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#FAF8F5] text-[#121316] font-semibold text-xs uppercase tracking-widest hover:bg-[#EAE5DC] transition-all duration-300 shadow-xl"
+              onClick={() => {
+                if (signatureTrip) onSelectTrip(signatureTrip.id);
+                else onOpenPlanTrip('Kashmir');
+              }}
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#FAF8F5] text-[#121316] font-semibold text-xs uppercase tracking-widest hover:bg-[#EAE5DC] transition-all duration-300 shadow-xl cursor-pointer"
             >
               <span>Discover Kashmir</span>
               <ArrowRight className="w-4 h-4 text-[#1E3A2F]" />
             </button>
 
-            <span className="text-xs font-mono text-white/60">
-              Starting from ₹24,999 / person
-            </span>
+            {signatureTrip && (
+              <span className="text-xs font-mono text-white/60">
+                Starting from {formatPrice(signatureTrip.pricePerPerson)} / person
+              </span>
+            )}
           </motion.div>
         </div>
       </div>

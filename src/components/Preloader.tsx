@@ -15,7 +15,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
     const timer = setTimeout(() => {
       setIsFinished(true);
       if (onComplete) onComplete();
-    }, 1400);
+    }, 600);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -29,8 +29,8 @@ export default function Preloader({ onComplete }: PreloaderProps) {
           initial={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            scale: 1.02,
-            transition: { duration: 0.7, ease: [0.76, 0, 0.24, 1] },
+            scale: 1.01,
+            transition: { duration: 0.35, ease: [0.76, 0, 0.24, 1] },
           }}
         >
           <div className="relative z-20 flex flex-col items-center text-center px-6 max-w-sm">

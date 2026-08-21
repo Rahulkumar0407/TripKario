@@ -117,7 +117,6 @@ function PhotoCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
-      data-cursor="VIEW"
       className={`relative ${aspectClass} ${verticalOffset} rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] group shrink-0 select-none transition-shadow duration-500 hover:shadow-2xl`}
       style={{
         x: springX,

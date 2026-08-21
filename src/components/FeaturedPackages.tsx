@@ -41,8 +41,12 @@ export default function FeaturedPackages({ onSelectTrip, onOpenPlanTrip }: Featu
                   <p className="text-xs text-[var(--text-muted)] line-clamp-2">{trip.shortDescription}</p>
                   <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] font-mono text-[var(--text-muted)] block">From</span>
-                      <span className="text-lg font-serif font-bold text-[var(--text-primary)]">{formatPrice(trip.pricePerPerson)}</span>
+                      <span className="text-[10px] font-mono text-[var(--text-muted)] block">
+                        {!trip.isPriceOnRequest && trip.pricePerPerson > 0 ? 'From' : 'Pricing'}
+                      </span>
+                      <span className="text-lg font-serif font-bold text-[var(--text-primary)]">
+                        {formatPrice(trip.pricePerPerson, trip.isPriceOnRequest)}
+                      </span>
                     </div>
                     <MagneticButton className="px-4 h-9 rounded-full bg-[var(--accent)] text-white text-xs">
                       Explore

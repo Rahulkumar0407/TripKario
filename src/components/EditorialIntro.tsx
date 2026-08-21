@@ -85,8 +85,7 @@ export default function EditorialIntro({ onOpenPlanTrip }: EditorialIntroProps) 
             <div>
               <button
                 onClick={() => onOpenPlanTrip()}
-                data-cursor="PLAN"
-                className="inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-[#121316] group"
+                className="inline-flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-[#121316] group cursor-pointer"
               >
                 <span className="underline underline-offset-8 decoration-[#D97736] decoration-2 group-hover:text-[#D97736] transition-colors">
                   Meet our trip designers

@@ -1,11 +1,26 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Compass, MapPin, Sparkles, Clock, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import {
+  ArrowRight,
+  Compass,
+  MapPin,
+  Sparkles,
+  Clock,
+  ChevronRight,
+  ChevronLeft,
+  Calendar,
+  CheckCircle2,
+  ArrowUpRight,
+} from 'lucide-react';
+import TripDetailModal from '@/components/TripDetailModal';
+import { tripPackages, getTripById, getTripForDestination, getItineraryCount } from '@/data/trips';
+import { TripPackage } from '@/types';
 
-export interface OrbitItinerary {
+export interface JourneyDeckItem {
   id: string;
   chapterNumber: string;
   destination: string;
@@ -21,10 +36,14 @@ export interface OrbitItinerary {
     alt: string;
   };
   highlights: string[];
-  atmosphereColor: string;
+  dayPreview: Array<{
+    day: string;
+    title: string;
+    detail: string;
+  }>;
 }
 
-export const orbitItineraries: OrbitItinerary[] = [
+export const journeyDeckItems: JourneyDeckItem[] = [
   {
     id: 'kashmir-signature',
     chapterNumber: '01',
@@ -36,12 +55,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: '₹20,900',
     isPriceOnRequest: false,
     tag: 'Signature Circuit',
-    atmosphereColor: 'rgba(56, 189, 248, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=90&w=1600&auto=format&fit=crop',
       alt: 'Shikara cutting through morning mist on Dal Lake in Srinagar, Kashmir',
     },
     highlights: ['Cedar Houseboat Stays', 'Gulmarg Gondola Passes', 'Lidder River Chalet'],
+    dayPreview: [
+      { day: '01', title: 'Arrival in Srinagar', detail: 'Dal Lake shikara cruise at golden hour & heritage cedar houseboat.' },
+      { day: '02', title: 'Gulmarg Gondola', detail: 'Phase 1 & 2 cable car to Kongdoori & Apharwat alpine trails.' },
+      { day: '03', title: 'Pahalgam Lidder Valley', detail: 'Riverside pine trails, Betaab Valley & Aru pine glades.' },
+    ],
   },
   {
     id: 'ladakh-high-passes',
@@ -54,12 +77,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: '₹22,000',
     isPriceOnRequest: false,
     tag: 'Trans-Himalayan',
-    atmosphereColor: 'rgba(96, 165, 250, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=90&w=1600&auto=format&fit=crop',
       alt: 'Ancient cliffside Thiksey Monastery in Ladakh',
     },
     highlights: ['Khardung La (17,982 ft)', 'Pangong Cobalt Lake', 'Cliffside Gompa Prayers'],
+    dayPreview: [
+      { day: '01', title: 'Leh Acclimatization', detail: 'Slow tea stroll through Leh market and Shanti Stupa sunset.' },
+      { day: '02', title: 'Nubra via Khardung La', detail: 'Cross the world’s iconic pass down into white sand dunes of Hunder.' },
+      { day: '03', title: 'Pangong Tso Cobalt Shore', detail: 'High-altitude shore stargazing and dramatic mountain reflections.' },
+    ],
   },
   {
     id: 'spiti-circuit',
@@ -72,12 +99,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: '₹18,990',
     isPriceOnRequest: false,
     tag: 'Offbeat Himalayan',
-    atmosphereColor: 'rgba(251, 146, 60, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=90&w=1600&auto=format&fit=crop',
       alt: 'Dramatic canyon valleys and snowy peaks in Spiti Valley',
     },
     highlights: ['1,000-Yr Key Gompa', 'Crescent Chandratal Lake', 'Highest Post Office (Hikkim)'],
+    dayPreview: [
+      { day: '01', title: 'Shimla to Kalpa', detail: 'Kinnaur apple valleys and majestic sunset views of Kinner Kailash.' },
+      { day: '02', title: 'Kalpa to Kaza', detail: 'Through the moonscape terrain and mud monasteries of Tabo.' },
+      { day: '03', title: 'Key Monastery & Hikkim', detail: 'Clifftop fortress prayer halls and postcard mailing from Hikkim.' },
+    ],
   },
   {
     id: 'meghalaya-cloud-trails',
@@ -90,17 +121,21 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: '₹15,999',
     isPriceOnRequest: false,
     tag: 'Rainforest Wonder',
-    atmosphereColor: 'rgba(16, 185, 129, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=1600&auto=format&fit=crop',
       alt: 'Living root bridge enveloped by rainforest mist in Meghalaya',
     },
     highlights: ['Double Decker Root Trek', 'Umngot Glass River Boating', 'Cherrapunji Waterfalls'],
+    dayPreview: [
+      { day: '01', title: 'Guwahati to Shillong', detail: 'Umiam Lake viewpoint and pine-lined boutique stay in Shillong.' },
+      { day: '02', title: 'Cherrapunji Waterfalls', detail: 'Nohkalikai Falls, Wei Sawdong canyon pools & misty gorges.' },
+      { day: '03', title: 'Nongriat Living Roots', detail: '3,000-step trek to the ancient biological double-decker root bridge.' },
+    ],
   },
   {
     id: 'tawang-monasteries',
     chapterNumber: '05',
-    destination: 'Tawang & Arunachal',
+    destination: 'Arunachal Pradesh',
     title: 'Tawang High Pass Circuit',
     subtitle: 'Sela Pass & 400-year-old monastery',
     route: 'Guwahati → Dirang → Sela Pass → Tawang',
@@ -108,12 +143,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: '₹21,000',
     isPriceOnRequest: false,
     tag: 'Eastern Himalaya',
-    atmosphereColor: 'rgba(14, 165, 233, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1548013146-72479768bada?q=90&w=1600&auto=format&fit=crop',
       alt: 'Buddhist monastery in Tawang with snow peaks in background',
     },
     highlights: ['Sela Mountain Pass (13,700 ft)', '400-Year Tawang Gompa', 'Madhuri Glacial Lake'],
+    dayPreview: [
+      { day: '01', title: 'Guwahati to Dirang', detail: 'Crossing the Brahmaputra into Kameng river valleys & kiwi orchards.' },
+      { day: '02', title: 'Sela Pass to Tawang', detail: 'Ascending 13,700 ft across prayer flag passes and frozen lakes.' },
+      { day: '03', title: 'Tawang Monastery & Gompas', detail: 'Exploring India’s largest Buddhist monastery and old library halls.' },
+    ],
   },
   {
     id: 'himachal-jibhi-tirthan',
@@ -126,12 +165,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: 'Price on request',
     isPriceOnRequest: true,
     tag: 'Slow Mountain',
-    atmosphereColor: 'rgba(34, 197, 94, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=90&w=1600&auto=format&fit=crop',
       alt: 'Traditional wooden Himalayan home surrounded by cedar trees in Tirthan',
     },
     highlights: ['Cedar Riverside Chalets', 'Jalori Pass Summit Walk', 'Trout Stream Trails'],
+    dayPreview: [
+      { day: '01', title: 'Arrival in Jibhi', detail: 'Check-in to riverside cedarwood cottages and village waterfall walk.' },
+      { day: '02', title: 'Jalori Pass & Serolsar Lake', detail: 'Hike through oak forests to the sacred high-altitude mountain lake.' },
+      { day: '03', title: 'Tirthan Valley & GHNP', detail: 'Riverside angling, trout tasting and Great Himalayan National Park walk.' },
+    ],
   },
   {
     id: 'rajasthan-heritage',
@@ -144,12 +187,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: 'Price on request',
     isPriceOnRequest: true,
     tag: 'Royal Heritage',
-    atmosphereColor: 'rgba(245, 158, 11, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=90&w=1600&auto=format&fit=crop',
       alt: 'Sandstone courtyard illuminated by desert sunlight in Rajasthan',
     },
     highlights: ['Restored Heritage Havelis', 'Thar Desert Stargazing Camp', 'Private Fort Walks'],
+    dayPreview: [
+      { day: '01', title: 'Pink City Heritage', detail: 'Private Amber Fort ramparts walk, City Palace courtyards & evening tea.' },
+      { day: '02', title: 'Jodhpur Blue City', detail: 'Towering Mehrangarh Fort ramparts & sunset over the indigo lanes.' },
+      { day: '03', title: 'Thar Desert Sand Dunes', detail: 'Camel trek at dusk, royal tent stay under clear starry desert skies.' },
+    ],
   },
   {
     id: 'goa-slow-coastal',
@@ -162,12 +209,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: 'Price on request',
     isPriceOnRequest: true,
     tag: 'Coastal Soul',
-    atmosphereColor: 'rgba(20, 184, 166, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=90&w=1600&auto=format&fit=crop',
       alt: 'Tranquil sunset on quiet palm beach in South Goa',
     },
     highlights: ['Fontainhas Latin Walking Tour', 'Uncrowded Agonda Sands', 'Cabo de Rama Cliff Sunset'],
+    dayPreview: [
+      { day: '01', title: 'Panjim Latin Quarters', detail: 'Pastel Portuguese villas of Fontainhas, boutique bakeries & fado music.' },
+      { day: '02', title: 'South Goa Hidden Coves', detail: 'Butterfly beach boat cruise, dolphin sightings & quiet Agonda cove.' },
+      { day: '03', title: 'Cabo de Rama & Spice Farm', detail: 'Clifftop fort sunset overlooking the Arabian Sea and organic spice lunch.' },
+    ],
   },
   {
     id: 'kerala-backwaters',
@@ -180,17 +231,21 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: '₹11,100',
     isPriceOnRequest: false,
     tag: 'Tropical Haven',
-    atmosphereColor: 'rgba(16, 185, 129, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=90&w=1600&auto=format&fit=crop',
       alt: 'Wooden houseboat floating through emerald palm-fringed backwaters of Alleppey',
     },
     highlights: ['Private Houseboat Cruise', 'Munnar Tea Slopes Walk', 'Cardamom Plantation Trails'],
+    dayPreview: [
+      { day: '01', title: 'Kochi to Munnar', detail: 'Drive through Cheeyappara waterfalls to mist-wrapped tea hills.' },
+      { day: '02', title: 'Munnar Tea Estates', detail: 'Kolukkumalai high-elevation tea plantation walk and Eravikulam wildlife.' },
+      { day: '03', title: 'Alleppey Backwaters Cruise', detail: 'Private wood-and-coir houseboat gliding along emerald canal villages.' },
+    ],
   },
   {
     id: 'south-coorg-wayanad',
     chapterNumber: '10',
-    destination: 'South India Hills',
+    destination: 'Coorg & Wayanad',
     title: 'Coffee Plantations & Rainforest Streams',
     subtitle: 'Estate bungalows & Wayanad peaks',
     route: 'Bangalore → Mysore → Coorg → Wayanad',
@@ -198,12 +253,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: 'Price on request',
     isPriceOnRequest: true,
     tag: 'Western Ghats',
-    atmosphereColor: 'rgba(34, 197, 94, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=90&w=1600&auto=format&fit=crop',
       alt: 'Lush green coffee estate and mist in Coorg',
     },
     highlights: ['Estate Heritage Bungalows', 'Coffee Tasting Walk', 'Rainforest Waterfalls'],
+    dayPreview: [
+      { day: '01', title: 'Bangalore to Coorg', detail: 'Arrive at a colonial coffee estate bungalow enveloped in pepper vines.' },
+      { day: '02', title: 'Abbey Falls & Coffee Walks', detail: 'Private bean-to-cup plantation tour, Raja’s Seat dusk panorama.' },
+      { day: '03', title: 'Wayanad Chembra Peak', detail: 'Heart-shaped mountain lake trek and bamboo rafting along Vythiri stream.' },
+    ],
   },
   {
     id: 'uttarakhand-rishikesh-chopta',
@@ -216,12 +275,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: 'Price on request',
     isPriceOnRequest: true,
     tag: 'Alpine Sanctuary',
-    atmosphereColor: 'rgba(56, 189, 248, 0.10)',
     image: {
       src: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=90&w=1600&auto=format&fit=crop',
       alt: 'Alpine meadows and high mountain ranges in Chopta Uttarakhand',
     },
     highlights: ['Tungnath Summit (12,100 ft)', 'Riverside Ganga Camps', 'Alpine Bugyal Meadows'],
+    dayPreview: [
+      { day: '01', title: 'Rishikesh Ganga Ghats', detail: 'Private riverside evening aarti and serene boutique ashram stay.' },
+      { day: '02', title: 'Devprayag to Chopta', detail: 'Confluence of Alaknanda & Bhagirathi into rhododendron meadows.' },
+      { day: '03', title: 'Tungnath & Chandrashila Peak', detail: 'Sunrise ascent to Chandrashila with 360° views of Nanda Devi & Trishul.' },
+    ],
   },
   {
     id: 'south-ooty-kodaikanal',
@@ -234,12 +297,16 @@ export const orbitItineraries: OrbitItinerary[] = [
     priceDisplay: 'Price on request',
     isPriceOnRequest: true,
     tag: 'Southern Cape',
-    atmosphereColor: 'rgba(14, 165, 233, 0.10)',
     image: {
-      src: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?q=90&w=1600&auto=format&fit=crop',
+      src: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=90&w=1600&auto=format&fit=crop',
       alt: 'Rolling tea gardens and pine hills in Nilgiris and Southern Cape',
     },
     highlights: ['UNESCO Heritage Toy Train', 'Pillar Rocks Vista', 'Ocean Sunset Horizon'],
+    dayPreview: [
+      { day: '01', title: 'Nilgiri Mountain Railway', detail: 'Historic steam toy train through 208 curves and eucalyptus valleys.' },
+      { day: '02', title: 'Coonoor Tea Plantations', detail: 'Dolphin’s Nose cliff view and artisanal tea tasting at high-grown gardens.' },
+      { day: '03', title: 'Kodaikanal Mist & Pine Forests', detail: 'Row boating on star-shaped Kodai Lake & silent pine forest trails.' },
+    ],
   },
 ];
 
@@ -248,431 +315,547 @@ interface IndiaJourneyShowcaseProps {
 }
 
 export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneyShowcaseProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const orbitTrackRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState<'next' | 'prev'>('next');
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+  const [expandedMobileIdx, setExpandedMobileIdx] = useState<number | null>(0);
+  const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripPackage | null>(null);
 
-  const [activeFrontIdx, setActiveFrontIdx] = useState(0);
-  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [isReducedMotion, setIsReducedMotion] = useState(false);
-  const [orbitRadius, setOrbitRadius] = useState(480);
+  const shouldReduceMotion = useReducedMotion();
+  const totalItems = journeyDeckItems.length;
+  const currentItem = journeyDeckItems[activeIndex];
 
-  // ── Physics Refs (NO continuous React re-renders) ───────────────────────────
-  const targetRotRef = useRef(0);
-  const currentRotRef = useRef(0);
-  const activeFrontIdxRef = useRef(0);
-
-  const totalCards = orbitItineraries.length;
-
-  // Responsive orbit radius
-  useEffect(() => {
-    const updateDimensions = () => {
-      const w = window.innerWidth;
-      if (w < 640) {
-        setOrbitRadius(260);
-      } else if (w < 1024) {
-        setOrbitRadius(380);
-      } else {
-        setOrbitRadius(480);
-      }
-    };
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+  const getDeckItemImage = useCallback((item: JourneyDeckItem) => {
+    const matched = getTripById(item.id);
+    if (matched && matched.coverImage) {
+      const src = typeof matched.coverImage === 'string' ? matched.coverImage : matched.coverImage.src;
+      const alt = typeof matched.coverImage === 'string' ? matched.title : matched.coverImage.alt || matched.title;
+      return { src, alt };
+    }
+    return item.image;
   }, []);
 
-  // Reduced motion preference
+  const handleNext = useCallback(() => {
+    setDirection('next');
+    setActiveIndex((prev) => (prev + 1) % totalItems);
+  }, [totalItems]);
+
+  const handlePrev = useCallback(() => {
+    setDirection('prev');
+    setActiveIndex((prev) => (prev - 1 + totalItems) % totalItems);
+  }, [totalItems]);
+
+  const handleSelectIndex = (idx: number) => {
+    setDirection(idx > activeIndex ? 'next' : 'prev');
+    setActiveIndex(idx);
+  };
+
+  const handleExplore = (item: JourneyDeckItem) => {
+    const matchedTrip =
+      getTripById(item.id) ||
+      getTripForDestination(item.id) ||
+      tripPackages.find((t) => t.id === item.id) ||
+      getTripForDestination(item.destination);
+
+    if (matchedTrip) {
+      setSelectedTripForDetail(matchedTrip);
+    } else if (onSelectJourney) {
+      onSelectJourney(item.destination);
+    }
+  };
+
+  // Keyboard navigation
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setIsReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, []);
-
-  // Scroll tracking: Native scroll updates targetRotRef immediately
-  useEffect(() => {
-    if (isReducedMotion) return;
-
-    const handleScroll = () => {
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const totalScrollable = rect.height - windowH;
-
-      if (totalScrollable <= 0) return;
-
-      const progress = Math.min(Math.max(-rect.top / totalScrollable, 0), 1);
-      // 1.5 full turns across the section
-      targetRotRef.current = progress * Math.PI * 2 * 1.5;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'ArrowLeft') handlePrev();
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNext, handlePrev]);
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isReducedMotion]);
+  // Upcoming neighbor items for desktop tray (next 3 items)
+  const neighborIndices = [
+    (activeIndex + 1) % totalItems,
+    (activeIndex + 2) % totalItems,
+    (activeIndex + 3) % totalItems,
+  ];
 
-  // Single Animation Loop (Operates purely on DOM ref without React re-renders)
-  useEffect(() => {
-    if (isReducedMotion) return;
-
-    let animId: number;
-    const animate = () => {
-      const diff = targetRotRef.current - currentRotRef.current;
-      if (Math.abs(diff) > 0.0001) {
-        currentRotRef.current += diff * 0.08;
-
-        // Directly rotate the single parent orbit track in hardware
-        if (orbitTrackRef.current) {
-          orbitTrackRef.current.style.transform = `rotateX(9deg) rotateY(${currentRotRef.current}rad)`;
-        }
-
-        // Determine which chapter is closest to front (angle closest to 0)
-        const normalizedRot = -currentRotRef.current % (Math.PI * 2);
-        const positiveRot = (normalizedRot + Math.PI * 2) % (Math.PI * 2);
-        const newFrontIdx = Math.round((positiveRot / (Math.PI * 2)) * totalCards) % totalCards;
-
-        // ONLY trigger React state update when chapter index actually transitions
-        if (newFrontIdx !== activeFrontIdxRef.current) {
-          activeFrontIdxRef.current = newFrontIdx;
-          setActiveFrontIdx(newFrontIdx);
-        }
-      }
-      animId = requestAnimationFrame(animate);
-    };
-
-    animId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animId);
-  }, [isReducedMotion, totalCards]);
-
-  const activeChapter = orbitItineraries[activeFrontIdx] || orbitItineraries[0];
-
-  // ── Reduced Motion Fallback Grid ─────────────────────────────────────────────
-  if (isReducedMotion) {
-    return (
-      <section className="py-20 px-4 max-w-7xl mx-auto space-y-10">
-        <div className="text-center space-y-2">
-          <span className="text-xs font-mono uppercase tracking-widest text-[var(--accent)]">
-            A few journeys from our India collection.
-          </span>
-          <h2 className="text-4xl font-serif">From Kashmir to Kanyakumari.</h2>
-          <p className="text-sm text-[var(--text-muted)]">
-            One country. So many ways to travel.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {orbitItineraries.map((ch) => (
-            <div
-              key={ch.id}
-              onClick={() => onSelectJourney && onSelectJourney(ch.destination)}
-              className="rounded-2xl overflow-hidden border border-[#2C2925] bg-[#171614] p-4 space-y-3 cursor-pointer hover:shadow-lg transition-shadow"
-            >
-              <div className="relative h-48 w-full rounded-xl overflow-hidden">
-                <Image
-                  src={ch.image.src}
-                  alt={ch.image.alt}
-                  fill
-                  sizes="400px"
-                  className="object-cover"
-                />
-              </div>
-              <span className="text-xs font-mono text-[var(--accent)] font-semibold">
-                {ch.destination}
-              </span>
-              <h3 className="text-lg font-serif text-[#F5F4F0]">{ch.title}</h3>
-              <p className="text-xs text-[#A8A29E]">{ch.route}</p>
-              <div className="flex justify-between items-center pt-2 border-t border-[#2C2925]">
-                <span className="text-sm font-medium text-[#F5F4F0]">{ch.priceDisplay}</span>
-                <span className="text-xs font-mono text-[var(--accent)]">Explore →</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  // ── 3D Circular Orbit Experience ────────────────────────────────────────────
   return (
     <section
       id="india-journey"
-      ref={containerRef}
-      className="relative w-full bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-700 select-none"
-      style={{ height: '220vh' }}
-      aria-label="Kashmir to Kanyakumari Circular Itinerary Orbit"
+      className="relative w-full bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-700 py-16 sm:py-24 md:py-28 select-none"
+      aria-label="Kinetic Journey Deck — Kashmir to Kanyakumari"
     >
-      {/* ── Sticky Fullscreen Viewport Stage ───────────────────────────────── */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col justify-between pt-14 pb-5 sm:pt-18 sm:pb-7 z-10">
-        {/* Soft Regional Atmosphere Glow (Subtle Ambience) */}
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] sm:w-[950px] h-[500px] sm:h-[700px] rounded-full blur-[200px] pointer-events-none transition-colors duration-1000 -z-10 opacity-40 dark:opacity-25"
-          style={{ background: activeChapter.atmosphereColor }}
-        />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 space-y-8 sm:space-y-12">
+        {/* ── 01. EDITORIAL HEADER & MINIMAL HUD ───────────────────────────── */}
+        <motion.div
+          initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4 border-b border-[var(--border-subtle)]"
+        >
+          <div className="space-y-2 max-w-2xl">
+            <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] text-[var(--accent)] font-semibold">
+              <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>A few journeys from our India collection</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-normal text-[var(--text-primary)] leading-[1.05] tracking-tight">
+              From Kashmir to Kanyakumari.
+            </h2>
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] font-normal leading-relaxed">
+              One country. So many ways to travel. 12 curated journeys across mountain passes, rainforest bridges, and southern coastlines.
+            </p>
+          </div>
 
-        {/* ── Editorial Header & Clean HUD Counter ─────────────────────────── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 w-full relative z-30">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
-            <div className="space-y-1 max-w-2xl">
-              <span className="text-[10px] sm:text-xs font-mono uppercase tracking-[0.3em] text-[var(--accent)] font-semibold flex items-center gap-2">
-                <Compass className="w-3.5 h-3.5 text-[var(--accent)]" />
-                A few journeys from our India collection
+          {/* Minimal Editorial HUD Controls (Desktop) */}
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
+            {/* Chapter Indicator */}
+            <div className="text-xs font-mono tracking-widest text-[var(--text-muted)] px-3.5 py-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] flex items-center gap-2 shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
+              <span className="font-bold text-[var(--text-primary)]">
+                {currentItem.chapterNumber}
               </span>
-              <h2 className="text-3xl sm:text-5xl font-serif font-normal text-[var(--text-primary)] leading-[1.02] tracking-tight">
-                From Kashmir to Kanyakumari.
-              </h2>
-              <p className="text-xs sm:text-sm text-[var(--text-muted)] font-normal">
-                One country. So many ways to travel. 12 journeys arranged in physical space.
-              </p>
+              <span className="text-[var(--text-muted)]">/</span>
+              <span>{String(totalItems).padStart(2, '0')}</span>
+              <span className="text-[10px] text-[var(--accent)] uppercase font-semibold pl-1">
+                · {currentItem.destination}
+              </span>
             </div>
 
-            {/* Minimalist Editorial HUD Counter */}
-            <div className="flex items-center gap-2 self-start md:self-end">
-              <div className="text-xs font-mono tracking-widest text-[var(--text-muted)] px-3 py-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 shadow-sm flex items-center gap-2 backdrop-blur-md">
-                <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
-                <span className="font-bold text-[var(--text-primary)]">
-                  {activeChapter.chapterNumber}
-                </span>{' '}
-                / <span>{String(totalCards).padStart(2, '0')}</span>
-                <span className="text-[10px] text-[var(--accent)] font-semibold uppercase ml-1">
-                  · {activeChapter.destination}
-                </span>
-              </div>
+            {/* Nav Arrows */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handlePrev}
+                aria-label="Previous itinerary"
+                className="w-10 h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)] transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                aria-label="Next itinerary"
+                className="w-10 h-10 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)] transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-95"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
+        </motion.div>
+
+        {/* ── 02. MINIMAL DESTINATION STRIP (Horizontal quick-jump) ───────── */}
+        <div className="hidden md:flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 text-xs font-mono">
+          {journeyDeckItems.map((item, idx) => {
+            const isActive = activeIndex === idx;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleSelectIndex(idx)}
+                className={`px-3.5 py-1.5 rounded-full transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-[var(--accent)] text-white font-medium shadow-xs'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] border border-transparent'
+                }`}
+              >
+                <span className={`text-[10px] ${isActive ? 'opacity-80' : 'opacity-50'}`}>
+                  {item.chapterNumber}
+                </span>
+                <span>{item.destination}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* ── 3D SPATIAL ORBIT STAGE ───────────────────────────────────────── */}
-        <div
-          className="relative w-full flex-1 flex items-center justify-center min-h-[380px] sm:min-h-[440px] md:min-h-[480px] mt-4 sm:mt-8"
-          style={{
-            perspective: '1400px',
-            transformStyle: 'preserve-3d',
-          }}
-        >
-          {/* Quiet Center Marker */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0 opacity-40">
-            <span className="text-[10px] font-mono uppercase tracking-[0.35em] text-[var(--text-muted)] block">
-              12 Curated Journeys
-            </span>
-            <span className="text-[9px] font-mono text-[var(--text-muted)] block pt-0.5">
-              Scroll to Rotate Orbit · Hover Card to Inspect
-            </span>
-          </div>
-
-          {/* ── THE ONE PARENT ORBIT TRACK (Hardware Rotated by RAF) ─────────── */}
-          <div
-            ref={orbitTrackRef}
-            className="relative w-0 h-0 flex items-center justify-center"
-            style={{
-              transformStyle: 'preserve-3d',
-              transform: 'rotateX(9deg) rotateY(0rad)',
-              willChange: 'transform',
-            }}
-          >
-            {orbitItineraries.map((item, idx) => {
-              const baseAngle = (idx / totalCards) * Math.PI * 2;
-              const isHovered = hoveredIdx === idx;
-              const isFront = activeFrontIdx === idx;
-
-              return (
-                /* ── STATIC ORBIT CARD SHELL: Fixed in 3D orbit space ───────── */
-                <div
-                  key={item.id}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[190px] sm:w-[220px] md:w-[245px] h-[270px] sm:h-[310px] md:h-[345px]"
-                  style={{
-                    transform: `rotateY(${baseAngle}rad) translateZ(${orbitRadius}px)`,
-                    transformStyle: 'preserve-3d',
-                  }}
-                >
-                  {/* ── HIT AREA: Stationary boundary relative to orbit (Prevents shake) ── */}
-                  <div
-                    tabIndex={0}
-                    onFocus={() => setHoveredIdx(idx)}
-                    onBlur={() => setHoveredIdx(null)}
-                    onMouseEnter={() => setHoveredIdx(idx)}
-                    onMouseLeave={() => setHoveredIdx(null)}
-                    onClick={() => onSelectJourney && onSelectJourney(item.destination)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        onSelectJourney && onSelectJourney(item.destination);
-                      } else if (e.key === 'Escape') {
-                        setHoveredIdx(null);
+        {/* ── 03. DESKTOP KINETIC JOURNEY DECK (>= 1024px) ─────────────────── */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-8 items-stretch">
+          {/* Active Hero Card (Approx 64% Width / col-span-8) */}
+          <div className="lg:col-span-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentItem.id}
+                initial={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : {
+                        opacity: 0,
+                        x: direction === 'next' ? 36 : -36,
+                        scale: 0.96,
                       }
+                }
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={
+                  shouldReduceMotion
+                    ? { opacity: 0 }
+                    : {
+                        opacity: 0,
+                        x: direction === 'next' ? -36 : 36,
+                        scale: 0.96,
+                      }
+                }
+                transition={{
+                  duration: 0.55,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                onMouseEnter={() => setIsHeroHovered(true)}
+                onMouseLeave={() => setIsHeroHovered(false)}
+                className="relative h-full min-h-[540px] rounded-3xl overflow-hidden border border-[var(--border-card)] bg-[#171614] text-white shadow-2xl flex flex-col justify-between p-6 sm:p-8 md:p-10 group"
+              >
+                {/* Background Photography with Depth Layer */}
+                <div className="absolute inset-0 z-0">
+                  <Image
+                    src={getDeckItemImage(currentItem).src}
+                    alt={getDeckItemImage(currentItem).alt}
+                    fill
+                    sizes="(max-width: 1280px) 70vw, 850px"
+                    className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
+                    priority
+                    quality={90}
+                  />
+                  {/* Subtle Cinematic Vignette & Bottom Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#11100E] via-[#11100E]/75 via-45% to-black/25" />
+                </div>
+
+                {/* Top Badges */}
+                <div className="relative z-10 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-sm flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+                      <span>{currentItem.chapterNumber} · {currentItem.destination}</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-[var(--accent)] bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 font-semibold uppercase">
+                      {currentItem.tag}
+                    </span>
+                  </div>
+
+                  <span className="text-[10px] font-mono text-white/90 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 text-[var(--accent)]" />
+                    <span>{currentItem.duration}</span>
+                  </span>
+                </div>
+
+                {/* Bottom Content & Expandable Details */}
+                <div className="relative z-10 space-y-4 mt-auto pt-8">
+                  <div className="space-y-1.5 max-w-2xl">
+                    <h3 className="text-2xl sm:text-4xl font-serif font-normal text-white leading-tight">
+                      {currentItem.title}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-white/80 font-light leading-relaxed">
+                      {currentItem.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Route Pill */}
+                  <div className="flex items-center gap-2 text-xs font-mono text-white/90 bg-black/40 backdrop-blur-sm px-3.5 py-1.5 rounded-xl border border-white/10 w-fit">
+                    <MapPin className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
+                    <span className="truncate">{currentItem.route}</span>
+                  </div>
+
+                  {/* Expandable Day Preview Layer (Revealed smoothly on hover) */}
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      height: isHeroHovered ? 'auto' : 0,
+                      opacity: isHeroHovered ? 1 : 0,
                     }}
-                    className="w-full h-full relative outline-none"
-                    style={{ transformStyle: 'preserve-3d' }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden space-y-2 pt-1"
                   >
-                    {/* ── VISUAL CONTAINER: Receives hover micro-scale & elevation ONLY ── */}
-                    <div
-                      className={`w-full h-full rounded-2xl overflow-hidden cursor-pointer border relative transition-all duration-300 ${
-                        isHovered
-                          ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30'
-                          : isFront
-                          ? 'border-[#3D3833]'
-                          : 'border-[#2C2925]'
-                      }`}
-                      style={{
-                        transform: isHovered ? 'scale(1.05) translateY(-6px)' : 'scale(1.0)',
-                        boxShadow: isHovered
-                          ? '0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 1px var(--accent)'
-                          : isFront
-                          ? '0 16px 25px -8px rgba(0, 0, 0, 0.45)'
-                          : '0 8px 16px -4px rgba(0, 0, 0, 0.35)',
-                        transformStyle: 'preserve-3d',
-                        backgroundColor: '#171614',
-                      }}
-                    >
-                      {/* ── FRONT FACE (Visible when facing camera: Photo + Text Overlay) ── */}
-                      <div
-                        className="absolute inset-0 w-full h-full"
-                        style={{
-                          backfaceVisibility: 'hidden',
-                          WebkitBackfaceVisibility: 'hidden',
-                        }}
-                      >
-                        {/* High-Resolution Crisp Photo Layer */}
-                        <div className="absolute inset-0 w-full h-full">
-                          <Image
-                            src={item.image.src}
-                            alt={item.image.alt}
-                            fill
-                            sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 500px"
-                            className="object-cover"
-                            priority={idx < 4}
-                            quality={90}
-                          />
-                        </div>
-
-                        {/* Dark Charcoal Gradient Overlay */}
+                    <div className="grid grid-cols-3 gap-2.5 pt-2 border-t border-white/15">
+                      {currentItem.dayPreview.map((d, di) => (
                         <div
-                          className={`absolute inset-0 transition-opacity duration-300 pointer-events-none ${
-                            isHovered
-                              ? 'bg-gradient-to-t from-[#171614] via-[#171614]/85 via-50% to-transparent'
-                              : 'bg-gradient-to-t from-[#171614] via-[#171614]/75 via-45% to-transparent'
-                          }`}
-                        />
-
-                        {/* Stable Flex Layout: Top Badges + Bottom Details */}
-                        <div className="relative h-full w-full p-3.5 sm:p-4 flex flex-col justify-between z-10 select-none">
-                          {/* Top Badges */}
-                          <div className="flex items-center justify-between gap-2 pointer-events-none">
-                            <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#F5F4F0] bg-[#171614]/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-[#3D3833] shadow-sm flex items-center gap-1.5">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
-                              <span>{item.chapterNumber} · {item.destination}</span>
-                            </span>
-                            <span className="text-[9px] sm:text-[10px] font-mono text-[#A8A29E] bg-[#171614]/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-[#3D3833] flex items-center gap-1 shadow-sm">
-                              <Clock className="w-2.5 h-2.5 text-[var(--accent)]" />
-                              <span>{item.duration}</span>
-                            </span>
-                          </div>
-
-                          {/* In-Card Bottom Content */}
-                          <div className="space-y-1.5 pointer-events-none mt-auto">
-                            <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--accent)] font-semibold block">
-                              {item.tag}
-                            </span>
-
-                            {/* Title with natural wrapping */}
-                            <h3 className="text-sm sm:text-base font-serif font-medium leading-snug text-[#F5F4F0] line-clamp-2">
-                              {item.title}
-                            </h3>
-
-                            {/* Extended Details Revealed on Pop/Hover */}
-                            <div
-                              className={`space-y-2 transition-all duration-300 overflow-hidden ${
-                                isHovered
-                                  ? 'max-h-52 opacity-100 pt-1'
-                                  : 'max-h-0 opacity-0'
-                              }`}
-                            >
-                              {/* Curated Route */}
-                              <div className="space-y-0.5">
-                                <span className="text-[8px] font-mono uppercase tracking-widest text-[#A8A29E] block">
-                                  Route
-                                </span>
-                                <p className="text-[10px] text-[#D6D3CD] leading-relaxed line-clamp-2 font-mono">
-                                  {item.route}
-                                </p>
-                              </div>
-
-                              {/* Highlights */}
-                              <div className="flex flex-wrap gap-1 text-[8.5px] font-mono">
-                                {item.highlights.slice(0, 3).map((h, hi) => (
-                                  <span
-                                    key={hi}
-                                    className="bg-[#24211D] border border-[#38332E] text-[#D6D3CD] px-1.5 py-0.5 rounded flex items-center gap-1"
-                                  >
-                                    <Sparkles className="w-2 h-2 text-[var(--accent)] shrink-0" />
-                                    <span className="line-clamp-1">{h}</span>
-                                  </span>
-                                ))}
-                              </div>
-
-                              {/* Pricing & CTA Bottom Row */}
-                              <div className="pt-2 border-t border-[#2C2925] flex items-center justify-between gap-2">
-                                <div className="min-w-0">
-                                  <span className="text-[8px] font-mono uppercase tracking-wider text-[#A8A29E] block">
-                                    {item.isPriceOnRequest ? 'Pricing' : 'Starting From'}
-                                  </span>
-                                  <span className="text-xs sm:text-sm font-serif font-medium text-[#F5F4F0] truncate block">
-                                    {item.priceDisplay}
-                                  </span>
-                                </div>
-                                <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-[var(--accent)] px-2.5 py-1 rounded-full flex items-center gap-1 font-medium shrink-0 shadow-sm">
-                                  <span>Explore</span>
-                                  <ChevronRight className="w-3 h-3" />
-                                </span>
-                              </div>
-                            </div>
-                          </div>
+                          key={di}
+                          className="p-2.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 space-y-1"
+                        >
+                          <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--accent)] font-semibold block">
+                            DAY {d.day}
+                          </span>
+                          <h4 className="text-[11px] font-bold text-white line-clamp-1">
+                            {d.title}
+                          </h4>
+                          <p className="text-[10px] text-white/70 line-clamp-2 leading-relaxed">
+                            {d.detail}
+                          </p>
                         </div>
-                      </div>
-
-                      {/* ── BACK FACE (Visible when facing rear: Photograph ONLY, Zero Mirrored Text) ── */}
-                      <div
-                        className="absolute inset-0 w-full h-full"
-                        style={{
-                          transform: 'rotateY(180deg)',
-                          backfaceVisibility: 'hidden',
-                          WebkitBackfaceVisibility: 'hidden',
-                        }}
-                      >
-                        <Image
-                          src={item.image.src}
-                          alt={item.image.alt}
-                          fill
-                          sizes="(max-width: 640px) 300px, (max-width: 1024px) 400px, 500px"
-                          className="object-cover"
-                          quality={80}
-                        />
-                        <div className="absolute inset-0 bg-black/45" />
-                      </div>
+                      ))}
                     </div>
+                  </motion.div>
+
+                  {/* Pricing & Primary CTA Row */}
+                  <div className="pt-4 border-t border-white/20 flex items-center justify-between gap-4">
+                    <div>
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-white/60 block">
+                        {currentItem.isPriceOnRequest ? 'Pricing' : 'Starting From'}
+                      </span>
+                      <span className="text-xl sm:text-2xl font-serif font-bold text-white">
+                        {currentItem.priceDisplay}{' '}
+                        {!currentItem.isPriceOnRequest && (
+                          <span className="text-xs font-normal text-white/60 font-sans">/ person</span>
+                        )}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleExplore(currentItem)}
+                      className="px-6 py-3 rounded-full bg-[var(--accent)] hover:opacity-95 text-white text-xs font-mono font-medium transition-all shadow-lg active:scale-95 cursor-pointer flex items-center gap-2"
+                    >
+                      <span>Explore full itinerary</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              );
-            })}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Tray: Upcoming Itineraries Cascade (Approx 36% Width / col-span-4) */}
+          <div className="lg:col-span-4 flex flex-col justify-between gap-4">
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] font-semibold block px-1">
+                Up Next in Collection
+              </span>
+
+              {neighborIndices.map((nIdx) => {
+                const item = journeyDeckItems[nIdx];
+                return (
+                  <motion.div
+                    key={item.id}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSelectIndex(nIdx);
+                    }}
+                    onClick={() => handleSelectIndex(nIdx)}
+                    whileHover={shouldReduceMotion ? {} : { scale: 1.02, x: 4 }}
+                    transition={{ duration: 0.25 }}
+                    className="p-3.5 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-[var(--accent)]/60 shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-3.5 group relative outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                  >
+                    {/* Thumbnail Image */}
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-black/20">
+                      <Image
+                        src={getDeckItemImage(item).src}
+                        alt={getDeckItemImage(item).alt}
+                        fill
+                        sizes="100px"
+                        className="object-cover group-hover:scale-106 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--accent)] font-semibold">
+                          {item.chapterNumber} · {item.destination}
+                        </span>
+                        <span className="text-[9px] font-mono text-[var(--text-muted)]">
+                          {item.duration.split('·')[0]}
+                        </span>
+                      </div>
+
+                      <h4 className="text-xs sm:text-sm font-serif font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
+                        {item.title}
+                      </h4>
+
+                      <p className="text-[10px] font-mono text-[var(--text-muted)] truncate">
+                        {item.route}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-0.5">
+                        <span className="text-[11px] font-serif font-semibold text-[var(--text-primary)]">
+                          {item.priceDisplay}
+                        </span>
+                        <span className="text-[9px] font-mono text-[var(--accent)] flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                          <span>View</span>
+                          <ArrowRight className="w-2.5 h-2.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Bottom Section Link: Explore Complete Archive */}
+            <div className="p-4 rounded-2xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-mono font-medium text-[var(--text-primary)]">
+                  Looking for more destinations?
+                </span>
+                <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
+              </div>
+              <p className="text-[11px] text-[var(--text-muted)] leading-relaxed font-sans">
+                Browse our complete collection of {getItineraryCount()} curated itineraries with verified hotels and private transport.
+              </p>
+              <Link
+                href="/itineraries"
+                className="inline-flex items-center gap-1.5 text-xs font-mono text-[var(--accent)] font-semibold hover:underline pt-1"
+              >
+                <span>View all {getItineraryCount()} itineraries</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
 
-        {/* ── Bottom Section Bar: Scroll Cue + Direct 54 Itineraries Link ─── */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 w-full relative z-30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-          <div className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] flex items-center gap-2">
-            <span>Scroll down to rotate orbit</span>
+        {/* ── 04. MOBILE RESPONSIVE EDITORIAL FEED (< 1024px) ─────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-6">
+          {journeyDeckItems.map((item, idx) => {
+            const isExpanded = expandedMobileIdx === idx;
+            return (
+              <motion.div
+                key={item.id}
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-30px' }}
+                whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
+                transition={{ duration: 0.4 }}
+                className="rounded-3xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-sm flex flex-col justify-between"
+              >
+                {/* Cover Photograph Box */}
+                <div
+                  className="relative h-60 w-full overflow-hidden bg-black/20 cursor-pointer"
+                  onClick={() => setExpandedMobileIdx(isExpanded ? null : idx)}
+                >
+                  <Image
+                    src={getDeckItemImage(item).src}
+                    alt={getDeckItemImage(item).alt}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover"
+                    priority={idx === 0}
+                    loading={idx === 0 ? 'eager' : 'lazy'}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20">
+                      {item.chapterNumber} · {item.destination}
+                    </span>
+                    <span className="text-[10px] font-mono text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5 text-[var(--accent)]" />
+                      <span>{item.duration}</span>
+                    </span>
+                  </div>
+
+                  {/* Title overlay on photo */}
+                  <div className="absolute bottom-3 left-4 right-4 pointer-events-none space-y-0.5">
+                    <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--accent)] font-semibold block">
+                      {item.tag}
+                    </span>
+                    <h3 className="text-lg font-serif font-medium text-white line-clamp-1">
+                      {item.title}
+                    </h3>
+                  </div>
+                </div>
+
+                {/* Card Content Body */}
+                <div className="p-4 sm:p-5 space-y-3 flex-1 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <p className="text-xs text-[var(--text-muted)] leading-relaxed font-sans">
+                      {item.subtitle}
+                    </p>
+
+                    {/* Route line */}
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-primary)]">
+                      <MapPin className="w-3 h-3 text-[var(--accent)] shrink-0" />
+                      <span className="truncate">{item.route}</span>
+                    </div>
+
+                    {/* Expandable Day Preview for Mobile */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="space-y-2 pt-2 border-t border-[var(--border-subtle)] overflow-hidden"
+                        >
+                          <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--accent)] block font-semibold">
+                            Day-by-Day Highlights:
+                          </span>
+                          <div className="space-y-1.5">
+                            {item.dayPreview.map((d, di) => (
+                              <div
+                                key={di}
+                                className="p-2 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] text-[10px]"
+                              >
+                                <span className="font-mono text-[var(--accent)] font-bold">
+                                  DAY {d.day}:{' '}
+                                </span>
+                                <span className="font-semibold text-[var(--text-primary)]">
+                                  {d.title}
+                                </span>
+                                <p className="text-[var(--text-muted)] pt-0.5">{d.detail}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Bottom Footer: Price & CTA */}
+                  <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--text-muted)] block">
+                        {item.isPriceOnRequest ? 'Pricing' : 'Starting From'}
+                      </span>
+                      <span className="text-base font-serif font-bold text-[var(--text-primary)]">
+                        {item.priceDisplay}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleExplore(item)}
+                      className="px-4 py-2 rounded-full bg-[var(--accent)] text-white text-xs font-mono font-medium hover:opacity-90 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                    >
+                      <span>Explore</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        {/* ── 05. SECTION BOTTOM EXPLORE LINK ─────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[var(--border-subtle)] text-center sm:text-left">
+          <div className="text-xs font-mono text-[var(--text-muted)] flex items-center gap-2">
+            <span>Verified boutique stays</span>
             <span className="opacity-40">·</span>
-            <span>Hover any card to inspect journey</span>
+            <span>Private chauffeur</span>
+            <span className="opacity-40">·</span>
+            <span>Flexible daily pacing</span>
           </div>
 
           <Link
             href="/itineraries"
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[var(--accent)] hover:opacity-90 text-white text-xs font-mono font-medium transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap ml-auto"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-white text-xs font-mono font-medium transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
           >
-            <span>Explore all 54 itineraries</span>
+            <span>Explore all {getItineraryCount()} itineraries</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
+
+      {/* ── 06. TRIP DETAIL MODAL ────────────────────────────────────────── */}
+      <TripDetailModal
+        trip={selectedTripForDetail}
+        onClose={() => setSelectedTripForDetail(null)}
+        onPlanCustom={(title) => {
+          setSelectedTripForDetail(null);
+          if (onSelectJourney) onSelectJourney(title);
+        }}
+      />
     </section>
   );
 }

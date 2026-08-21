@@ -127,7 +127,6 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
         >
           <MagneticButton
             onClick={onOpenPlanTrip}
-            data-cursor="GO"
             className="gap-2.5 rounded-full px-8 h-13 bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-2xl flex items-center font-medium"
           >
             <span>PLAN MY TRIP</span>
@@ -136,7 +135,6 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
 
           <MagneticButton
             onClick={() => openWhatsApp('Hi TripKario! I am ready to plan my next vacation.')}
-            data-cursor="TALK"
             className="border border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-8 h-13 glass-surface flex items-center font-medium"
           >
             <MessageCircle className="w-4 h-4 text-[#E46B3B]" />

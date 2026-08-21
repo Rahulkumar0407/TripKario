@@ -40,7 +40,6 @@ export default function IndiaCollage({ onSelectDestination }: IndiaCollageProps)
           <div
             className="md:col-span-7 relative aspect-[4/3] sm:aspect-[16/11] rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] group cursor-pointer"
             onClick={() => onSelectDestination(kashmir.name)}
-            data-cursor="EXPLORE"
           >
             <Image
               src={kashmirSrc}
@@ -70,7 +69,6 @@ export default function IndiaCollage({ onSelectDestination }: IndiaCollageProps)
             <div
               className="relative aspect-[16/10] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] group cursor-pointer"
               onClick={() => onSelectDestination(rajasthan.name)}
-              data-cursor="EXPLORE"
             >
               <Image
                 src={rajasthanSrc}
@@ -97,7 +95,6 @@ export default function IndiaCollage({ onSelectDestination }: IndiaCollageProps)
             <div
               className="relative aspect-[16/10] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] group cursor-pointer"
               onClick={() => onSelectDestination(meghalaya.name)}
-              data-cursor="EXPLORE"
             >
               <Image
                 src={meghalayaSrc}

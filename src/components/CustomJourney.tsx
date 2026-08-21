@@ -51,7 +51,6 @@ export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
               variant="default"
               size="lg"
               onClick={onOpenPlanTrip}
-              data-cursor="BUILD"
               className="gap-2.5 rounded-full px-8 h-12 bg-[#E86A3A] hover:bg-[#F07A4C] text-white"
             >
               <span>BUILD MY TRIP</span>
@@ -62,7 +61,6 @@ export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
               variant="outline"
               size="lg"
               onClick={() => openWhatsApp('Hi TripKario! Aap destination batao, baaki hum dekh lenge. I want to build a custom route.')}
-              data-cursor="TALK"
               className="border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-8 h-12"
             >
               <MessageCircle className="w-4 h-4 text-[#E86A3A]" />

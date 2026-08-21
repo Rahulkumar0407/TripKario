@@ -282,48 +282,8 @@ export const initialTrips: SeedTrip[] = tripPackages.map((t) => ({
       ],
 }));
 
-export const initialPastVisits: SeedPastVisit[] = [
-  {
-    id: 'visit-kashmir-mar-2026',
-    destination: 'Kashmir',
-    date: 'March 2026',
-    title: 'Spring Blooms & Snow Peaks in Srinagar',
-    coverImageUrl: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1548013146-72479768bada?q=90&w=1400&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=90&w=1400&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=90&w=1600&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=90&w=1400&auto=format&fit=crop',
-    ],
-  },
-  {
-    id: 'visit-kerala-feb-2026',
-    destination: 'Kerala',
-    date: 'February 2026',
-    title: 'Alleppey Canals & Munnar Tea Slopes',
-    coverImageUrl: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=90&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=90&w=1200&auto=format&fit=crop',
-    ],
-  },
-  {
-    id: 'visit-rajasthan-jan-2026',
-    destination: 'Rajasthan',
-    date: 'January 2026',
-    title: 'Winter Havelis & Jaisalmer Stargazing',
-    coverImageUrl: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=85&w=1200&auto=format&fit=crop',
-    photos: [
-      'https://images.unsplash.com/photo-1599661046289-e31897846e41?q=85&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=90&w=1200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1581793745862-99fde7fa73d2?q=90&w=1400&auto=format&fit=crop',
-    ],
-  },
-];
+export const initialPastVisits: SeedPastVisit[] = [];
+
 
 export const initialTestimonials: SeedTestimonial[] = testimonials.map((t, idx) => ({
   id: t.id,
@@ -339,26 +299,8 @@ export const initialTestimonials: SeedTestimonial[] = testimonials.map((t, idx) 
   isActive: true,
 }));
 
-export const initialTeamMembers: SeedTeamMember[] = [
-  {
-    id: 'team-1',
-    name: 'Rahul Sharma',
-    role: 'Founder & Route Curator',
-    bio: 'Pioneered unhurried luxury travel across Kashmir, Ladakh, and the Western Ghats.',
-    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=85&w=600&auto=format&fit=crop',
-    displayOrder: 1,
-    isActive: true,
-  },
-  {
-    id: 'team-2',
-    name: 'Bashir Ahmed',
-    role: 'Kashmir & Ladakh Specialist',
-    bio: 'Over 15 years curating offbeat mountain homestays and private high-altitude passes.',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=85&w=600&auto=format&fit=crop',
-    displayOrder: 2,
-    isActive: true,
-  },
-];
+export const initialTeamMembers: SeedTeamMember[] = [];
+
 
 export const initialStories: SeedStory[] = [
   {

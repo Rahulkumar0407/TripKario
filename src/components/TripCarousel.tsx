@@ -3,14 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Star, Eye, Check, MapPin } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Star,
+  Eye,
+  Check,
+  MapPin,
+  Clock,
+  Sparkles,
+  Calendar,
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
-import GlassSurface from './ui/GlassSurface';
 import MagneticButton from './ui/MagneticButton';
 import { tripPackages } from '@/data/trips';
 import { TripPackage } from '@/types';
@@ -32,11 +39,10 @@ export default function TripCarousel({
   const [isHovered, setIsHovered] = useState(false);
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
-  const [quickViewTrip, setQuickViewTrip] = useState<TripPackage | null>(null);
   const [activeModalTrip, setActiveModalTrip] = useState<TripPackage | null>(null);
 
   const total = tripsList.length;
-  const AUTOPLAY_DURATION = 7000;
+  const AUTOPLAY_DURATION = 8000;
 
   const nextSlide = () => {
     setDirection('next');
@@ -51,7 +57,7 @@ export default function TripCarousel({
   };
 
   useEffect(() => {
-    if (isHovered || hoveredCardIdx !== null || quickViewTrip || activeModalTrip) return;
+    if (isHovered || hoveredCardIdx !== null || activeModalTrip) return;
 
     const interval = 50;
     const step = (interval / AUTOPLAY_DURATION) * 100;
@@ -67,7 +73,7 @@ export default function TripCarousel({
     }, interval);
 
     return () => clearInterval(timer);
-  }, [isHovered, hoveredCardIdx, activeIndex, quickViewTrip, activeModalTrip, total]);
+  }, [isHovered, hoveredCardIdx, activeIndex, activeModalTrip, total]);
 
   const activeTrip = tripsList[activeIndex] || tripsList[0];
 
@@ -86,7 +92,7 @@ export default function TripCarousel({
       id="packages"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-hidden relative"
+      className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative"
     >
       {/* Ambient Backdrop Illumination */}
       <motion.div
@@ -141,8 +147,10 @@ export default function TripCarousel({
         </div>
       </div>
 
-      {/* Layered Package Carousel Container with Spring Physics */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[500px] sm:min-h-[580px] flex items-center justify-center">
+      {/* ══════════════════════════════════════════════════
+          LAYERED PACKAGE CAROUSEL CONTAINER
+          ══════════════════════════════════════════════════ */}
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[640px] sm:min-h-[680px] md:min-h-[620px] flex items-center justify-center overflow-visible">
         {tripsList.map((trip, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;
@@ -156,46 +164,49 @@ export default function TripCarousel({
           const isHoveredCard = hoveredCardIdx === idx;
           const isAnyCardHovered = hoveredCardIdx !== null;
 
-          let cardOpacity = isCenter ? 1 : 0.82;
-          let cardScale = isCenter ? 1 : 0.93;
+          // Deterministic Depth-Based Stacking System (Center: 50, Neighbors: 30, Hover: 60)
+          let cardOpacity = isCenter ? 1 : 0.88;
+          let cardScale = isCenter ? 1 : 0.88;
           let cardY = 0;
-          let cardZIndex = isCenter ? 20 : 10;
+          let cardZIndex = isHoveredCard ? 60 : isCenter ? 50 : 30;
           let cardFilter = 'blur(0px) grayscale(0%) brightness(1)';
 
           if (isHoveredCard) {
             cardOpacity = 1;
-            cardScale = isCenter ? 1.03 : 0.98;
-            cardY = -14;
-            cardZIndex = 40;
-            cardFilter = 'blur(0px) grayscale(0%) brightness(1.05)';
+            cardScale = isCenter ? 1.02 : 0.94;
+            cardY = -6;
+            cardFilter = 'blur(0px) grayscale(0%) brightness(1.02)';
           } else if (isAnyCardHovered) {
-            cardOpacity = 0.35;
-            cardScale = isCenter ? 0.94 : 0.88;
+            cardOpacity = 0.5;
+            cardScale = isCenter ? 0.96 : 0.84;
             cardY = 0;
-            cardZIndex = 5;
-            cardFilter = 'blur(1.5px) grayscale(35%) brightness(0.75)';
+            cardFilter = 'blur(0.5px) grayscale(10%) brightness(0.92)';
           }
+
+          const hasDays = Boolean(trip.itinerary && trip.itinerary.length > 0);
+          const totalDays = trip.itinerary?.length || trip.durationDays || 0;
+          const daysToShow = totalDays <= 3 ? (trip.itinerary || []) : (trip.itinerary?.slice(0, 3) || []);
+          const remainingDaysCount = trip.itinerary ? Math.max(0, trip.itinerary.length - 3) : 0;
+          const formattedPrice = formatPrice(trip.pricePerPerson, trip.isPriceOnRequest);
 
           return (
             <motion.div
               key={trip.id}
               initial={false}
+              style={{ zIndex: cardZIndex }}
               animate={{
-                x: `${position * 72}%`,
+                x: `${position * 82}%`,
                 scale: cardScale,
                 y: cardY,
-                rotateZ: position * 1.5,
+                rotateZ: position * -1.2,
                 opacity: cardOpacity,
                 filter: cardFilter,
-                zIndex: cardZIndex,
               }}
               onMouseEnter={() => setHoveredCardIdx(idx)}
               onMouseLeave={() => setHoveredCardIdx(null)}
               transition={{
-                type: 'spring',
-                stiffness: 280,
-                damping: 30,
-                mass: 0.7,
+                duration: 0.45,
+                ease: [0.16, 1, 0.3, 1],
               }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
@@ -207,205 +218,200 @@ export default function TripCarousel({
                   prevSlide();
                 }
               }}
-              onClick={() => {
-                if (!isCenter) {
-                  if (position > 0) nextSlide();
-                  else prevSlide();
-                }
-              }}
-              data-cursor={isCenter ? 'EXPLORE' : 'VIEW'}
-              className="absolute w-[88vw] sm:w-[72vw] md:w-[62vw] max-w-[840px] bg-[var(--bg-surface)] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] cursor-pointer select-none flex flex-col md:flex-row transition-shadow duration-300"
+              className="absolute w-[88vw] sm:w-[76vw] md:w-[62vw] lg:w-[54vw] max-w-[780px] flex items-center justify-center pointer-events-auto"
             >
-              {/* Image Column */}
               <div
-                className="relative aspect-[16/11] md:aspect-auto md:w-3/5 overflow-hidden bg-black/10 min-h-[300px] sm:min-h-[380px]"
-                onClick={() => isCenter && setActiveModalTrip(trip)}
+                onClick={() => {
+                  if (!isCenter) {
+                    if (position > 0) nextSlide();
+                    else prevSlide();
+                  } else {
+                    setActiveModalTrip(trip);
+                  }
+                }}
+                className={`w-full bg-[var(--bg-surface)] rounded-3xl overflow-hidden border cursor-pointer select-none flex flex-col md:flex-row transition-all duration-400 ${
+                  isHoveredCard
+                    ? 'border-[var(--accent)] shadow-2xl shadow-black/30'
+                    : isCenter
+                    ? 'border-[var(--border-card)] shadow-2xl'
+                    : 'border-[var(--border-card)] shadow-lg'
+                }`}
               >
+              {/* Image Column */}
+              <div className="relative aspect-[16/11] md:aspect-auto md:w-5/12 overflow-hidden bg-black/10 min-h-[260px] sm:min-h-[320px] md:min-h-[460px]">
                 <Image
-                  src={trip.coverImage.src}
-                  alt={trip.coverImage.alt}
+                  src={typeof trip.coverImage === 'string' ? trip.coverImage : trip.coverImage.src}
+                  alt={typeof trip.coverImage === 'string' ? trip.title : trip.coverImage?.alt || trip.title}
                   fill
-                  sizes="(max-width: 1024px) 90vw, 55vw"
-                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
+                  sizes="(max-width: 1024px) 90vw, 45vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/20" />
 
-                {/* Top Duration & Quick View Trigger */}
-                <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full font-bold border border-white/10">
-                    {trip.durationNights}N / {trip.durationDays}D
+                {/* Top Duration & Destination Tags */}
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full font-bold border border-white/15 shadow-sm">
+                    {trip.durationNights}N · {trip.durationDays}D
                   </span>
 
-                  {isCenter && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setQuickViewTrip(trip);
-                      }}
-                      className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10.5px] font-medium flex items-center gap-1.5 hover:bg-[var(--accent)] transition-colors cursor-pointer border border-white/10"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Quick view</span>
-                    </button>
+                  {trip.category && (
+                    <span className="text-[10px] font-mono tracking-wider uppercase text-white/90 bg-white/15 backdrop-blur-md px-2.5 py-0.5 rounded-full font-semibold">
+                      {trip.category}
+                    </span>
                   )}
                 </div>
 
-                <div className="absolute bottom-4 left-5 right-5 text-white">
-                  <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#F4A261] font-bold block mb-1">
+                {/* Bottom Image Headline */}
+                <div className="absolute bottom-4 left-5 right-5 text-white pointer-events-none z-10">
+                  <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#FFAA70] font-bold block mb-1">
                     {trip.destination}
                   </span>
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-medium text-white line-clamp-1">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-serif font-medium text-white line-clamp-2 leading-tight drop-shadow-md">
                     {trip.title}
                   </h3>
                 </div>
               </div>
 
-              {/* Info Column (Staggered hierarchy: Route -> Description -> Price -> Action) */}
-              <div className="p-6 sm:p-8 md:w-2/5 flex flex-col justify-between space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className="flex items-center text-amber-500">
-                      <Star className="w-3.5 h-3.5 fill-current" />
+              {/* ══════════════════════════════════════════════════
+                  INFO COLUMN (SMOOTH HOVER ITINERARY PREVIEW)
+                  ══════════════════════════════════════════════════ */}
+              <div className="p-6 sm:p-7 md:p-8 md:w-7/12 flex flex-col justify-between space-y-4 bg-[var(--bg-surface)]">
+                <div className="space-y-3.5">
+                  {/* Top Destination & Price/Duration Header */}
+                  <div className="flex items-center justify-between text-xs gap-2">
+                    <div className="flex items-center gap-1.5 font-mono text-[var(--accent)] font-bold uppercase tracking-wider text-[11px]">
+                      <span>{trip.destination}</span>
+                      <span className="text-[var(--text-muted)] font-normal">·</span>
+                      <span className="text-[var(--text-primary)]">{trip.durationNights}N / {trip.durationDays}D</span>
                     </div>
-                    <span className="font-bold text-[var(--text-primary)]">4.9</span>
-                    <span className="text-[var(--text-muted)] font-mono">
-                      ({trip.reviewCount} travellers)
-                    </span>
+
+                    <div className="flex items-center gap-1 text-xs">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-bold text-[var(--text-primary)]">4.9</span>
+                      <span className="text-[var(--text-muted)] font-mono">
+                        ({trip.reviewCount || 48})
+                      </span>
+                    </div>
                   </div>
 
+                  {/* Complete Route Bar */}
                   {trip.route && (
-                    <div className="text-xs font-mono text-[var(--accent)] bg-[var(--bg-surface-2)] p-2.5 rounded-xl font-semibold flex items-center gap-1.5">
+                    <div className="text-xs font-mono text-[var(--accent)] bg-[var(--bg-surface-2)] p-2.5 rounded-xl font-semibold flex items-center gap-2 border border-[var(--border-subtle)]">
                       <MapPin className="w-3.5 h-3.5 shrink-0" />
+                      <span className="uppercase text-[9px] tracking-wider text-[var(--text-muted)] shrink-0">Route:</span>
                       <span className="truncate">{trip.route}</span>
                     </div>
                   )}
 
-                  <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-3 leading-relaxed font-normal">
-                    {trip.shortDescription}
-                  </p>
+                  {/* Default overview vs Hover Rich Day-by-Day Preview */}
+                  {isHoveredCard && hasDays ? (
+                    <div className="space-y-2.5 animate-in fade-in duration-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-muted)] font-bold">
+                          ITINERARY PREVIEW:
+                        </span>
+                        <span className="text-[10px] font-mono text-[var(--accent)] font-semibold">
+                          {totalDays} Days Complete Plan
+                        </span>
+                      </div>
+
+                      <div className="space-y-2">
+                        {daysToShow.map((day) => (
+                          <div
+                            key={day.dayNumber}
+                            className="p-2.5 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] text-xs flex items-start gap-2.5 shadow-2xs"
+                          >
+                            <span className="px-2 py-0.5 rounded-md bg-[var(--accent)] text-white text-[9.5px] font-mono font-bold shrink-0 mt-0.5">
+                              DAY 0{day.dayNumber}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <span className="font-bold text-[var(--text-primary)] block truncate text-[12px]">
+                                {day.title}
+                              </span>
+                              <span className="text-[11px] text-[var(--text-muted)] line-clamp-2 leading-relaxed mt-0.5 block font-normal">
+                                {day.description}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {remainingDaysCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveModalTrip(trip);
+                          }}
+                          className="text-[11px] font-mono text-[var(--accent)] hover:underline font-bold flex items-center gap-1 pt-1 cursor-pointer"
+                        >
+                          <span>+{remainingDaysCount} more days · View full itinerary →</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] line-clamp-3 leading-relaxed font-light">
+                        {trip.shortDescription}
+                      </p>
+
+                      {/* Curated Highlights / Inclusions Tags */}
+                      {trip.inclusions && trip.inclusions.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {trip.inclusions.slice(0, 3).map((inc, i) => (
+                            <span
+                              key={i}
+                              className="px-2.5 py-1 rounded-lg bg-[var(--bg-surface-2)] text-[10.5px] font-mono text-[var(--text-muted)] border border-[var(--border-subtle)] truncate max-w-[240px]"
+                            >
+                              ✓ {inc}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
+                {/* Footer Pricing & Explore Action */}
                 <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-3">
                   <div>
                     <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">
-                      {!trip.isPriceOnRequest && trip.pricePerPerson > 0 ? 'From' : 'Pricing'}
+                      {!trip.isPriceOnRequest && trip.pricePerPerson > 0 ? 'Starting From' : 'Pricing'}
                     </span>
                     <span className="text-lg sm:text-xl font-serif font-bold text-[var(--text-primary)]">
-                      {formatPrice(trip.pricePerPerson, trip.isPriceOnRequest)}
+                      {formattedPrice}
                     </span>
                   </div>
 
-                  {isCenter && (
-                    <MagneticButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveModalTrip(trip);
-                      }}
-                      className="px-5 h-10 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white flex items-center gap-1.5 shadow-md font-medium"
-                    >
-                      <span>Explore</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </MagneticButton>
-                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveModalTrip(trip);
+                    }}
+                    className="px-5 py-2.5 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-[var(--accent)]/25 transition-all cursor-pointer hover:scale-102 active:scale-95"
+                  >
+                    <span>View full itinerary</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
-            </motion.div>
-          );
+            </div>
+          </motion.div>
+        );
         })}
       </div>
 
-      {/* Quick View Staggered Glass Sheet Dialog */}
-      <Dialog open={!!quickViewTrip} onOpenChange={(open) => !open && setQuickViewTrip(null)}>
-        {quickViewTrip && (
-          <DialogContent className="max-w-lg p-6 sm:p-8 glass-surface border border-white/20 shadow-2xl bg-[var(--bg-surface)] text-[var(--text-primary)]">
-            <DialogHeader>
-              <motion.span
-                initial={{ opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2 }}
-                className="text-[10px] font-mono uppercase text-[var(--accent)] font-semibold tracking-wider block"
-              >
-                {quickViewTrip.destination} — {quickViewTrip.durationNights}N / {quickViewTrip.durationDays}D
-              </motion.span>
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.06 }}
-              >
-                <DialogTitle className="text-2xl font-serif font-medium text-[var(--text-primary)]">
-                  {quickViewTrip.title}
-                </DialogTitle>
-              </motion.div>
-            </DialogHeader>
-
-            <div className="space-y-4 pt-2">
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.12 }}
-                className="p-3.5 rounded-2xl bg-[var(--bg-surface-2)] text-xs font-mono text-[var(--accent)] font-semibold flex items-center gap-2"
-              >
-                <MapPin className="w-4 h-4 shrink-0" />
-                <span>Route: {quickViewTrip.route}</span>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.18 }}
-              >
-                <span className="text-xs font-semibold text-[var(--text-primary)] block mb-2.5">
-                  Package Inclusions:
-                </span>
-                <div className="grid grid-cols-2 gap-2.5 text-xs text-[var(--text-muted)] font-medium">
-                  <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[var(--accent)]" /> Verified Boutique Stays</span>
-                  <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[var(--accent)]" /> Daily Breakfast & Dinner</span>
-                  <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[var(--accent)]" /> Private Chauffeur Vehicle</span>
-                  <span className="flex items-center gap-2"><Check className="w-4 h-4 text-[var(--accent)]" /> Sightseeing & Passes</span>
-                </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.24 }}
-                className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between"
-              >
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-[var(--text-muted)] block">
-                    {!quickViewTrip.isPriceOnRequest && quickViewTrip.pricePerPerson > 0 ? 'From' : 'Pricing'}
-                  </span>
-                  <span className="text-2xl font-serif font-bold text-[var(--accent)]">
-                    {formatPrice(quickViewTrip.pricePerPerson, quickViewTrip.isPriceOnRequest)}
-                  </span>
-                  {!quickViewTrip.isPriceOnRequest && quickViewTrip.pricePerPerson > 0 && (
-                    <span className="text-xs font-mono text-[var(--text-muted)]"> / person</span>
-                  )}
-                </div>
-
-                <MagneticButton
-                  onClick={() => {
-                    const t = quickViewTrip;
-                    setQuickViewTrip(null);
-                    setActiveModalTrip(t);
-                  }}
-                  className="px-6 h-11 rounded-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white flex items-center gap-2 font-medium"
-                >
-                  <span>VIEW FULL JOURNEY</span>
-                  <ArrowRight className="w-4 h-4" />
-                </MagneticButton>
-              </motion.div>
-            </div>
-          </DialogContent>
-        )}
-      </Dialog>
-
-      {/* Full Trip Detail Modal */}
+      {/* ══════════════════════════════════════════════════
+          COMPLETE TRIP DETAIL MODAL
+          ══════════════════════════════════════════════════ */}
       <TripDetailModal
         trip={activeModalTrip}
         onClose={() => setActiveModalTrip(null)}
-        onPlanCustom={(tripTitle) => onOpenPlanTrip(tripTitle)}
+        onPlanCustom={(tripTitle) => {
+          setActiveModalTrip(null);
+          onOpenPlanTrip(tripTitle);
+        }}
       />
     </section>
   );

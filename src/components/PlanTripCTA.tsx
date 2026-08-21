@@ -47,8 +47,7 @@ export default function PlanTripCTA({ onOpenPlanTrip }: PlanTripCTAProps) {
             <div className="flex flex-wrap items-center gap-4">
               <button
                 onClick={onOpenPlanTrip}
-                data-cursor="PLAN"
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#FAF8F5] text-[#121316] font-semibold text-xs uppercase tracking-widest hover:bg-[#EAE5DC] transition-all duration-300 shadow-xl"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#FAF8F5] text-[#121316] font-semibold text-xs uppercase tracking-widest hover:bg-[#EAE5DC] transition-all duration-300 shadow-xl cursor-pointer"
               >
                 <Compass className="w-4 h-4 text-[#1E3A2F]" />
                 <span>Plan My Trip</span>

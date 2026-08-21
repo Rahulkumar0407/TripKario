@@ -82,7 +82,7 @@ export default function DestinationCarousel({
         setIsHovered(false);
         setHoveredCardIdx(null);
       }}
-      className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-hidden relative"
+      className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative"
     >
       {/* LAYER 1: Ambient Background Image & Color Wash (Scale 1.08, Blur 20px) */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
@@ -155,7 +155,7 @@ export default function DestinationCarousel({
       </div>
 
       {/* LAYER 2 & 3: Layered 3D Depth Carousel Container with Momentum Physics */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[460px] sm:min-h-[540px] flex items-center justify-center">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[460px] sm:min-h-[540px] flex items-center justify-center overflow-visible">
         {destList.map((dest, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;
@@ -169,46 +169,42 @@ export default function DestinationCarousel({
           const isHoveredCard = hoveredCardIdx === idx;
           const isAnyCardHovered = hoveredCardIdx !== null;
 
-          let cardOpacity = isCenter ? 1 : 0.82;
-          let cardScale = isCenter ? 1 : 0.93;
+          let cardOpacity = isCenter ? 1 : 0.88;
+          let cardScale = isCenter ? 1 : 0.88;
           let cardY = 0;
-          let cardZIndex = isCenter ? 20 : 10;
+          let cardZIndex = isHoveredCard ? 60 : isCenter ? 50 : 30;
           let cardFilter = 'blur(0px) grayscale(0%) brightness(1)';
 
           if (isHoveredCard) {
             cardOpacity = 1;
-            cardScale = isCenter ? 1.03 : 0.98;
-            cardY = -14;
-            cardZIndex = 40;
-            cardFilter = 'blur(0px) grayscale(0%) brightness(1.05)';
+            cardScale = isCenter ? 1.02 : 0.94;
+            cardY = -8;
+            cardFilter = 'blur(0px) grayscale(0%) brightness(1.03)';
           } else if (isAnyCardHovered) {
-            cardOpacity = 0.35;
-            cardScale = isCenter ? 0.94 : 0.88;
+            cardOpacity = 0.45;
+            cardScale = isCenter ? 0.96 : 0.84;
             cardY = 0;
-            cardZIndex = 5;
-            cardFilter = 'blur(1.5px) grayscale(35%) brightness(0.75)';
+            cardFilter = 'blur(0.5px) grayscale(15%) brightness(0.85)';
           }
 
           return (
             <motion.div
               key={dest.id}
               initial={false}
+              style={{ zIndex: cardZIndex }}
               animate={{
-                x: `${position * 70}%`,
+                x: `${position * 80}%`,
                 scale: cardScale,
                 y: cardY,
-                rotateZ: position * 1.5,
+                rotateZ: position * -1.2,
                 opacity: cardOpacity,
                 filter: cardFilter,
-                zIndex: cardZIndex,
               }}
               onMouseEnter={() => setHoveredCardIdx(idx)}
               onMouseLeave={() => setHoveredCardIdx(null)}
               transition={{
-                type: 'spring',
-                stiffness: 280,
-                damping: 28,
-                mass: 0.7,
+                duration: 0.45,
+                ease: [0.16, 1, 0.3, 1],
               }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
@@ -220,65 +216,68 @@ export default function DestinationCarousel({
                   prevSlide();
                 }
               }}
-              onClick={() => {
-                if (!isCenter) {
-                  if (position > 0) nextSlide();
-                  else prevSlide();
-                } else {
-                  onSelectDestination(dest.name);
-                }
-              }}
-              data-cursor={isCenter ? 'EXPLORE' : 'VIEW'}
-              className="absolute w-[88vw] sm:w-[68vw] md:w-[58vw] max-w-[760px] aspect-[16/10] sm:aspect-[16/9] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] cursor-pointer select-none transition-shadow duration-300"
+              className="absolute w-[88vw] sm:w-[68vw] md:w-[58vw] max-w-[760px] flex items-center justify-center pointer-events-auto"
             >
-              <Image
-                src={dest.image.src}
-                alt={dest.image.alt}
-                fill
-                sizes="(max-width: 1024px) 90vw, 60vw"
-                className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
+              <div
+                onClick={() => {
+                  if (!isCenter) {
+                    if (position > 0) nextSlide();
+                    else prevSlide();
+                  } else {
+                    onSelectDestination(dest.id || dest.name);
+                  }
+                }}
+                className="w-full aspect-[16/10] sm:aspect-[16/9] rounded-3xl overflow-hidden shadow-xl border border-[var(--border-card)] cursor-pointer select-none transition-shadow duration-300 relative"
+              >
+                <Image
+                  src={dest.image.src}
+                  alt={dest.image.alt}
+                  fill
+                  sizes="(max-width: 1024px) 90vw, 60vw"
+                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/20" />
 
-              {/* Region Chip */}
-              <div className="absolute top-5 left-5">
-                <GlassSurface variant="clear" rounded="full" className="px-3.5 py-1 text-white text-[10px] font-mono uppercase tracking-widest font-bold">
-                  {dest.region}
-                </GlassSurface>
-              </div>
-
-              {/* Bottom Editorial Content */}
-              <div className="absolute bottom-6 sm:bottom-8 left-6 sm:left-8 right-6 sm:right-8 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div>
-                  <span className="text-xs font-mono uppercase text-[#F4A261] tracking-widest block mb-1 font-semibold">
-                    {dest.tagline}
-                  </span>
-                  <h3 className="text-3xl sm:text-5xl font-serif font-normal text-white">
-                    {dest.name}
-                  </h3>
+                {/* Region Chip */}
+                <div className="absolute top-5 left-5">
+                  <GlassSurface variant="clear" rounded="full" className="px-3.5 py-1 text-white text-[10px] font-mono uppercase tracking-widest font-bold">
+                    {dest.region}
+                  </GlassSurface>
                 </div>
 
-                {isCenter && (
-                  <div className="flex items-center gap-3">
-                    <div className="text-right hidden sm:block">
-                      <span className="text-[10px] font-mono text-white/70 block uppercase">From</span>
-                      <span className="text-xl font-serif font-bold text-white">
-                        {formatPrice(dest.startingPrice)}
-                      </span>
-                    </div>
-
-                    <MagneticButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSelectDestination(dest.name);
-                      }}
-                      className="px-6 h-11 rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white flex items-center gap-2 shadow-lg"
-                    >
-                      <span>EXPLORE</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </MagneticButton>
+                {/* Bottom Editorial Content */}
+                <div className="absolute bottom-6 sm:bottom-8 left-6 sm:left-8 right-6 sm:right-8 text-white flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                  <div>
+                    <span className="text-xs font-mono uppercase text-[#F4A261] tracking-widest block mb-1 font-semibold">
+                      {dest.tagline}
+                    </span>
+                    <h3 className="text-3xl sm:text-5xl font-serif font-normal text-white">
+                      {dest.name}
+                    </h3>
                   </div>
-                )}
+
+                  {isCenter && (
+                    <div className="flex items-center gap-3">
+                      <div className="text-right hidden sm:block">
+                        <span className="text-[10px] font-mono text-white/70 block uppercase">From</span>
+                        <span className="text-xl font-serif font-bold text-white">
+                          {formatPrice(dest.startingPrice)}
+                        </span>
+                      </div>
+
+                      <MagneticButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectDestination(dest.id || dest.name);
+                        }}
+                        className="px-6 h-11 rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white flex items-center gap-2 shadow-lg cursor-pointer"
+                      >
+                        <span>EXPLORE</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </MagneticButton>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           );

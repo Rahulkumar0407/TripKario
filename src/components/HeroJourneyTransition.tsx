@@ -481,7 +481,6 @@ export default function HeroJourneyTransition({
 
               <MagneticButton
                 onClick={() => onOpenPlanTrip(scene.name)}
-                dataCursor="EXPLORE"
                 className="w-full h-12 rounded-2xl bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl text-xs font-semibold tracking-wider flex items-center justify-center gap-2"
               >
                 <span>EXPLORE THIS JOURNEY</span>

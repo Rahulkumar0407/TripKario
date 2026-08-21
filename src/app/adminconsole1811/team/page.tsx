@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { initialTeamMembers, SeedTeamMember } from '@/lib/admin/seedData';
+import { supabase } from '@/lib/supabase/client';
+import { SeedTeamMember } from '@/lib/admin/seedData';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
 import {
   Plus,
@@ -16,42 +17,188 @@ import {
   Phone,
   ImageIcon,
   Save,
+  Sparkles,
+  ArrowRight,
+  UserPlus,
 } from 'lucide-react';
 
 export default function AdminTeamPage() {
-  const [team, setTeam] = useState<SeedTeamMember[]>(initialTeamMembers);
+  const [team, setTeam] = useState<SeedTeamMember[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<SeedTeamMember | null>(null);
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
+  const [hoveredMemberId, setHoveredMemberId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
-  const handleAddNew = () => {
-    const newMember: SeedTeamMember = {
-      id: `team-${Date.now()}`,
-      name: 'New Specialist',
-      role: 'Trip Specialist',
-      bio: 'Deep local knowledge of Himalayan routes, offbeat tea gardens, and boutique homestays.',
-      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=85&w=600&auto=format&fit=crop',
-      phone: '+91 99580 34778',
-      email: 'specialist@tripkario.com',
-      displayOrder: team.length + 1,
-      isActive: true,
-    };
-    setTeam([...team, newMember]);
-    setEditingMember(newMember);
-  };
+  // Load team data from Supabase, fallback to localStorage
+  useEffect(() => {
+    async function loadTeamData() {
+      setIsLoading(true);
+      try {
+        if (
+          process.env.NEXT_PUBLIC_SUPABASE_URL &&
+          process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+        ) {
+          const { data, error } = await supabase
+            .from('team_members')
+            .select('*')
+            .order('display_order', { ascending: true });
 
-  const handleSave = (saved: SeedTeamMember) => {
-    setTeam((prev) => prev.map((m) => (m.id === saved.id ? saved : m)));
-    setEditingMember(null);
-  };
+          if (!error && Array.isArray(data)) {
+            const mapped: SeedTeamMember[] = data.map((row: any, idx: number) => ({
+              id: row.id,
+              name: row.name,
+              role: row.role,
+              bio: row.bio || '',
+              photoUrl: row.photo_url,
+              phone: row.phone || '',
+              email: row.email || '',
+              displayOrder: row.display_order ?? idx + 1,
+              isActive: row.is_active ?? true,
+            }));
+            setTeam(mapped);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Could not query Supabase team_members table:', err);
+      }
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this team member?')) {
-      setTeam((prev) => prev.filter((m) => m.id !== id));
-      if (editingMember?.id === id) setEditingMember(null);
+      // Check persistent localStorage
+      try {
+        const local = localStorage.getItem('tripkario_admin_team');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed)) {
+            setTeam(parsed);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not read team from localStorage:', e);
+      }
+
+      // Default: clean empty state (NO FAKE / MOCK DATA)
+      setTeam([]);
+      setIsLoading(false);
+    }
+
+    loadTeamData();
+  }, []);
+
+  const persistTeam = async (updatedList: SeedTeamMember[]) => {
+    setTeam(updatedList);
+    try {
+      localStorage.setItem('tripkario_admin_team', JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('Could not save team to localStorage:', e);
+    }
+
+    // Attempt to persist to Supabase if connected
+    try {
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+      ) {
+        const rows = updatedList.map((m, idx) => ({
+          id: m.id.includes('-') && m.id.length > 20 ? m.id : undefined,
+          name: m.name,
+          role: m.role,
+          bio: m.bio,
+          photo_url: m.photoUrl,
+          phone: m.phone || null,
+          email: m.email || null,
+          display_order: idx + 1,
+          is_active: m.isActive,
+          updated_at: new Date().toISOString(),
+        }));
+
+        await supabase.from('team_members').upsert(rows);
+      }
+    } catch (e) {
+      console.warn('Supabase sync skipped/pending table setup:', e);
     }
   };
 
-  const handleMove = (index: number, direction: 'up' | 'down') => {
+  const handleAddNew = () => {
+    const newMember: SeedTeamMember = {
+      id: `tm_${Date.now()}`,
+      name: '',
+      role: '',
+      bio: '',
+      photoUrl: '',
+      phone: '',
+      email: '',
+      displayOrder: team.length + 1,
+      isActive: true,
+    };
+    setEditingMember(newMember);
+    setIsCreatingNew(true);
+  };
+
+  const handleSaveMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember || !editingMember.name.trim()) return;
+
+    setSaveStatus('saving');
+
+    const sanitizedMember: SeedTeamMember = {
+      ...editingMember,
+      name: editingMember.name.trim(),
+      role: editingMember.role.trim() || 'Trip Specialist',
+      bio: editingMember.bio.trim(),
+      photoUrl:
+        editingMember.photoUrl.trim() ||
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=85&w=800&auto=format&fit=crop',
+    };
+
+    let updatedList: SeedTeamMember[];
+    if (isCreatingNew) {
+      updatedList = [...team, sanitizedMember];
+    } else {
+      updatedList = team.map((m) => (m.id === sanitizedMember.id ? sanitizedMember : m));
+    }
+
+    await persistTeam(updatedList);
+    setSaveStatus('saved');
+
+    setTimeout(() => {
+      setSaveStatus('idle');
+      setEditingMember(null);
+      setIsCreatingNew(false);
+    }, 400);
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (confirm(`Are you sure you want to remove "${name || 'this team member'}" from your team?`)) {
+      const updatedList = team
+        .filter((m) => m.id !== id)
+        .map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
+
+      await persistTeam(updatedList);
+
+      try {
+        if (
+          process.env.NEXT_PUBLIC_SUPABASE_URL &&
+          process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+        ) {
+          await supabase.from('team_members').delete().eq('id', id);
+        }
+      } catch (e) {
+        // Table might not exist yet
+      }
+
+      if (editingMember?.id === id) {
+        setEditingMember(null);
+        setIsCreatingNew(false);
+      }
+    }
+  };
+
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
     const targetIdx = direction === 'up' ? index - 1 : index + 1;
     if (targetIdx < 0 || targetIdx >= team.length) return;
 
@@ -61,312 +208,521 @@ export default function AdminTeamPage() {
     list[targetIdx] = temp;
 
     const reordered = list.map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
-    setTeam(reordered);
+    await persistTeam(reordered);
   };
 
+  const teamCountLabel = String(team.length).padStart(2, '0');
+
   return (
-    <div className="space-y-6 sm:space-y-8 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5DFD5] dark:border-[#262420]">
-        <div>
-          <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-[#C85D3A] dark:text-[#E06A42] font-semibold">
-            HUMAN SPECIALISTS & CONCIERGES
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171512] dark:text-white tracking-tight mt-0.5">
-            Team Members ({team.length})
-          </h1>
-          <p className="text-xs sm:text-sm text-[#6D665E] dark:text-[#B8B0A4] font-normal">
-            Manage your team of travel curators, guides, and route specialists.
-          </p>
+    <div className="space-y-12 sm:space-y-16 min-h-screen select-none pb-24">
+      {/* ══════════════════════════════════════════════════
+          HERO EDITORIAL HEADER
+          ══════════════════════════════════════════════════ */}
+      <div className="border-b border-[#262420]/15 dark:border-[#262420] pb-8 pt-2">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <span className="text-[11px] font-mono tracking-[0.3em] uppercase text-[#C85D3A] font-semibold block">
+              THE PEOPLE BEHIND THE JOURNEY
+            </span>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-normal text-[#171512] dark:text-[#F5EFE6] tracking-tight leading-none">
+              Human Specialists & Curators
+            </h1>
+            <p className="text-xs sm:text-sm text-[#6D665E] dark:text-[#A8A095] font-light leading-relaxed pt-1">
+              Meet the people who turn routes, stays and ideas into memorable journeys.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="text-right hidden sm:block">
+              <span className="text-[10px] font-mono tracking-[0.2em] text-[#8C8479] uppercase block">
+                Total Directory
+              </span>
+              <span className="text-xs font-mono font-bold text-[#171512] dark:text-[#F5EFE6]">
+                {teamCountLabel} {team.length === 1 ? 'PERSON' : 'PEOPLE'}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleAddNew}
+              className="px-6 py-3.5 rounded-2xl bg-[#171512] dark:bg-[#F5EFE6] text-white dark:text-[#171512] hover:bg-[#C85D3A] dark:hover:bg-[#C85D3A] dark:hover:text-white text-xs font-mono font-bold tracking-widest uppercase flex items-center gap-2.5 shadow-lg transition-all duration-300 active:scale-98 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Team Member</span>
+            </button>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleAddNew}
-          className="px-5 py-2.5 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-bold font-mono tracking-wider uppercase flex items-center gap-2 shadow-md shadow-[#C85D3A]/25 transition-all cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Team Member</span>
-        </button>
+        {/* Count Bar Subline */}
+        <div className="mt-6 flex items-center gap-3 text-[11px] font-mono text-[#8C8479]">
+          <span className="w-2 h-2 rounded-full bg-[#174E48] dark:bg-[#D4A467]" />
+          <span>
+            {isLoading
+              ? 'Querying directory...'
+              : `${teamCountLabel} active specialist profile${team.length === 1 ? '' : 's'}`}
+          </span>
+        </div>
       </div>
 
-      {/* Team Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {team.map((member, idx) => (
-          <div
-            key={member.id}
-            className={`rounded-3xl bg-white dark:bg-[#14120F] border overflow-hidden shadow-sm flex flex-col justify-between transition-all ${
-              member.isActive
-                ? 'border-[#E5DFD5] dark:border-[#262420]'
-                : 'border-black/10 opacity-60'
-            }`}
-          >
-            <div className="p-5 flex items-start gap-4">
-              <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-black/10 shrink-0 border border-black/5 dark:border-white/10">
-                <Image
-                  src={member.photoUrl}
-                  alt={member.name}
-                  fill
-                  sizes="100px"
-                  className="object-cover"
-                />
-              </div>
-
-              <div className="space-y-1 min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-[#C85D3A] uppercase font-bold tracking-wider">
-                    {member.role}
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase ${
-                      member.isActive
-                        ? 'bg-[#174E48]/15 text-[#174E48] dark:text-[#D4A467]'
-                        : 'bg-black/10 text-[#8C8479]'
-                    }`}
-                  >
-                    {member.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </div>
-
-                <h3 className="text-base font-bold text-[#171512] dark:text-white truncate">
-                  {member.name}
-                </h3>
-
-                <p className="text-xs text-[#6D665E] dark:text-[#B8B0A4] line-clamp-2 leading-relaxed font-normal">
-                  {member.bio}
-                </p>
-
-                {(member.phone || member.email) && (
-                  <div className="pt-1 text-[11px] font-mono text-[#8C8479] space-y-0.5">
-                    {member.phone && <div>{member.phone}</div>}
-                    {member.email && <div className="truncate">{member.email}</div>}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Actions Bar with Reorder & Edit */}
-            <div className="px-5 py-3 border-t border-[#E5DFD5] dark:border-[#262420] bg-[#FAF7F2]/50 dark:bg-[#11100E]/50 flex items-center justify-between">
-              {/* Order & Move buttons */}
-              <div className="flex items-center gap-1 text-xs font-mono text-[#8C8479]">
-                <span className="font-bold">#{member.displayOrder}</span>
-                <button
-                  type="button"
-                  disabled={idx === 0}
-                  onClick={() => handleMove(idx, 'up')}
-                  className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
-                  title="Move Up"
-                >
-                  <ChevronUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={idx === team.length - 1}
-                  onClick={() => handleMove(idx, 'down')}
-                  className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-30"
-                  title="Move Down"
-                >
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setEditingMember(member)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-[#1C1916] hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold uppercase transition-colors"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(member.id)}
-                  className="p-1.5 rounded-xl text-red-500 hover:bg-red-500/10"
-                  title="Delete Member"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+      {/* ══════════════════════════════════════════════════
+          EDITORIAL EMPTY STATE (IF 0 TEAM MEMBERS)
+          ══════════════════════════════════════════════════ */}
+      {!isLoading && team.length === 0 && (
+        <div className="py-20 sm:py-28 px-6 text-center max-w-xl mx-auto rounded-3xl border border-dashed border-[#262420]/20 dark:border-[#262420] bg-white/40 dark:bg-[#14120F]/40 backdrop-blur-sm space-y-6">
+          <div className="w-16 h-16 rounded-full bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#262420] mx-auto flex items-center justify-center text-[#C85D3A]">
+            <UserPlus className="w-7 h-7 stroke-1" />
           </div>
-        ))}
-      </div>
 
-      {/* Edit/Add Member Drawer */}
-      {editingMember && (
-        <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-200">
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setEditingMember(null)}
-          />
-          <div className="relative z-10 w-full max-w-md bg-white dark:bg-[#14120F] h-full p-6 sm:p-7 shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-[#E5DFD5] dark:border-[#262420]">
-            <div className="space-y-5 text-xs font-mono">
-              <div className="flex justify-between items-center pb-3 border-b border-[#E5DFD5] dark:border-[#262420]">
-                <div>
-                  <span className="text-[10px] font-mono text-[#C85D3A] uppercase font-bold">
-                    TEAM EDITOR
-                  </span>
-                  <h2 className="text-base sm:text-lg font-bold text-[#171512] dark:text-white">
-                    {editingMember.name || 'Edit Team Member'}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setEditingMember(null)}
-                  className="p-1.5 rounded-xl text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5"
+          <div className="space-y-2">
+            <span className="text-[11px] font-mono tracking-[0.25em] text-[#C85D3A] uppercase font-bold">
+              DIRECTORY EMPTY
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-serif text-[#171512] dark:text-[#F5EFE6]">
+              The Team is Waiting
+            </h2>
+            <p className="text-xs sm:text-sm text-[#6D665E] dark:text-[#A8A095] font-light max-w-sm mx-auto leading-relaxed">
+              Add the people travellers will speak to, plan with and remember throughout their journey.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAddNew}
+            className="px-6 py-3.5 rounded-2xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-mono font-bold tracking-widest uppercase inline-flex items-center gap-2 shadow-lg shadow-[#C85D3A]/25 transition-all active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add First Team Member</span>
+          </button>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════
+          EDITORIAL TEAM PRESENTATION (MAGAZINE PORTRAITS)
+          ══════════════════════════════════════════════════ */}
+      {!isLoading && team.length > 0 && (
+        <div className="space-y-12 sm:space-y-16">
+          {team.map((member, index) => {
+            const isEven = index % 2 === 1;
+            const itemNumber = String(index + 1).padStart(2, '0');
+            const isHovered = hoveredMemberId === member.id;
+
+            return (
+              <div
+                key={member.id}
+                onMouseEnter={() => setHoveredMemberId(member.id)}
+                onMouseLeave={() => setHoveredMemberId(null)}
+                className={`relative group rounded-3xl p-6 sm:p-10 transition-all duration-500 border ${
+                  isHovered
+                    ? 'bg-white dark:bg-[#14120F] border-[#C85D3A]/40 shadow-[0_20px_60px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]'
+                    : 'bg-white/60 dark:bg-[#14120F]/60 border-[#262420]/10 dark:border-[#262420]'
+                }`}
+              >
+                <div
+                  className={`flex flex-col ${
+                    isEven ? 'lg:flex-row-reverse' : 'lg:flex-row'
+                  } items-center gap-8 lg:gap-14`}
                 >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+                  {/* Portrait Column */}
+                  <div className="w-full lg:w-5/12 shrink-0">
+                    <div className="relative aspect-[3/4] max-w-sm mx-auto rounded-2xl overflow-hidden bg-[#171512] shadow-2xl">
+                      {member.photoUrl ? (
+                        <Image
+                          src={member.photoUrl}
+                          alt={member.name}
+                          fill
+                          sizes="(max-width: 1024px) 100vw, 400px"
+                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-[#8C8479] space-y-2 p-6 text-center">
+                          <ImageIcon className="w-10 h-10 stroke-1" />
+                          <span className="text-xs font-mono">No portrait uploaded</span>
+                        </div>
+                      )}
 
-              {/* Photo selection */}
-              <div className="space-y-2">
-                <label className="text-[#8C8479] uppercase block font-bold">Member Photo</label>
-                <div className="flex items-center gap-4">
-                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-black/10 border border-black/5 dark:border-white/10 shrink-0">
-                    <Image
-                      src={editingMember.photoUrl}
-                      alt={editingMember.name}
-                      fill
-                      sizes="100px"
-                      className="object-cover"
-                    />
+                      {/* Subtle Editorial Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 opacity-70 pointer-events-none" />
+
+                      {/* Number Stamp */}
+                      <span className="absolute top-4 left-4 text-xs font-mono tracking-widest text-white/90 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                        PORTRAIT {itemNumber}
+                      </span>
+
+                      {/* Status Tag */}
+                      <span
+                        className={`absolute bottom-4 left-4 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider ${
+                          member.isActive
+                            ? 'bg-[#174E48] text-[#D4A467] border border-[#174E48]'
+                            : 'bg-black/70 text-[#8C8479]'
+                        }`}
+                      >
+                        {member.isActive ? 'Active on Web' : 'Hidden / Draft'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Editorial Details Column */}
+                  <div className="w-full lg:w-7/12 space-y-6">
+                    {/* Index & Line Draw Indicator */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-mono text-[#C85D3A] font-bold">
+                        /{itemNumber}
+                      </span>
+                      <div
+                        className={`h-px bg-[#C85D3A] transition-all duration-500 ${
+                          isHovered ? 'w-16' : 'w-8'
+                        }`}
+                      />
+                      <span className="text-[11px] font-mono tracking-[0.2em] text-[#8C8479] uppercase">
+                        {member.role || 'Trip Specialist'}
+                      </span>
+                    </div>
+
+                    {/* Member Name */}
+                    <div className="space-y-1">
+                      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif text-[#171512] dark:text-[#F5EFE6] tracking-tight">
+                        {member.name || 'Unnamed Specialist'}
+                      </h2>
+                      <span className="text-xs font-mono text-[#C85D3A] block">
+                        {member.role || 'Route Curator & Concierge'}
+                      </span>
+                    </div>
+
+                    {/* Short Bio / Introduction */}
+                    <p className="text-sm sm:text-base text-[#6D665E] dark:text-[#B8B0A4] font-light leading-relaxed font-sans">
+                      {member.bio ||
+                        'Crafting thoughtful, unhurried journeys planned around quiet boutique stays and private chauffeurs.'}
+                    </p>
+
+                    {/* Direct Contact Details */}
+                    {(member.phone || member.email) && (
+                      <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-mono text-[#8C8479]">
+                        {member.phone && (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#262420]/10 dark:border-[#262420]">
+                            <Phone className="w-3.5 h-3.5 text-[#C85D3A]" />
+                            <span>{member.phone}</span>
+                          </div>
+                        )}
+                        {member.email && (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#262420]/10 dark:border-[#262420]">
+                            <Mail className="w-3.5 h-3.5 text-[#C85D3A]" />
+                            <span>{member.email}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Actions Bar: Reorder & Edit / Delete */}
+                    <div className="pt-6 border-t border-[#262420]/10 dark:border-[#262420] flex flex-wrap items-center justify-between gap-4">
+                      {/* Move Up / Down Reorder */}
+                      <div className="flex items-center gap-2 text-xs font-mono text-[#8C8479]">
+                        <span className="uppercase text-[10px] tracking-wider">Position:</span>
+                        <span className="font-bold text-[#171512] dark:text-white">#{member.displayOrder}</span>
+                        <div className="flex items-center gap-1 ml-1">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => handleMove(index, 'up')}
+                            className="p-1.5 rounded-lg border border-[#262420]/15 dark:border-[#262420] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-20 cursor-pointer"
+                            title="Move Up"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === team.length - 1}
+                            onClick={() => handleMove(index, 'down')}
+                            className="p-1.5 rounded-lg border border-[#262420]/15 dark:border-[#262420] hover:bg-black/5 dark:hover:bg-white/5 disabled:opacity-20 cursor-pointer"
+                            title="Move Down"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Edit & Delete Buttons */}
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingMember(member);
+                            setIsCreatingNew(false);
+                          }}
+                          className="px-5 py-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white border border-[#262420]/15 dark:border-[#262420] text-xs font-mono font-bold uppercase transition-all duration-200 flex items-center gap-2 cursor-pointer shadow-sm"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          <span>Edit Profile</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(member.id, member.name)}
+                          className="p-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
+                          title="Delete Member"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════
+          SIDE PANEL: EDIT / ADD TEAM MEMBER
+          ══════════════════════════════════════════════════ */}
+      {editingMember && (
+        <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-300">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => {
+              setEditingMember(null);
+              setIsCreatingNew(false);
+            }}
+          />
+
+          <div className="relative z-10 w-full max-w-lg bg-[#FAF7F2] dark:bg-[#14120F] h-full shadow-2xl flex flex-col justify-between overflow-y-auto border-l border-[#262420]/20 dark:border-[#262420]">
+            <form onSubmit={handleSaveMember} className="flex-1 flex flex-col justify-between">
+              <div className="p-6 sm:p-8 space-y-6">
+                {/* Header */}
+                <div className="flex items-center justify-between pb-4 border-b border-[#262420]/15 dark:border-[#262420]">
+                  <div>
+                    <span className="text-[10px] font-mono tracking-[0.2em] text-[#C85D3A] uppercase font-bold">
+                      {isCreatingNew ? 'NEW PROFILE' : 'EDIT PROFILE'}
+                    </span>
+                    <h2 className="text-xl font-serif text-[#171512] dark:text-white">
+                      {isCreatingNew ? 'Add Team Specialist' : editingMember.name || 'Edit Member'}
+                    </h2>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsMediaPickerOpen(true)}
-                    className="px-4 py-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#262420] text-[#C85D3A] font-bold text-xs hover:bg-[#FAF7F2]/80 flex items-center gap-1.5 cursor-pointer"
+                    onClick={() => {
+                      setEditingMember(null);
+                      setIsCreatingNew(false);
+                    }}
+                    className="p-2 rounded-xl text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
                   >
-                    <ImageIcon className="w-4 h-4" />
-                    <span>Change Photo</span>
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
-              </div>
 
-              {/* Name */}
-              <div>
-                <label className="text-[#8C8479] uppercase block mb-1 font-bold">Full Name</label>
-                <input
-                  type="text"
-                  value={editingMember.name}
-                  onChange={(e) => setEditingMember({ ...editingMember, name: e.target.value })}
-                  className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs font-sans font-bold"
-                />
-              </div>
+                {/* Form Fields */}
+                <div className="space-y-5 text-xs font-mono">
+                  {/* Photo Selection */}
+                  <div className="space-y-2">
+                    <label className="text-[#8C8479] uppercase block font-bold">
+                      Magazine Portrait Photo
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <div className="relative w-20 h-24 rounded-2xl overflow-hidden bg-black/10 border border-black/10 dark:border-white/10 shrink-0 shadow-inner">
+                        {editingMember.photoUrl ? (
+                          <Image
+                            src={editingMember.photoUrl}
+                            alt={editingMember.name || 'Portrait'}
+                            fill
+                            sizes="100px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[#8C8479]">
+                            <ImageIcon className="w-6 h-6" />
+                          </div>
+                        )}
+                      </div>
 
-              {/* Role */}
-              <div>
-                <label className="text-[#8C8479] uppercase block mb-1 font-bold">Role / Title</label>
-                <input
-                  type="text"
-                  value={editingMember.role}
-                  onChange={(e) => setEditingMember({ ...editingMember, role: e.target.value })}
-                  placeholder="e.g. Route Curator, Kashmir Specialist"
-                  className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs font-sans"
-                />
-              </div>
+                      <div className="space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsMediaPickerOpen(true)}
+                          className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#262420] text-[#C85D3A] font-bold text-xs hover:bg-[#C85D3A] hover:text-white flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                          <span>Choose from Library</span>
+                        </button>
+                        <span className="text-[10px] text-[#8C8479] block">
+                          3:4 aspect ratio recommended
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Bio */}
-              <div>
-                <label className="text-[#8C8479] uppercase block mb-1 font-bold">Short Bio</label>
-                <textarea
-                  rows={3}
-                  value={editingMember.bio}
-                  onChange={(e) => setEditingMember({ ...editingMember, bio: e.target.value })}
-                  placeholder="Brief description of their expertise..."
-                  className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs font-sans leading-relaxed"
-                />
-              </div>
+                  {/* Name */}
+                  <div>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">
+                      Name
+                    </label>
+                    <p className="text-[10px] text-[#8C8479] mb-1.5">
+                      How should this person appear on the website?
+                    </p>
+                    <input
+                      type="text"
+                      required
+                      value={editingMember.name}
+                      onChange={(e) =>
+                        setEditingMember({ ...editingMember, name: e.target.value })
+                      }
+                      placeholder="e.g. Yashi Singh"
+                      className="w-full p-3 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-sm outline-none focus:border-[#C85D3A]"
+                    />
+                  </div>
 
-              {/* Optional Phone & Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[#8C8479] uppercase block mb-1">Phone (Optional)</label>
-                  <input
-                    type="text"
-                    value={editingMember.phone || ''}
-                    onChange={(e) => setEditingMember({ ...editingMember, phone: e.target.value })}
-                    placeholder="+91 99580..."
-                    className="w-full p-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs font-mono"
-                  />
+                  {/* Role */}
+                  <div>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">
+                      Role / Title
+                    </label>
+                    <p className="text-[10px] text-[#8C8479] mb-1.5">
+                      e.g. Travel Specialist, Route Curator, Kashmir Concierge
+                    </p>
+                    <input
+                      type="text"
+                      required
+                      value={editingMember.role}
+                      onChange={(e) =>
+                        setEditingMember({ ...editingMember, role: e.target.value })
+                      }
+                      placeholder="e.g. Founder & Route Curator"
+                      className="w-full p-3 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-sm outline-none focus:border-[#C85D3A]"
+                    />
+                  </div>
+
+                  {/* Short Bio */}
+                  <div>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">
+                      Short Introduction
+                    </label>
+                    <p className="text-[10px] text-[#8C8479] mb-1.5">
+                      Tell travellers a little about them.
+                    </p>
+                    <textarea
+                      rows={3}
+                      value={editingMember.bio}
+                      onChange={(e) =>
+                        setEditingMember({ ...editingMember, bio: e.target.value })
+                      }
+                      placeholder="Specializes in quiet Himalayan escapes, bespoke boutique stays, and slow pacing..."
+                      className="w-full p-3 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs leading-relaxed outline-none focus:border-[#C85D3A]"
+                    />
+                  </div>
+
+                  {/* Direct Contact */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[#8C8479] uppercase block mb-1">
+                        Phone (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={editingMember.phone || ''}
+                        onChange={(e) =>
+                          setEditingMember({ ...editingMember, phone: e.target.value })
+                        }
+                        placeholder="+91 99580..."
+                        className="w-full p-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[#8C8479] uppercase block mb-1">
+                        Email (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        value={editingMember.email || ''}
+                        onChange={(e) =>
+                          setEditingMember({ ...editingMember, email: e.target.value })
+                        }
+                        placeholder="hello@tripkario.com"
+                        className="w-full p-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Status & Display Order */}
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div>
+                      <label className="text-[#8C8479] uppercase block mb-1">
+                        Website Visibility
+                      </label>
+                      <select
+                        value={editingMember.isActive ? 'active' : 'inactive'}
+                        onChange={(e) =>
+                          setEditingMember({
+                            ...editingMember,
+                            isActive: e.target.value === 'active',
+                          })
+                        }
+                        className="w-full p-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white text-xs cursor-pointer"
+                      >
+                        <option value="active">Active (Visible)</option>
+                        <option value="inactive">Hidden (Draft)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[#8C8479] uppercase block mb-1">
+                        Display Order
+                      </label>
+                      <input
+                        type="number"
+                        value={editingMember.displayOrder}
+                        onChange={(e) =>
+                          setEditingMember({
+                            ...editingMember,
+                            displayOrder: Number(e.target.value),
+                          })
+                        }
+                        className="w-full p-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#2C2824] text-[#171512] dark:text-white text-xs"
+                      />
+                    </div>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="text-[#8C8479] uppercase block mb-1">Email (Optional)</label>
-                  <input
-                    type="email"
-                    value={editingMember.email || ''}
-                    onChange={(e) => setEditingMember({ ...editingMember, email: e.target.value })}
-                    placeholder="name@tripkario.com"
-                    className="w-full p-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs font-mono"
-                  />
-                </div>
               </div>
 
-              {/* Active Toggle & Order */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div>
-                  <label className="text-[#8C8479] uppercase block mb-1">Status</label>
-                  <select
-                    value={editingMember.isActive ? 'active' : 'inactive'}
-                    onChange={(e) =>
-                      setEditingMember({ ...editingMember, isActive: e.target.value === 'active' })
-                    }
-                    className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs"
-                  >
-                    <option value="active">Active (Visible)</option>
-                    <option value="inactive">Inactive (Hidden)</option>
-                  </select>
-                </div>
+              {/* Bottom Actions Bar */}
+              <div className="p-6 border-t border-[#262420]/15 dark:border-[#262420] flex items-center justify-between bg-white dark:bg-[#11100E]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingMember(null);
+                    setIsCreatingNew(false);
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+                >
+                  Cancel
+                </button>
 
-                <div>
-                  <label className="text-[#8C8479] uppercase block mb-1">Display Order</label>
-                  <input
-                    type="number"
-                    value={editingMember.displayOrder}
-                    onChange={(e) =>
-                      setEditingMember({
-                        ...editingMember,
-                        displayOrder: Number(e.target.value),
-                      })
-                    }
-                    className="w-full p-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs font-mono"
-                  />
-                </div>
+                <button
+                  type="submit"
+                  disabled={saveStatus === 'saving'}
+                  className="px-6 py-3 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-mono font-bold tracking-wider uppercase shadow-md shadow-[#C85D3A]/25 cursor-pointer flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{saveStatus === 'saving' ? 'Saving...' : 'Save Profile'}</span>
+                </button>
               </div>
-            </div>
-
-            <div className="pt-6 border-t border-[#E5DFD5] dark:border-[#262420] flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setEditingMember(null)}
-                className="px-4 py-2 rounded-xl text-xs font-mono font-bold uppercase text-[#8C8479] hover:bg-black/5"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSave(editingMember)}
-                className="px-6 py-2.5 rounded-xl bg-[#C85D3A] hover:bg-[#B54F2E] text-white text-xs font-mono font-bold uppercase shadow-md shadow-[#C85D3A]/25 cursor-pointer flex items-center gap-1.5"
-              >
-                <Save className="w-4 h-4" />
-                <span>Save Member</span>
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
 
-      {/* Media Picker */}
+      {/* ══════════════════════════════════════════════════
+          MEDIA PICKER MODAL (PHOTO SELECTION)
+          ══════════════════════════════════════════════════ */}
       <MediaPickerModal
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}
         onSelectImage={(url) => {
-          if (editingMember) setEditingMember({ ...editingMember, photoUrl: url });
+          if (editingMember) {
+            setEditingMember({ ...editingMember, photoUrl: url });
+          }
         }}
         categoryFilter="Team"
-        title="Select Team Member Photo"
+        title="Select Specialist Portrait"
       />
     </div>
   );

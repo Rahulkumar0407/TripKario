@@ -9,7 +9,7 @@ import ThemeToggle from './ThemeToggle';
 import MagneticButton from './ui/MagneticButton';
 
 interface NavbarProps {
-  onOpenPlanTrip: (preselectedDestination?: string) => void;
+  onOpenPlanTrip?: (preselectedDestination?: string) => void;
 }
 
 export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
@@ -29,7 +29,6 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
     { name: 'India Tour', href: '/#india-journey' },
     { name: 'Destinations', href: '/#destinations' },
     { name: 'All Itineraries', href: '/itineraries' },
-    { name: 'Philosophy', href: '/#philosophy' },
   ];
 
   return (
@@ -86,7 +85,10 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
             <ThemeToggle />
 
             <MagneticButton
-              onClick={() => onOpenPlanTrip()}
+              onClick={() => {
+                if (onOpenPlanTrip) onOpenPlanTrip();
+                else window.location.assign('/itineraries');
+              }}
               className={`
                 hidden sm:inline-flex items-center gap-1.5
                 rounded-[20px] px-5 h-[40px]
@@ -163,7 +165,8 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      onOpenPlanTrip();
+                      if (onOpenPlanTrip) onOpenPlanTrip();
+                      else window.location.assign('/itineraries');
                     }}
                     className="w-full flex items-center justify-center gap-2 rounded-full h-[44px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm transition-colors cursor-pointer"
                   >

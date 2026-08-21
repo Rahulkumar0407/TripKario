@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Mail, MapPin, Phone, MessageCircle } from 'lucide-react';
 import TripkarioLogo from './TripkarioLogo';
 import { siteConfig, getWhatsAppLink } from '@/data/siteConfig';
+import { getItineraryCount } from '@/data/trips';
 
 export default function Footer() {
   return (
@@ -53,12 +54,12 @@ export default function Footer() {
               Explore
             </span>
             <ul className="space-y-2 text-xs font-medium text-[var(--text-muted)]">
-              <li><Link href="/itineraries" className="text-[var(--accent)] font-semibold hover:underline transition-colors">All 54 Itineraries →</Link></li>
+              <li><Link href="/itineraries" className="text-[var(--accent)] font-semibold hover:underline transition-colors">All {getItineraryCount()} Itineraries →</Link></li>
               <li><a href="/#india-journey" className="hover:text-[var(--text-primary)] transition-colors">Kashmir to Kanyakumari</a></li>
               <li><a href="/#packages" className="hover:text-[var(--text-primary)] transition-colors">Curated Trips</a></li>
               <li><a href="/#destinations" className="hover:text-[var(--text-primary)] transition-colors">Destinations</a></li>
               <li><a href="/#testimonials" className="hover:text-[var(--text-primary)] transition-colors">Traveller Reviews</a></li>
-              <li><a href="/#philosophy" className="hover:text-[var(--text-primary)] transition-colors">Why TripKario?</a></li>
+              <li><a href="/#team" className="hover:text-[var(--text-primary)] transition-colors">Why TripKario?</a></li>
             </ul>
           </div>
 

@@ -32,7 +32,6 @@ import {
 } from '@/data/heroDestinations';
 import type { HeroDestination } from '@/data/heroDestinations';
 import { destinations } from '@/data/destinations';
-import { formatPrice } from '@/lib/utils';
 
 // ════════════════════════════════════════════════════════════════
 // TRANSITION DIRECTION & PHYSICAL OVERSHOOT HELPERS
@@ -166,6 +165,7 @@ const SCENE_SETTLED = {
 interface HeroProps {
   slides?: HeroDestination[];
   onOpenPlanTrip: (destination?: string) => void;
+  onExploreJourney?: (destination: string) => void;
   onSearch: (filters: {
     destination: string;
     travelStyle: string;
@@ -174,7 +174,7 @@ interface HeroProps {
   }) => void;
 }
 
-export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
+export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearch }: HeroProps) {
   const slidesList = slides && slides.length > 0 ? slides : heroDestinations;
   const slideCount = slidesList.length;
 
@@ -449,13 +449,35 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                   className="object-cover"
                 />
               </motion.div>
-              {/* Natural light preserving overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/25 to-black/20" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-transparent to-black/20" />
+              {/* Responsive Cinematic Directional Overlays */}
+              {/* Desktop: Left-to-Right gradient (dark text zone on left -> crystal clear photograph on right) */}
+              <div
+                className="hidden lg:block absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(to right, rgba(9,9,8,0.92) 0%, rgba(9,9,8,0.82) 28%, rgba(9,9,8,0.48) 48%, rgba(9,9,8,0.12) 68%, rgba(9,9,8,0) 100%), linear-gradient(to top, #090908 0%, rgba(9,9,8,0.82) 10%, rgba(9,9,8,0.25) 24%, transparent 40%)',
+                }}
+              />
+              {/* Desktop Localized Text Focus Zone */}
+              <div
+                className="hidden lg:block absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    'radial-gradient(ellipse 70% 70% at 18% 46%, rgba(9,9,8,0.65) 0%, rgba(9,9,8,0.25) 50%, transparent 80%)',
+                }}
+              />
+              {/* Mobile: Top-to-Bottom gradient (visible image on top -> dark text zone at bottom) */}
+              <div
+                className="lg:hidden block absolute inset-0 pointer-events-none"
+                style={{
+                  background:
+                    'linear-gradient(to bottom, rgba(9,9,8,0.30) 0%, transparent 18%, rgba(9,9,8,0.35) 45%, rgba(9,9,8,0.85) 70%, #090908 100%)',
+                }}
+              />
               {/* Exiting atmosphere wash — slides toward exit edge */}
               <motion.div
                 className="absolute inset-0 pointer-events-none"
-                initial={{ opacity: 0.7 }}
+                initial={{ opacity: 0.4 }}
                 animate={{ opacity: 0 }}
                 transition={{ duration: HERO_TRANSITION_DURATION * 0.8 }}
                 style={{ backgroundColor: exiting.atmosphereWash }}
@@ -502,15 +524,38 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
             />
           </motion.div>
 
-          {/* Natural photographic lighting: preserves sky, textures, highlights */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/25 to-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-black/20" />
+          {/* ── Responsive Cinematic Directional Overlays ── */}
+          {/* Desktop: Left-to-Right directional gradient (left 35-40% dark for typography -> right half 100% transparent & visible photograph) */}
+          <div
+            className="hidden lg:block absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(to right, rgba(9,9,8,0.92) 0%, rgba(9,9,8,0.80) 28%, rgba(9,9,8,0.45) 48%, rgba(9,9,8,0.10) 68%, rgba(9,9,8,0) 100%), linear-gradient(to top, #090908 0%, rgba(9,9,8,0.82) 10%, rgba(9,9,8,0.22) 24%, transparent 40%)',
+            }}
+          />
+          {/* Desktop Localized Text Focus Zone */}
+          <div
+            className="hidden lg:block absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'radial-gradient(ellipse 70% 70% at 18% 46%, rgba(9,9,8,0.65) 0%, rgba(9,9,8,0.25) 50%, transparent 80%)',
+            }}
+          />
 
-          {/* Destination atmosphere tint */}
+          {/* Mobile: Top-to-Bottom directional gradient (photograph clear on top -> rich dark contrast for text at bottom) */}
+          <div
+            className="lg:hidden block absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(9,9,8,0.30) 0%, transparent 18%, rgba(9,9,8,0.35) 45%, rgba(9,9,8,0.85) 70%, #090908 100%)',
+            }}
+          />
+
+          {/* Subtle Destination atmosphere tint */}
           <motion.div
             key={`tint-${current.id}`}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: 0.12 }}
             transition={{ duration: 0.8 }}
             className="absolute inset-0 pointer-events-none"
             style={{ backgroundColor: current.atmosphereColor }}
@@ -520,7 +565,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
           {isTransitioning && (
             <motion.div
               className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0.5 }}
+              initial={{ opacity: 0.3 }}
               animate={{ opacity: 0 }}
               transition={{
                 duration: HERO_TRANSITION_DURATION,
@@ -533,23 +578,9 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
           {/* Restrained photographic film grain */}
           <div
             className="absolute inset-0 bg-grain pointer-events-none"
-            style={{ opacity: 0.2 }}
+            style={{ opacity: 0.12 }}
           />
         </motion.div>
-      </motion.div>
-
-      {/* ════════════════════════════════════════════
-          LAYER 1: Midground Ambient Wash
-          ════════════════════════════════════════════ */}
-      <motion.div
-        className="absolute inset-0 z-[1] pointer-events-none"
-        animate={{
-          x: mouseParallax.x * 6,
-          y: mouseParallax.y * 5,
-        }}
-        transition={{ type: 'spring', stiffness: 60, damping: 35 }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-[#090908]/75 via-transparent to-transparent" />
       </motion.div>
 
       {/* ════════════════════════════════════════════
@@ -579,7 +610,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                   delay: 0.2,
                   ease: EASE.out as [number, number, number, number],
                 }}
-                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-white"
+                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
               >
                 Where will you
               </motion.span>
@@ -594,7 +625,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                   delay: 0.4,
                   ease: EASE.out as [number, number, number, number],
                 }}
-                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-[#E46B3B]"
+                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-[#FF8A50] drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
               >
                 go next?
               </motion.span>
@@ -616,7 +647,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                   duration: 0.45,
                   ease: EASE.out as [number, number, number, number],
                 }}
-                className="space-y-1.5"
+                className="space-y-2"
               >
                 {/* 1. Destination Label (50-80ms behind image) */}
                 <motion.div
@@ -627,14 +658,14 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                     delay: 0.06,
                     ease: EASE.out as [number, number, number, number],
                   }}
-                  className="flex items-center gap-2"
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-md"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#E46B3B]" />
-                  <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#F4A261] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A50]" />
+                  <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
                     {current.destination}
                   </span>
-                  <span className="text-white/30 text-xs">·</span>
-                  <span className="text-[11px] font-mono text-white/60">
+                  <span className="text-white/40 text-xs">·</span>
+                  <span className="text-[11px] font-mono text-white/90 font-medium">
                     {current.region}
                   </span>
                 </motion.div>
@@ -648,7 +679,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                     delay: 0.1,
                     ease: EASE.out as [number, number, number, number],
                   }}
-                  className="text-[14px] sm:text-base text-white/85 max-w-md leading-relaxed font-normal"
+                  className="text-[14px] sm:text-base text-white/95 max-w-md leading-relaxed font-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
                 >
                   {current.caption}
                 </motion.p>
@@ -665,19 +696,21 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
               delay: 0.85,
               ease: EASE.out as [number, number, number, number],
             }}
-            className="pt-1 flex items-baseline gap-1.5 select-none"
+            className="pt-1 select-none"
             aria-label="with love, Yashi"
           >
-            <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/55">
-              with love,
-            </span>
-            <span className="text-sm sm:text-[15px] font-serif font-normal text-[#F4A261] tracking-normal">
-              Yashi
-            </span>
+            <div className="inline-flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/15 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
+              <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/90">
+                with love,
+              </span>
+              <span className="text-sm sm:text-[15px] font-serif text-[#FFAA70] tracking-normal font-semibold">
+                Yashi
+              </span>
+            </div>
           </motion.div>
 
           {/* Brand Wit */}
-          <p className="text-[11px] font-mono tracking-[0.06em] text-white/40 max-w-xs">
+          <p className="text-[11px] font-mono tracking-[0.06em] text-white/80 max-w-xs drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
             Planning a trip shouldn&apos;t require 47 WhatsApp messages.
           </p>
 
@@ -694,8 +727,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
           >
             <MagneticButton
               onClick={() => onOpenPlanTrip(current.destination)}
-              dataCursor="GO"
-              className="px-7 h-[46px] rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl text-[13px] font-semibold tracking-wide"
+              className="px-7 h-[48px] rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl shadow-black/60 text-[13px] font-bold tracking-wide transition-all border border-white/20"
             >
               <span>Find My Trip</span>
               <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -710,7 +742,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                   '_blank'
                 );
               }}
-              className="px-5 h-[46px] rounded-full text-white/90 text-[13px] font-semibold tracking-wide border border-white/25 hover:border-white/50 hover:bg-white/8 backdrop-blur-sm"
+              className="px-5 h-[48px] rounded-full text-white text-[13px] font-bold tracking-wide border border-white/40 bg-black/60 hover:bg-black/80 hover:border-white/70 backdrop-blur-md shadow-xl shadow-black/50 transition-all"
             >
               <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
               <span>Talk to an Expert</span>
@@ -750,13 +782,13 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                 variant="dark"
                 enableRefraction
                 rounded="2xl"
-                className="p-5 text-white w-[280px] sm:w-[300px] shadow-2xl border border-white/15"
+                className="p-4 sm:p-5 text-white w-[280px] sm:w-[310px] shadow-2xl border border-white/20 bg-black/60 backdrop-blur-xl space-y-2.5"
               >
-                <div className="flex items-center justify-between gap-4 mb-2.5">
-                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#F4A261] font-bold">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
                     {current.destination}
                   </span>
-                  <span className="text-[10px] font-mono text-white/60">
+                  <span className="text-[10px] font-mono text-white/85 font-medium px-2 py-0.5 rounded-full bg-white/10 border border-white/10">
                     {current.duration}
                   </span>
                 </div>
@@ -766,37 +798,30 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.12, duration: 0.35 }}
-                  className="text-[11px] font-mono text-white/60 mb-3 truncate"
+                  className="text-[11px] font-mono text-white/90 truncate font-medium flex items-center gap-1.5 pt-0.5"
                 >
-                  {current.routeString}
+                  <MapPin className="w-3 h-3 text-[#FFAA70] shrink-0" />
+                  <span className="truncate">{current.routeString}</span>
                 </motion.div>
 
-                {/* Price (120-180ms behind) */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.15, duration: 0.35 }}
-                  className="flex items-center justify-between mb-3 pt-2.5 border-t border-white/10"
-                >
-                  <span className="text-[10px] font-mono text-white/50">
-                    From
-                  </span>
-                  <span className="text-lg font-serif font-bold text-white tabular-nums">
-                    {formatPrice(current.startingPrice)}
-                  </span>
-                </motion.div>
-
-                {/* CTA */}
+                {/* CTA Button */}
                 <button
                   type="button"
-                  onClick={() => onOpenPlanTrip(current.destination)}
-                  className="w-full text-center text-[11px] font-semibold tracking-wide text-[#E46B3B] hover:text-[#ED7B4D] transition-colors py-1.5 border-t border-white/10 cursor-pointer flex items-center justify-center gap-1.5"
+                  onClick={() => {
+                    if (onExploreJourney) {
+                      onExploreJourney(current.destination);
+                    } else {
+                      onOpenPlanTrip(current.destination);
+                    }
+                  }}
+                  className="w-full text-center text-[11px] font-semibold tracking-wide text-[#FF8A50] hover:text-white hover:bg-white/10 transition-all py-2 rounded-xl border border-white/15 cursor-pointer flex items-center justify-center gap-1.5 mt-1"
                 >
                   <span>Explore journey</span>
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </GlassSurface>
             </motion.div>
+
           </AnimatePresence>
 
           {/* ─── COMPACT GLASS CONTROLS + DESTINATION TITLE TRANSITION ─── */}
@@ -1034,7 +1059,7 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                                 {dest.name}
                               </span>
                               <span className="text-[10px] text-white/60">
-                                From {formatPrice(dest.startingPrice)}
+                                {dest.durationDays}D / {dest.durationNights}N · {dest.region}
                               </span>
                             </div>
                           </button>
@@ -1174,7 +1199,6 @@ export default function Hero({ slides, onOpenPlanTrip, onSearch }: HeroProps) {
                 {/* Submit */}
                 <MagneticButton
                   type="submit"
-                  dataCursor="GO"
                   className="px-5 h-[42px] rounded-xl bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-lg text-[12px] font-semibold tracking-wide shrink-0"
                 >
                   <span>Find My Trip</span>

@@ -331,7 +331,7 @@ function AdminTripsContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search across all 86 trips by title, destination, or route..."
+              placeholder={`Search across all ${trips.length} trips by title, destination, or route...`}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono text-[#171512] dark:text-white placeholder-[#8C8479] outline-none focus:border-[#C85D3A]"
             />
           </div>

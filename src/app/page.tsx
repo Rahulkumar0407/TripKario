@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import CustomCursor from '@/components/CustomCursor';
 import Preloader from '@/components/Preloader';
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
@@ -16,12 +15,16 @@ import Footer from '@/components/Footer';
 import TravelChatbot from '@/components/TravelChatbot';
 import WhatsAppButton from '@/components/WhatsAppButton';
 import PlanTripModal from '@/components/PlanTripModal';
+import TripDetailModal from '@/components/TripDetailModal';
 import { getHomepageData, HomepageData } from '@/lib/supabase/homepageData';
+import { getTripForDestination } from '@/data/trips';
+import { TripPackage } from '@/types';
 
 export default function Home() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [preselectedDestination, setPreselectedDestination] = useState<string | undefined>(undefined);
+  const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripPackage | null>(null);
 
   // Load published database data with instant static fallback
   useEffect(() => {
@@ -33,6 +36,19 @@ export default function Home() {
   const handleOpenPlanTrip = (destination?: string) => {
     setPreselectedDestination(destination);
     setIsPlanModalOpen(true);
+  };
+
+  const handleOpenTripDetail = (tripOrDest: TripPackage | string) => {
+    if (typeof tripOrDest === 'object' && tripOrDest !== null) {
+      setSelectedTripForDetail(tripOrDest);
+    } else if (typeof tripOrDest === 'string') {
+      const matched = getTripForDestination(tripOrDest);
+      if (matched) {
+        setSelectedTripForDetail(matched);
+      } else {
+        handleOpenPlanTrip(tripOrDest);
+      }
+    }
   };
 
   const handleScrollToJourneys = () => {
@@ -49,7 +65,7 @@ export default function Home() {
     budget: string;
   }) => {
     if (filters.destination && filters.destination !== 'All') {
-      handleOpenPlanTrip(filters.destination);
+      handleOpenTripDetail(filters.destination);
     } else {
       handleScrollToJourneys();
     }
@@ -64,9 +80,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-500 relative">
-      {/* Desktop Custom Cursor */}
-      <CustomCursor />
-
       {/* Brand Opening Preloader */}
       <Preloader />
 
@@ -78,6 +91,7 @@ export default function Home() {
         <Hero
           slides={data?.heroSlides}
           onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)}
+          onExploreJourney={(dest) => handleOpenTripDetail(dest)}
           onSearch={handleSearchFilter}
         />
       )}
@@ -94,12 +108,12 @@ export default function Home() {
       {isSectionActive('destinations') && (
         <DestinationCarousel
           destinations={data?.destinations}
-          onSelectDestination={(dest) => handleOpenPlanTrip(dest)}
+          onSelectDestination={(dest) => handleOpenTripDetail(dest)}
         />
       )}
 
       {/* 04. EDITORIAL SHOWCASE: KASHMIR → KANYAKUMARI (12 Curated Itineraries) */}
-      <IndiaJourneyShowcase onSelectJourney={(dest) => handleOpenPlanTrip(dest)} />
+      <IndiaJourneyShowcase onSelectJourney={(dest) => handleOpenTripDetail(dest)} />
 
       {/* 05. TRAVELLER REVIEWS: Google Reviews Testimonials (Database-Driven) */}
       {isSectionActive('testimonials') && (
@@ -125,6 +139,16 @@ export default function Home() {
       {/* Floating Concierge & Subtle WhatsApp */}
       <TravelChatbot />
       <WhatsAppButton />
+
+      {/* Complete Canonical Trip Detail Modal */}
+      <TripDetailModal
+        trip={selectedTripForDetail}
+        onClose={() => setSelectedTripForDetail(null)}
+        onPlanCustom={(tripTitle) => {
+          setSelectedTripForDetail(null);
+          handleOpenPlanTrip(tripTitle);
+        }}
+      />
 
       {/* Plan Journey Modal */}
       <PlanTripModal

@@ -42,14 +42,26 @@ function ItinerariesCatalogueContent() {
   const initialSearch = searchParams.get('search') || '';
   const initialCategory = searchParams.get('category') || 'ALL';
 
+  // Development-only image audit mode (?imageAudit=1)
+  const isDev = process.env.NODE_ENV === 'development';
+  const isImageAuditParam = searchParams.get('imageAudit') === '1' || searchParams.get('imageAudit') === 'true';
+  const isAuditMode = isDev && isImageAuditParam;
+
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedDestination, setSelectedDestination] = useState<string>(initialDest);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [selectedDuration, setSelectedDuration] = useState<string>('ALL');
   const [selectedPriceFilter, setSelectedPriceFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'RECOMMENDED' | 'PRICE_ASC' | 'PRICE_DESC' | 'DURATION_ASC' | 'DURATION_DESC' | 'ALPHA'>('RECOMMENDED');
-  const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
+  const [visibleCount, setVisibleCount] = useState<number>(isAuditMode ? tripPackages.length : BATCH_SIZE);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  // Auto-expand all packages when entering audit mode
+  useEffect(() => {
+    if (isAuditMode) {
+      setVisibleCount(tripPackages.length);
+    }
+  }, [isAuditMode]);
 
   // Modal states
   const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripPackage | null>(null);
@@ -68,10 +80,13 @@ function ItinerariesCatalogueContent() {
     if (selectedCategory && selectedCategory !== 'ALL') {
       params.set('category', selectedCategory);
     }
+    if (isImageAuditParam) {
+      params.set('imageAudit', '1');
+    }
     const queryString = params.toString();
     const newUrl = queryString ? `/itineraries?${queryString}` : '/itineraries';
     window.history.replaceState(null, '', newUrl);
-  }, [selectedDestination, searchQuery, selectedCategory]);
+  }, [selectedDestination, searchQuery, selectedCategory, isImageAuditParam]);
 
   // Unique destinations present in actual data
   const dynamicDestinations = useMemo(() => {
@@ -230,6 +245,58 @@ function ItinerariesCatalogueContent() {
               Browse mountain trips, beach escapes, treks, road trips and more across India.
             </p>
           </div>
+
+          {/* ── Dev Image Audit Mode Banner (Development Only) ──────────────── */}
+          {isDev && (
+            <div className={`p-4 sm:p-5 rounded-3xl border text-xs font-mono transition-all ${
+              isAuditMode 
+                ? 'bg-amber-950/30 border-amber-500/50 text-amber-200 shadow-lg' 
+                : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-muted)]'
+            }`}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={`w-2.5 h-2.5 rounded-full ${isAuditMode ? 'bg-amber-400 animate-pulse' : 'bg-stone-500'}`} />
+                  <span className="font-bold uppercase tracking-wider text-[var(--text-primary)]">
+                    {isAuditMode ? '🛠️ DEV IMAGE QA MODE ACTIVE (?imageAudit=1)' : '🛠️ MANUAL IMAGE QA TOOLS'}
+                  </span>
+                  <span className="opacity-40 hidden sm:inline">·</span>
+                  <span>
+                    {isAuditMode 
+                      ? `All ${tripPackages.length} journeys expanded with ID, location metadata & provenance overlays`
+                      : 'Enable dev overlay to inspect Trip ID, location metadata, and source provenance'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {isAuditMode ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const params = new URLSearchParams(window.location.search);
+                        params.delete('imageAudit');
+                        const qs = params.toString();
+                        router.push(qs ? `/itineraries?${qs}` : '/itineraries');
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono transition-all cursor-pointer"
+                    >
+                      Exit Audit Overlay
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const params = new URLSearchParams(window.location.search);
+                        params.set('imageAudit', '1');
+                        router.push(`/itineraries?${params.toString()}`);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl bg-[var(--accent)] hover:opacity-90 text-white text-xs font-mono font-medium transition-all cursor-pointer shadow-sm"
+                    >
+                      Enable ?imageAudit=1
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* ── Search & Filter Command Panel ───────────────────────────────── */}
           <div className="bg-[var(--bg-surface)] p-4 sm:p-6 md:p-8 rounded-3xl border border-[var(--border-subtle)] shadow-sm space-y-6">
@@ -471,7 +538,7 @@ function ItinerariesCatalogueContent() {
                     <div className={`relative overflow-hidden bg-black/20 ${isFirstHero ? 'w-full lg:w-1/2 h-64 sm:h-80 lg:h-auto min-h-[260px]' : 'w-full h-60 sm:h-64'}`}>
                       <Image
                         src={typeof trip.coverImage === 'string' ? trip.coverImage : trip.coverImage.src}
-                        alt={trip.coverImage.alt || trip.title}
+                        alt={typeof trip.coverImage === 'string' ? trip.title : trip.coverImage?.alt || trip.title}
                         fill
                         sizes={isFirstHero ? '(max-width: 1024px) 100vw, 60vw' : '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'}
                         className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -542,6 +609,44 @@ function ItinerariesCatalogueContent() {
                             ))}
                           </div>
                         )}
+
+                        {/* ── Development-Only Image Audit Overlay ────────────── */}
+                        {isAuditMode && (
+                          <div className="mt-3 p-3.5 rounded-2xl bg-black/90 text-stone-200 border border-amber-500/40 text-[11px] font-mono space-y-1.5 select-text shadow-lg">
+                            <div className="flex items-center justify-between gap-1 border-b border-white/10 pb-1.5">
+                              <span className="text-amber-400 font-bold">#{index + 1} ID: {trip.id}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase font-semibold">
+                                {trip.destinationId}
+                              </span>
+                            </div>
+                            <div className="space-y-1 text-[10px] leading-tight">
+                              <div className="flex items-start gap-1">
+                                <span className="text-stone-400 whitespace-nowrap">📍 Location:</span>
+                                <span className="text-emerald-300 font-medium line-clamp-1">
+                                  {typeof trip.coverImage === 'object' && trip.coverImage?.location ? trip.coverImage.location : 'None specified'}
+                                </span>
+                              </div>
+                              <div className="flex items-start gap-1">
+                                <span className="text-stone-400 whitespace-nowrap">🏛️ Source:</span>
+                                <span className="text-sky-300 font-medium line-clamp-1">
+                                  {trip.sourceMetadata?.source || trip.sourceMetadata?.sourceName || (typeof trip.coverImage === 'object' && trip.coverImage?.source) || 'N/A'}
+                                </span>
+                              </div>
+                              <div className="flex items-start gap-1">
+                                <span className="text-stone-400 whitespace-nowrap">📝 Alt:</span>
+                                <span className="text-stone-300 italic line-clamp-1">
+                                  &ldquo;{typeof trip.coverImage === 'object' ? trip.coverImage?.alt : trip.title}&rdquo;
+                                </span>
+                              </div>
+                              {typeof trip.coverImage === 'object' && trip.coverImage?.photographer && (
+                                <div className="flex items-start gap-1">
+                                  <span className="text-stone-400 whitespace-nowrap">👤 Photographer:</span>
+                                  <span className="text-stone-300">{trip.coverImage.photographer}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Footer: Pricing & CTA */}
@@ -576,14 +681,23 @@ function ItinerariesCatalogueContent() {
 
           {/* ── Progressive Load More Bar ───────────────────────────────────── */}
           {visibleCount < filteredTrips.length && (
-            <div className="text-center pt-8 space-y-2">
-              <button
-                type="button"
-                onClick={() => setVisibleCount((prev) => prev + BATCH_SIZE)}
-                className="px-8 py-3.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white border border-[var(--border-subtle)] text-xs font-mono uppercase tracking-widest text-[var(--text-primary)] font-medium transition-all shadow-sm cursor-pointer active:scale-95"
-              >
-                Load more journeys ({filteredTrips.length - visibleCount} remaining)
-              </button>
+            <div className="text-center pt-8 space-y-3">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((prev) => prev + BATCH_SIZE)}
+                  className="px-8 py-3.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white border border-[var(--border-subtle)] text-xs font-mono uppercase tracking-widest text-[var(--text-primary)] font-medium transition-all shadow-sm cursor-pointer active:scale-95"
+                >
+                  Load more journeys ({filteredTrips.length - visibleCount} remaining)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(filteredTrips.length)}
+                  className="px-6 py-3.5 rounded-full bg-[var(--bg-surface)] hover:border-[var(--accent)] text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] transition-all cursor-pointer"
+                >
+                  Show All ({filteredTrips.length})
+                </button>
+              </div>
               <p className="text-[11px] font-mono text-[var(--text-muted)]">
                 Showing {Math.min(visibleCount, filteredTrips.length)} of {filteredTrips.length} journeys
               </p>

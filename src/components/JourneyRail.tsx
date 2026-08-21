@@ -37,7 +37,6 @@ export default function JourneyRail({ onOpenPlanTrip }: JourneyRailProps) {
             <div
               key={trip.id}
               onClick={() => setSelectedTrip(trip)}
-              data-cursor="EXPLORE"
               className="w-[85vw] sm:w-[500px] md:w-[600px] aspect-[16/10] rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] relative shrink-0 group cursor-pointer select-none"
             >
               <Image

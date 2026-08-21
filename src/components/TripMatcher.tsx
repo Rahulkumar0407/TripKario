@@ -127,7 +127,6 @@ export default function TripMatcher({ onSelectTrip }: TripMatcherProps) {
                 setIsOpen(true);
                 handleReset();
               }}
-              data-cursor="CLICK"
               className="gap-2.5"
             >
               <span>Help me choose →</span>

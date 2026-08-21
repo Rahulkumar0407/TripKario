@@ -19,6 +19,30 @@ import {
 
 export default function AdminDashboardPage() {
   const { user } = useAdminAuth();
+  const [teamCount, setTeamCount] = React.useState<number>(0);
+  const [visitsCount, setVisitsCount] = React.useState<number>(0);
+  const [mediaCount, setMediaCount] = React.useState<number>(initialMediaLibrary.length);
+  const [tripsCount, setTripsCount] = React.useState<number>(initialTrips.length);
+
+  React.useEffect(() => {
+    try {
+      const savedTeam = localStorage.getItem('tripkario_admin_team');
+      if (savedTeam) {
+        const parsed = JSON.parse(savedTeam);
+        if (Array.isArray(parsed)) setTeamCount(parsed.length);
+      }
+      const savedVisits = localStorage.getItem('tripkario_admin_past_visits');
+      if (savedVisits) {
+        const parsed = JSON.parse(savedVisits);
+        if (Array.isArray(parsed)) setVisitsCount(parsed.length);
+      }
+      const savedTrips = localStorage.getItem('tripkario_admin_trips');
+      if (savedTrips) {
+        const parsed = JSON.parse(savedTrips);
+        if (Array.isArray(parsed)) setTripsCount(parsed.length);
+      }
+    } catch (e) {}
+  }, []);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -67,11 +91,12 @@ export default function AdminDashboardPage() {
   ];
 
   const stats = [
-    { label: 'Active Trips', value: String(initialTrips.length).padStart(2, '0'), detail: 'Published circuits', icon: Compass, href: '/adminconsole1811/trips' },
-    { label: 'Team Members', value: String(initialTeamMembers.length).padStart(2, '0'), detail: 'Active specialists', icon: Users, href: '/adminconsole1811/team' },
-    { label: 'Past Visits', value: String(initialPastVisits.length).padStart(2, '0'), detail: 'Photo galleries', icon: BookOpen, href: '/adminconsole1811/past-visits' },
-    { label: 'Media Photos', value: String(initialMediaLibrary.length).padStart(2, '0'), detail: 'Ready for use', icon: ImageIcon, href: '/adminconsole1811/media' },
+    { label: 'Active Trips', value: String(tripsCount).padStart(2, '0'), detail: 'Published circuits', icon: Compass, href: '/adminconsole1811/trips' },
+    { label: 'Team Members', value: String(teamCount).padStart(2, '0'), detail: 'Active specialists', icon: Users, href: '/adminconsole1811/team' },
+    { label: 'Past Visits', value: String(visitsCount).padStart(2, '0'), detail: 'Location boards', icon: BookOpen, href: '/adminconsole1811/past-visits' },
+    { label: 'Media Photos', value: String(mediaCount).padStart(2, '0'), detail: 'Ready for use', icon: ImageIcon, href: '/adminconsole1811/media' },
   ];
+
 
   return (
     <div className="space-y-8 sm:space-y-10">
