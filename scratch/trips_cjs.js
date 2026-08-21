@@ -1,6 +1,6 @@
-import { TripPackage } from '@/types';
 
-export const tripPackages: TripPackage[] = [
+
+const tripPackages = [
   {
     "id": "kashmir-signature",
     "destinationId": "kashmir",
@@ -5044,3 +5044,5 @@ export const tripPackages: TripPackage[] = [
     ]
   }
 ];
+
+module.exports = { tripPackages };

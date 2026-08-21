@@ -15,7 +15,7 @@ export async function GET() {
     token,
     expire,
     signature,
-    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || 'mock_public_key',
-    urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/tripkario',
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || 'mock_public_key',
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/tripkario',
   });
 }

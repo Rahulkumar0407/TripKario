@@ -23,6 +23,7 @@ import {
   ChevronUp,
   Save,
   CheckCircle2,
+  Search,
 } from 'lucide-react';
 
 function AdminTripsContent() {
@@ -33,10 +34,13 @@ function AdminTripsContent() {
   const [activeTrip, setActiveTrip] = useState<SeedTrip | null>(null);
   const [editorSection, setEditorSection] = useState<'details' | 'photos' | 'itinerary'>('details');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Quick inline price editing state
   const [quickPriceTripSlug, setQuickPriceTripSlug] = useState<string | null>(null);
   const [quickPriceValue, setQuickPriceValue] = useState<number>(0);
+  const [quickPriceIsOnRequest, setQuickPriceIsOnRequest] = useState<boolean>(false);
 
   // Media Picker state
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
@@ -46,6 +50,21 @@ function AdminTripsContent() {
     | { type: 'itinerary'; dayIndex: number; imageIndex?: number; isAdd?: boolean }
   >({ type: 'cover' });
 
+  // Load from LocalStorage if available
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('tripkario_admin_trips');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setTrips(parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read admin trips from local storage:', e);
+    }
+  }, []);
+
   // If URL has ?tab=itineraries, default editor to itinerary when a trip is selected
   useEffect(() => {
     if (initialTab === 'itineraries') {
@@ -54,6 +73,11 @@ function AdminTripsContent() {
   }, [initialTab]);
 
   const handleCreateNewTrip = () => {
+    if (isDirty) {
+      if (!confirm('You have unsaved changes. Leave without saving?')) {
+        return;
+      }
+    }
     const newTrip: SeedTrip = {
       slug: `trip-${Date.now()}`,
       destinationName: 'Kashmir',
@@ -63,6 +87,7 @@ function AdminTripsContent() {
       durationNights: 5,
       durationDays: 6,
       pricePerPerson: 24999,
+      isPriceOnRequest: false,
       status: 'published',
       highlights: ['Private sanitized car', 'Boutique stays', 'Scenic drives'],
       inclusions: ['Chauffeur transport', 'Breakfast & Dinner', 'Entry permits'],
@@ -89,37 +114,75 @@ function AdminTripsContent() {
       ],
     };
     setActiveTrip(newTrip);
+    setIsDirty(true);
     setEditorSection('details');
   };
 
-  const handleSaveTrip = () => {
-    if (!activeTrip) return;
-    setTrips((prev) => {
-      const exists = prev.some((t) => t.slug === activeTrip.slug);
-      if (exists) {
-        return prev.map((t) => (t.slug === activeTrip.slug ? activeTrip : t));
+  const handleBackToList = () => {
+    if (isDirty) {
+      if (!confirm('You have unsaved changes. Leave without saving?')) {
+        return;
       }
-      return [activeTrip, ...prev];
-    });
+    }
+    setIsDirty(false);
+    setActiveTrip(null);
+  };
 
+  const handleSaveTrip = async () => {
+    if (!activeTrip) return;
+    const updated = trips.some((t) => t.slug === activeTrip.slug)
+      ? trips.map((t) => (t.slug === activeTrip.slug ? activeTrip : t))
+      : [activeTrip, ...trips];
+
+    setTrips(updated);
+
+    try {
+      localStorage.setItem('tripkario_admin_trips', JSON.stringify(updated));
+      await fetch('/api/admin/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: '/itineraries' }),
+      }).catch(() => {});
+    } catch (e) {
+      console.warn('Could not persist trips to local storage or trigger revalidation:', e);
+    }
+
+    setIsDirty(false);
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
       setActiveTrip(null);
-    }, 1200);
+    }, 1000);
   };
 
   const handleDeleteTrip = (slug: string) => {
     if (confirm('Are you sure you want to delete this trip package?')) {
-      setTrips((prev) => prev.filter((t) => t.slug !== slug));
-      if (activeTrip?.slug === slug) setActiveTrip(null);
+      const updated = trips.filter((t) => t.slug !== slug);
+      setTrips(updated);
+      try {
+        localStorage.setItem('tripkario_admin_trips', JSON.stringify(updated));
+      } catch (e) {}
+      if (activeTrip?.slug === slug) {
+        setIsDirty(false);
+        setActiveTrip(null);
+      }
     }
   };
 
   const handleSaveQuickPrice = (slug: string) => {
-    setTrips((prev) =>
-      prev.map((t) => (t.slug === slug ? { ...t, pricePerPerson: quickPriceValue } : t))
+    const updated = trips.map((t) =>
+      t.slug === slug
+        ? {
+            ...t,
+            pricePerPerson: quickPriceIsOnRequest ? 0 : quickPriceValue,
+            isPriceOnRequest: quickPriceIsOnRequest,
+          }
+        : t
     );
+    setTrips(updated);
+    try {
+      localStorage.setItem('tripkario_admin_trips', JSON.stringify(updated));
+    } catch (e) {}
     setQuickPriceTripSlug(null);
   };
 
@@ -135,6 +198,7 @@ function AdminTripsContent() {
       description: 'Relaxed morning exploration with private chauffeur transfers and local discoveries.',
       images: [activeTrip.coverImageUrl],
     };
+    setIsDirty(true);
     setActiveTrip({
       ...activeTrip,
       itineraryDays: [...currentDays, newDay],
@@ -146,6 +210,7 @@ function AdminTripsContent() {
     const updated = (activeTrip.itineraryDays || [])
       .filter((_, idx) => idx !== dayIndex)
       .map((day, idx) => ({ ...day, dayNumber: idx + 1 }));
+    setIsDirty(true);
     setActiveTrip({ ...activeTrip, itineraryDays: updated });
   };
 
@@ -160,12 +225,14 @@ function AdminTripsContent() {
     days[targetIdx] = temp;
 
     const reordered = days.map((d, idx) => ({ ...d, dayNumber: idx + 1 }));
+    setIsDirty(true);
     setActiveTrip({ ...activeTrip, itineraryDays: reordered });
   };
 
   // Media selection handler
   const handleMediaSelected = (url: string) => {
     if (!activeTrip) return;
+    setIsDirty(true);
 
     if (mediaTarget.type === 'cover') {
       setActiveTrip({ ...activeTrip, coverImageUrl: url });
@@ -192,11 +259,24 @@ function AdminTripsContent() {
 
   const handleRemoveItineraryImage = (dayIndex: number, imageIndex: number) => {
     if (!activeTrip || !activeTrip.itineraryDays) return;
+    setIsDirty(true);
     const days = [...activeTrip.itineraryDays];
     const images = (days[dayIndex].images || []).filter((_, idx) => idx !== imageIndex);
     days[dayIndex].images = images;
     setActiveTrip({ ...activeTrip, itineraryDays: days });
   };
+
+  // Filtered trips for admin search
+  const filteredTrips = trips.filter((t) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      t.title.toLowerCase().includes(q) ||
+      t.destinationName.toLowerCase().includes(q) ||
+      (t.route && t.route.toLowerCase().includes(q)) ||
+      t.slug.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="space-y-6 sm:space-y-8 min-h-screen">
@@ -207,7 +287,7 @@ function AdminTripsContent() {
             TRIPS & ITINERARIES
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171512] dark:text-white tracking-tight mt-0.5">
-            {activeTrip ? `Editing: ${activeTrip.title}` : `Trip Management (${trips.length})`}
+            {activeTrip ? `Editing: ${activeTrip.title}` : `Trip Management (${trips.length} Packages)`}
           </h1>
           <p className="text-xs sm:text-sm text-[#6D665E] dark:text-[#B8B0A4] font-normal">
             {activeTrip
@@ -220,7 +300,7 @@ function AdminTripsContent() {
           {activeTrip ? (
             <button
               type="button"
-              onClick={() => setActiveTrip(null)}
+              onClick={handleBackToList}
               className="px-4 py-2.5 rounded-xl border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold uppercase text-[#6D665E] dark:text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -240,13 +320,28 @@ function AdminTripsContent() {
       </div>
 
       {/* ══════════════════════════════════════════════════
-          VIEW 1: SIMPLE TRIP LIST (#03)
+          VIEW 1: SIMPLE TRIP LIST
           ══════════════════════════════════════════════════ */}
       {!activeTrip && (
         <div className="space-y-4">
+          {/* Quick Search in Admin */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-[#8C8479] absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search across all 86 trips by title, destination, or route..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono text-[#171512] dark:text-white placeholder-[#8C8479] outline-none focus:border-[#C85D3A]"
+            />
+          </div>
+
           <div className="grid grid-cols-1 gap-3.5">
-            {trips.map((trip) => {
+            {filteredTrips.map((trip) => {
               const isEditingPrice = quickPriceTripSlug === trip.slug;
+              const priceDisplay = trip.isPriceOnRequest || !trip.pricePerPerson || trip.pricePerPerson <= 0
+                ? 'Price on request'
+                : `₹${trip.pricePerPerson.toLocaleString('en-IN')}`;
 
               return (
                 <div
@@ -266,12 +361,27 @@ function AdminTripsContent() {
                     </div>
 
                     <div className="space-y-1 min-w-0">
-                      <span className="text-[10px] font-mono text-[#C85D3A] uppercase font-bold tracking-wider">
-                        {trip.destinationName}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-[#C85D3A] uppercase font-bold tracking-wider">
+                          {trip.destinationName}
+                        </span>
+                        <span
+                          className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
+                            trip.status === 'published'
+                              ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                              : trip.status === 'draft'
+                              ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                              : 'bg-stone-500/10 text-stone-600 border-stone-500/20'
+                          }`}
+                        >
+                          {trip.status === 'published' ? 'Published' : trip.status === 'draft' ? 'Draft' : 'Archived'}
+                        </span>
+                      </div>
+
                       <h2 className="text-base sm:text-lg font-bold text-[#171512] dark:text-white truncate">
                         {trip.title}
                       </h2>
+
                       <div className="flex items-center gap-2 text-xs font-mono text-[#6D665E] dark:text-[#8C8479]">
                         <span>{trip.durationNights} Nights · {trip.durationDays} Days</span>
                         <span>•</span>
@@ -289,42 +399,59 @@ function AdminTripsContent() {
                       </span>
 
                       {isEditingPrice ? (
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-sm font-bold font-mono text-[#171512] dark:text-white">₹</span>
-                          <input
-                            type="number"
-                            autoFocus
-                            value={quickPriceValue}
-                            onChange={(e) => setQuickPriceValue(Number(e.target.value))}
-                            className="w-24 p-1 text-sm font-bold font-mono rounded-lg border border-[#C85D3A] bg-white dark:bg-[#1C1916] text-[#171512] dark:text-white outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleSaveQuickPrice(trip.slug)}
-                            className="p-1.5 rounded-lg bg-[#174E48] text-white hover:bg-[#143E3A]"
-                            title="Save Price"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setQuickPriceTripSlug(null)}
-                            className="p-1.5 rounded-lg bg-black/5 dark:bg-white/10 text-[#8C8479]"
-                            title="Cancel"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
+                        <div className="flex flex-col items-end gap-1.5 mt-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <label className="flex items-center gap-1 text-[10px] font-mono text-[#8C8479] cursor-pointer mr-1">
+                              <input
+                                type="checkbox"
+                                checked={quickPriceIsOnRequest}
+                                onChange={(e) => setQuickPriceIsOnRequest(e.target.checked)}
+                                className="w-3.5 h-3.5 rounded text-[#C85D3A]"
+                              />
+                              <span>On request</span>
+                            </label>
+
+                            {!quickPriceIsOnRequest && (
+                              <>
+                                <span className="text-sm font-bold font-mono text-[#171512] dark:text-white">₹</span>
+                                <input
+                                  type="number"
+                                  autoFocus
+                                  value={quickPriceValue}
+                                  onChange={(e) => setQuickPriceValue(Number(e.target.value))}
+                                  className="w-24 p-1 text-sm font-bold font-mono rounded-lg border border-[#C85D3A] bg-white dark:bg-[#1C1916] text-[#171512] dark:text-white outline-none"
+                                />
+                              </>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleSaveQuickPrice(trip.slug)}
+                              className="p-1.5 rounded-lg bg-[#174E48] text-white hover:bg-[#143E3A]"
+                              title="Save Price"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setQuickPriceTripSlug(null)}
+                              className="p-1.5 rounded-lg bg-black/5 dark:bg-white/10 text-[#8C8479]"
+                              title="Cancel"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="text-base sm:text-lg font-bold font-mono text-[#174E48] dark:text-[#D4A467]">
-                            ₹{trip.pricePerPerson.toLocaleString('en-IN')}
+                          <span className="text-sm sm:text-base font-bold font-mono text-[#174E48] dark:text-[#D4A467]">
+                            {priceDisplay}
                           </span>
                           <button
                             type="button"
                             onClick={() => {
                               setQuickPriceTripSlug(trip.slug);
-                              setQuickPriceValue(trip.pricePerPerson);
+                              setQuickPriceValue(trip.pricePerPerson || 0);
+                              setQuickPriceIsOnRequest(trip.isPriceOnRequest || false);
                             }}
                             className="text-[10px] font-mono text-[#C85D3A] hover:underline font-bold"
                             title="Quick Edit Price"
@@ -341,6 +468,7 @@ function AdminTripsContent() {
                         type="button"
                         onClick={() => {
                           setActiveTrip(trip);
+                          setIsDirty(false);
                           setEditorSection('details');
                         }}
                         className="px-4 py-2 rounded-xl bg-[#FAF7F2] dark:bg-white/5 hover:bg-[#C85D3A] hover:text-white text-[#171512] dark:text-white text-xs font-bold font-mono tracking-wider uppercase transition-colors cursor-pointer"
@@ -366,7 +494,7 @@ function AdminTripsContent() {
       )}
 
       {/* ══════════════════════════════════════════════════
-          VIEW 2: SIMPLE EDIT TRIP (#04, #05, #06)
+          VIEW 2: EDIT TRIP
           ══════════════════════════════════════════════════ */}
       {activeTrip && (
         <div className="bg-white dark:bg-[#14120F] rounded-3xl border border-[#E5DFD5] dark:border-[#262420] shadow-xl overflow-hidden space-y-6">
@@ -413,7 +541,7 @@ function AdminTripsContent() {
           </div>
 
           <div className="p-6 sm:p-8">
-            {/* SECTION 1: BASIC DETAILS & PRICE (#04 & #05) */}
+            {/* SECTION 1: BASIC DETAILS & PRICE */}
             {editorSection === 'details' && (
               <div className="max-w-2xl space-y-6 text-xs font-mono">
                 <div>
@@ -421,7 +549,10 @@ function AdminTripsContent() {
                   <input
                     type="text"
                     value={activeTrip.title}
-                    onChange={(e) => setActiveTrip({ ...activeTrip, title: e.target.value })}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setActiveTrip({ ...activeTrip, title: e.target.value });
+                    }}
                     placeholder="e.g. The Great Kashmir Escape"
                     className="w-full p-3 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-sm outline-none focus:border-[#C85D3A]"
                   />
@@ -433,32 +564,78 @@ function AdminTripsContent() {
                     <input
                       type="text"
                       value={activeTrip.destinationName}
-                      onChange={(e) =>
-                        setActiveTrip({ ...activeTrip, destinationName: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setActiveTrip({ ...activeTrip, destinationName: e.target.value });
+                      }}
                       placeholder="e.g. Kashmir, Kerala, Rajasthan"
                       className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none focus:border-[#C85D3A]"
                     />
                   </div>
 
-                  {/* PRICE EDITING (#05) */}
                   <div>
-                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">
-                      Price per person (₹ INR)
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-[#8C8479] font-bold">₹</span>
-                      <input
-                        type="number"
-                        value={activeTrip.pricePerPerson}
-                        onChange={(e) =>
-                          setActiveTrip({ ...activeTrip, pricePerPerson: Number(e.target.value) })
-                        }
-                        placeholder="24999"
-                        className="w-full p-2.5 pl-8 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-mono text-sm font-bold outline-none focus:border-[#C85D3A]"
-                      />
-                    </div>
+                    <label className="text-[#8C8479] uppercase block mb-1 font-bold">Publication Status</label>
+                    <select
+                      value={activeTrip.status}
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setActiveTrip({ ...activeTrip, status: e.target.value as any });
+                      }}
+                      className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none font-mono"
+                    >
+                      <option value="published">Published (Visible on website)</option>
+                      <option value="draft">Draft (Hidden from public)</option>
+                      <option value="archived">Archived</option>
+                    </select>
                   </div>
+                </div>
+
+                {/* PRICING CONTROL WITH PRICE ON REQUEST TOGGLE */}
+                <div className="p-4 rounded-2xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[#8C8479] uppercase font-bold text-xs">Pricing Setup</label>
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-mono">
+                      <input
+                        type="checkbox"
+                        checked={activeTrip.isPriceOnRequest || false}
+                        onChange={(e) => {
+                          setIsDirty(true);
+                          setActiveTrip({
+                            ...activeTrip,
+                            isPriceOnRequest: e.target.checked,
+                            pricePerPerson: e.target.checked ? 0 : (activeTrip.pricePerPerson || 15000),
+                          });
+                        }}
+                        className="w-4 h-4 rounded text-[#C85D3A] focus:ring-[#C85D3A]"
+                      />
+                      <span className="font-bold text-[#171512] dark:text-white">Price on request</span>
+                    </label>
+                  </div>
+
+                  {activeTrip.isPriceOnRequest ? (
+                    <div className="p-3 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-xs font-mono text-[#8C8479]">
+                      ✓ This package is configured as <strong className="text-[#171512] dark:text-white">Price on request</strong>. No fixed amount will be displayed to travelers.
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="text-[#8C8479] uppercase block mb-1 font-bold">
+                        Starting Price per person (₹ INR)
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-2.5 text-[#8C8479] font-bold">₹</span>
+                        <input
+                          type="number"
+                          value={activeTrip.pricePerPerson}
+                          onChange={(e) => {
+                            setIsDirty(true);
+                            setActiveTrip({ ...activeTrip, pricePerPerson: Number(e.target.value) });
+                          }}
+                          placeholder="24999"
+                          className="w-full p-2.5 pl-8 rounded-xl bg-white dark:bg-[#14120F] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-mono text-sm font-bold outline-none focus:border-[#C85D3A]"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -467,9 +644,10 @@ function AdminTripsContent() {
                     <input
                       type="number"
                       value={activeTrip.durationNights}
-                      onChange={(e) =>
-                        setActiveTrip({ ...activeTrip, durationNights: Number(e.target.value) })
-                      }
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setActiveTrip({ ...activeTrip, durationNights: Number(e.target.value) });
+                      }}
                       className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none focus:border-[#C85D3A]"
                     />
                   </div>
@@ -479,9 +657,10 @@ function AdminTripsContent() {
                     <input
                       type="number"
                       value={activeTrip.durationDays}
-                      onChange={(e) =>
-                        setActiveTrip({ ...activeTrip, durationDays: Number(e.target.value) })
-                      }
+                      onChange={(e) => {
+                        setIsDirty(true);
+                        setActiveTrip({ ...activeTrip, durationDays: Number(e.target.value) });
+                      }}
                       className="w-full p-2.5 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white text-xs outline-none focus:border-[#C85D3A]"
                     />
                   </div>
@@ -492,7 +671,10 @@ function AdminTripsContent() {
                   <textarea
                     rows={3}
                     value={activeTrip.overview}
-                    onChange={(e) => setActiveTrip({ ...activeTrip, overview: e.target.value })}
+                    onChange={(e) => {
+                      setIsDirty(true);
+                      setActiveTrip({ ...activeTrip, overview: e.target.value });
+                    }}
                     placeholder="Short summary of the holiday experience..."
                     className="w-full p-3 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#2C2824] text-[#171512] dark:text-white font-sans text-xs leading-relaxed outline-none focus:border-[#C85D3A]"
                   />
@@ -500,7 +682,7 @@ function AdminTripsContent() {
               </div>
             )}
 
-            {/* SECTION 2: PHOTOS (#04 & #07) */}
+            {/* SECTION 2: PHOTOS */}
             {editorSection === 'photos' && (
               <div className="space-y-8 max-w-3xl">
                 {/* Cover Photo */}
@@ -573,6 +755,7 @@ function AdminTripsContent() {
                           type="button"
                           onClick={() => {
                             const updated = activeTrip.galleryUrls?.filter((_, i) => i !== idx);
+                            setIsDirty(true);
                             setActiveTrip({ ...activeTrip, galleryUrls: updated });
                           }}
                           className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
@@ -587,7 +770,7 @@ function AdminTripsContent() {
               </div>
             )}
 
-            {/* SECTION 3: ITINERARY & ITINERARY IMAGES (#06) */}
+            {/* SECTION 3: ITINERARY & ITINERARY IMAGES */}
             {editorSection === 'itinerary' && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between pb-3 border-b border-[#E5DFD5] dark:border-[#262420]">
@@ -666,6 +849,7 @@ function AdminTripsContent() {
                             type="text"
                             value={day.title}
                             onChange={(e) => {
+                              setIsDirty(true);
                               const updated = [...(activeTrip.itineraryDays || [])];
                               updated[dayIdx].title = e.target.value;
                               setActiveTrip({ ...activeTrip, itineraryDays: updated });
@@ -680,6 +864,7 @@ function AdminTripsContent() {
                             type="text"
                             value={day.location}
                             onChange={(e) => {
+                              setIsDirty(true);
                               const updated = [...(activeTrip.itineraryDays || [])];
                               updated[dayIdx].location = e.target.value;
                               setActiveTrip({ ...activeTrip, itineraryDays: updated });
@@ -695,6 +880,7 @@ function AdminTripsContent() {
                           rows={2}
                           value={day.description}
                           onChange={(e) => {
+                            setIsDirty(true);
                             const updated = [...(activeTrip.itineraryDays || [])];
                             updated[dayIdx].description = e.target.value;
                             setActiveTrip({ ...activeTrip, itineraryDays: updated });
@@ -703,7 +889,7 @@ function AdminTripsContent() {
                         />
                       </div>
 
-                      {/* Day Photos Grid (#06) */}
+                      {/* Day Photos Grid */}
                       <div className="space-y-2 pt-2 border-t border-black/5 dark:border-white/5">
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-mono uppercase text-[#8C8479] font-bold">
@@ -793,8 +979,8 @@ function AdminTripsContent() {
           <div className="p-6 border-t border-[#E5DFD5] dark:border-[#262420] flex items-center justify-between bg-[#FAF7F2] dark:bg-[#11100E]">
             <button
               type="button"
-              onClick={() => setActiveTrip(null)}
-              className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5"
+              onClick={handleBackToList}
+              className="px-4 py-2.5 rounded-xl text-xs font-mono font-bold uppercase text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
             >
               Cancel
             </button>
@@ -811,7 +997,7 @@ function AdminTripsContent() {
         </div>
       )}
 
-      {/* Reusable Simple Media Picker (#07 & #11) */}
+      {/* Reusable Media Picker */}
       <MediaPickerModal
         isOpen={isMediaPickerOpen}
         onClose={() => setIsMediaPickerOpen(false)}

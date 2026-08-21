@@ -7,11 +7,7 @@ import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
 import TripCarousel from '@/components/TripCarousel';
 import DestinationCarousel from '@/components/DestinationCarousel';
-import PhotoStrip from '@/components/PhotoStrip';
-import IndiaStory from '@/components/IndiaStory';
-import SurpriseMeCTA from '@/components/SurpriseMeCTA';
-import ItineraryStory from '@/components/ItineraryStory';
-import TripMatcher from '@/components/TripMatcher';
+import IndiaJourneyShowcase from '@/components/IndiaJourneyShowcase';
 import Testimonials from '@/components/Testimonials';
 import WhyTripkario from '@/components/WhyTripkario';
 import CustomJourney from '@/components/CustomJourney';
@@ -77,7 +73,7 @@ export default function Home() {
       {/* Floating Glass Navigation */}
       <Navbar onOpenPlanTrip={() => handleOpenPlanTrip()} />
 
-      {/* 01. HERO CAROUSEL: Dynamic Destination Showcase (Database-Driven) */}
+      {/* 01. HERO: Dynamic Destination Showcase (Database-Driven) */}
       {isSectionActive('hero') && (
         <Hero
           slides={data?.heroSlides}
@@ -94,7 +90,7 @@ export default function Home() {
         />
       )}
 
-      {/* 03. DESTINATION CAROUSEL: 3D Layered Depth (Database-Driven) */}
+      {/* 03. DESTINATIONS: 3D Layered Depth (Database-Driven) */}
       {isSectionActive('destinations') && (
         <DestinationCarousel
           destinations={data?.destinations}
@@ -102,42 +98,28 @@ export default function Home() {
         />
       )}
 
-      {/* 04. NEW SCENE: THE TRIPKARIO FIELD NOTES (Horizontal Photographic Strip) */}
-      {isSectionActive('field_notes') && <PhotoStrip />}
+      {/* 04. EDITORIAL SHOWCASE: KASHMIR → KANYAKUMARI (12 Curated Itineraries) */}
+      <IndiaJourneyShowcase onSelectJourney={(dest) => handleOpenPlanTrip(dest)} />
 
-      {/* 05. INDIA TERRITORY STORY: North, West, South, Northeast Editorial Stories */}
-      {isSectionActive('travel_styles') && (
-        <IndiaStory onSelectDestination={(dest) => handleOpenPlanTrip(dest)} />
-      )}
-
-      {/* 06. MICRO-MOMENT: SURPRISE ME */}
-      <SurpriseMeCTA onSelectDestination={(dest) => handleOpenPlanTrip(dest)} />
-
-      {/* 07. STICKY ITINERARY: What the Journey Actually Feels Like */}
-      <ItineraryStory />
-
-      {/* 08. CONVERSATIONAL MATCHER */}
-      <TripMatcher onSelectTrip={(dest) => handleOpenPlanTrip(dest)} />
-
-      {/* 09. GOOGLE REVIEWS TESTIMONIALS: Smooth Moving Right-to-Left Ticker (Database-Driven) */}
+      {/* 05. TRAVELLER REVIEWS: Google Reviews Testimonials (Database-Driven) */}
       {isSectionActive('testimonials') && (
         <Testimonials testimonials={data?.testimonials} />
       )}
 
-      {/* 11. PHILOSOPHY: You Enjoy the Trip. We Handle the Chaos. */}
+      {/* 06. PHILOSOPHY: You Enjoy the Trip. We Handle the Chaos. */}
       {isSectionActive('team') && <WhyTripkario />}
 
-      {/* 12. BESPOKE CUSTOM TRIP: Your Route. Your Rules. */}
+      {/* 07. BESPOKE CUSTOM TRIP: Your Route. Your Rules. */}
       {isSectionActive('custom_trip') && (
         <CustomJourney onOpenPlanTrip={() => handleOpenPlanTrip()} />
       )}
 
-      {/* 13. FINAL DEPARTURE: Ready to Go Somewhere? */}
+      {/* 08. FINAL DEPARTURE CTA: Ready to Go Somewhere? */}
       {isSectionActive('final_cta') && (
         <FinalCinematicCTA onOpenPlanTrip={() => handleOpenPlanTrip()} />
       )}
 
-      {/* 14. MINIMAL FOOTER */}
+      {/* 09. MINIMAL FOOTER */}
       <Footer />
 
       {/* Floating Concierge & Subtle WhatsApp */}

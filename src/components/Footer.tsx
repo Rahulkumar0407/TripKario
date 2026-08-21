@@ -53,11 +53,12 @@ export default function Footer() {
               Explore
             </span>
             <ul className="space-y-2 text-xs font-medium text-[var(--text-muted)]">
-              <li><a href="#journeys" className="hover:text-[var(--text-primary)] transition-colors">Curated Trips</a></li>
-              <li><a href="#destinations" className="hover:text-[var(--text-primary)] transition-colors">Destinations</a></li>
-              <li><a href="#itinerary" className="hover:text-[var(--text-primary)] transition-colors">How It Works</a></li>
-              <li><a href="#testimonials" className="hover:text-[var(--text-primary)] transition-colors">Traveller Reviews</a></li>
-              <li><a href="#why-us" className="hover:text-[var(--text-primary)] transition-colors">Why TripKario?</a></li>
+              <li><Link href="/itineraries" className="text-[var(--accent)] font-semibold hover:underline transition-colors">All 54 Itineraries →</Link></li>
+              <li><a href="/#india-journey" className="hover:text-[var(--text-primary)] transition-colors">Kashmir to Kanyakumari</a></li>
+              <li><a href="/#packages" className="hover:text-[var(--text-primary)] transition-colors">Curated Trips</a></li>
+              <li><a href="/#destinations" className="hover:text-[var(--text-primary)] transition-colors">Destinations</a></li>
+              <li><a href="/#testimonials" className="hover:text-[var(--text-primary)] transition-colors">Traveller Reviews</a></li>
+              <li><a href="/#philosophy" className="hover:text-[var(--text-primary)] transition-colors">Why TripKario?</a></li>
             </ul>
           </div>
 

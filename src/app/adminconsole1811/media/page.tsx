@@ -122,10 +122,19 @@ export default function AdminMediaPage() {
   };
 
   const handleDeleteItem = (item: SeedMediaItem) => {
-    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      setMediaList((prev) => prev.filter((m) => m.id !== item.id));
-      if (selectedItem?.id === item.id) setSelectedItem(null);
+    if (item.usageCount && item.usageCount > 0) {
+      if (
+        !confirm(
+          `⚠️ WARNING: "${item.name}" is currently in use across ${item.usageCount} trip package(s) or page section(s) on your website.\n\nDeleting this photo may cause broken images on public pages.\n\nAre you sure you want to delete this in-use photo?`
+        )
+      ) {
+        return;
+      }
+    } else if (!confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      return;
     }
+    setMediaList((prev) => prev.filter((m) => m.id !== item.id));
+    if (selectedItem?.id === item.id) setSelectedItem(null);
   };
 
   return (

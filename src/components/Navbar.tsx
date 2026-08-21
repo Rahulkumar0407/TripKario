@@ -25,12 +25,11 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
   }, []);
 
   const navLinks = [
-    { name: 'Journeys', href: '#packages' },
-    { name: 'Destinations', href: '#destinations' },
-    { name: 'Itinerary', href: '#itinerary' },
-    { name: 'Field Notes', href: '#field-notes' },
-    { name: 'Stories', href: '#stories' },
-    { name: 'Philosophy', href: '#philosophy' },
+    { name: 'Journeys', href: '/#packages' },
+    { name: 'India Tour', href: '/#india-journey' },
+    { name: 'Destinations', href: '/#destinations' },
+    { name: 'All Itineraries', href: '/itineraries' },
+    { name: 'Philosophy', href: '/#philosophy' },
   ];
 
   return (

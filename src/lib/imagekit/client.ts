@@ -2,7 +2,11 @@
  * ImageKit Media Optimization & Delivery Utility for TripKario
  */
 
-const IMAGEKIT_ENDPOINT = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || 'https://ik.imagekit.io/tripkario';
+const IMAGEKIT_ENDPOINT =
+  process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT ||
+  process.env.IMAGEKIT_URL_ENDPOINT ||
+  'https://ik.imagekit.io/tripkario';
+
 
 export interface ImageTransformOptions {
   width?: number;

@@ -54,13 +54,23 @@ export interface SeedTrip {
   durationNights: number;
   durationDays: number;
   pricePerPerson: number;
+  isPriceOnRequest?: boolean;
   status: 'published' | 'draft' | 'archived';
   highlights: string[];
   inclusions: string[];
   exclusions: string[];
   galleryUrls: string[];
+  route?: string;
+  sourceMetadata?: {
+    sourceName?: string;
+    sourceUrl?: string;
+    sourceCheckedAt?: string;
+    source?: 'IYC' | 'GHUMEGA';
+    sourcePackageName?: string;
+  };
   itineraryDays?: SeedItineraryDay[];
 }
+
 
 export interface SeedTestimonial {
   id: string;
@@ -237,12 +247,16 @@ export const initialTrips: SeedTrip[] = tripPackages.map((t) => ({
   durationNights: t.durationNights,
   durationDays: t.durationDays,
   pricePerPerson: t.pricePerPerson,
+  isPriceOnRequest: t.isPriceOnRequest || false,
   status: 'published',
   highlights: t.highlights || ['Private sanitized car', 'Handpicked stays', 'Scenic drives'],
   inclusions: t.inclusions || ['Chauffeur transport', 'Breakfast & Dinner', 'Entry permits'],
   exclusions: t.exclusions || ['Flights', 'Personal expenses'],
   galleryUrls: t.galleryImages?.map((g) => g.src) || [t.coverImage.src],
+  route: t.route,
+  sourceMetadata: t.sourceMetadata,
   itineraryDays: t.itinerary && t.itinerary.length > 0
+
     ? t.itinerary.map((d) => ({
         dayNumber: d.dayNumber,
         title: d.title,

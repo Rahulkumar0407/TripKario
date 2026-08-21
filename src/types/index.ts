@@ -87,7 +87,7 @@ export interface TripPackage {
   originalPrice?: number;
   rating: number;
   reviewCount: number;
-  category?: 'Popular' | 'Signature' | 'Luxury' | 'Boutique' | 'Adventure' | 'Weekend' | 'Offbeat';
+  category?: 'Popular' | 'Signature' | 'Luxury' | 'Boutique' | 'Adventure' | 'Weekend' | 'Offbeat' | 'Trekking' | 'Motorbike' | 'Spiritual' | 'Wildlife' | 'Heritage' | 'Beach' | 'Honeymoon';
   travelStyle?: string;
   badge?: string;
   featured?: boolean;
@@ -101,9 +101,12 @@ export interface TripPackage {
   bestSeason?: string;
   difficulty?: 'Easy' | 'Moderate' | 'Active';
   sourceMetadata?: {
-    sourceName: string;
+    source: 'IYC' | 'GHUMEGA';
+    sourcePackageName: string;
+    sourceName?: string;
     sourceUrl: string;
     sourceCheckedAt: string;
+    pricingVariantsNote?: string;
   };
   itinerary?: Array<{
     dayNumber: number;

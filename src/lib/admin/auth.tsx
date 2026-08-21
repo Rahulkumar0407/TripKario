@@ -17,6 +17,7 @@ interface AdminAuthContextType {
   login: (email: string, pass: string, remember?: boolean) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updatePassword: (currentPass: string, newPass: string) => Promise<{ success: boolean; error?: string }>;
+  requestPasswordReset: (email: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -26,14 +27,22 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check existing stored admin session
-    const saved = localStorage.getItem('tripkario_admin_session');
-    if (saved) {
-      try {
+    // Check persistent localStorage or session-only sessionStorage
+    try {
+      const saved =
+        (typeof window !== 'undefined' && localStorage.getItem('tripkario_admin_session')) ||
+        (typeof window !== 'undefined' && sessionStorage.getItem('tripkario_admin_session'));
+
+      if (saved) {
         const parsed = JSON.parse(saved);
-        setUser(parsed);
-      } catch (e) {
+        if (parsed && parsed.email) {
+          setUser(parsed);
+        }
+      }
+    } catch (e) {
+      if (typeof window !== 'undefined') {
         localStorage.removeItem('tripkario_admin_session');
+        sessionStorage.removeItem('tripkario_admin_session');
       }
     }
     setIsLoading(false);
@@ -41,68 +50,102 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, pass: string, remember: boolean = true) => {
     setIsLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+
     try {
       // 1. If Supabase Auth is configured, attempt real authentication
-      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co') {
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+      ) {
         const { data, error } = await supabase.auth.signInWithPassword({
-          email,
+          email: cleanEmail,
           password: pass,
         });
 
         if (error) {
           setIsLoading(false);
-          return { success: false, error: 'Incorrect email or password. Please try again.' };
+          const msg = error.message?.toLowerCase() || '';
+          if (msg.includes('rate') || msg.includes('too many') || error.status === 429) {
+            return { success: false, error: 'Too many attempts. Please wait a moment and try again.' };
+          }
+          if (msg.includes('network') || msg.includes('fetch')) {
+            return { success: false, error: "Couldn't sign you in right now. Please try again." };
+          }
+          return { success: false, error: 'Email or password is incorrect.' };
         }
 
         if (data.user) {
           const adminObj: AdminUser = {
             id: data.user.id,
-            email: data.user.email || email,
-            name: data.user.user_metadata?.full_name || email.split('@')[0],
+            email: data.user.email || cleanEmail,
+            name: data.user.user_metadata?.full_name || cleanEmail.split('@')[0],
             role: 'Super Administrator',
           };
           setUser(adminObj);
+
           if (remember) {
             localStorage.setItem('tripkario_admin_session', JSON.stringify(adminObj));
+            sessionStorage.removeItem('tripkario_admin_session');
+          } else {
+            sessionStorage.setItem('tripkario_admin_session', JSON.stringify(adminObj));
+            localStorage.removeItem('tripkario_admin_session');
           }
+
           setIsLoading(false);
           return { success: true };
         }
       }
 
-      // 2. Initial administrator session setup for standalone dev mode
-      if (email.includes('@') && pass.length >= 6) {
+      // 2. Standalone fallback verification for local development environment
+      if (cleanEmail.includes('@') && pass.length >= 6) {
         const adminObj: AdminUser = {
           id: `adm_${Date.now()}`,
-          email: email.trim().toLowerCase(),
-          name: email.split('@')[0],
+          email: cleanEmail,
+          name: cleanEmail.split('@')[0],
           role: 'Super Administrator',
         };
         setUser(adminObj);
+
         if (remember) {
           localStorage.setItem('tripkario_admin_session', JSON.stringify(adminObj));
+          sessionStorage.removeItem('tripkario_admin_session');
+        } else {
+          sessionStorage.setItem('tripkario_admin_session', JSON.stringify(adminObj));
+          localStorage.removeItem('tripkario_admin_session');
         }
+
         setIsLoading(false);
         return { success: true };
       }
 
       setIsLoading(false);
-      return { success: false, error: 'Invalid credentials. Please enter a valid email and password (minimum 6 characters).' };
+      return { success: false, error: 'Email or password is incorrect.' };
     } catch (err: any) {
       setIsLoading(false);
-      return { success: false, error: err?.message || 'Login failed. Please try again.' };
+      const msg = err?.message?.toLowerCase() || '';
+      if (msg.includes('network') || msg.includes('failed to fetch')) {
+        return { success: false, error: "Couldn't sign you in right now. Please try again." };
+      }
+      return { success: false, error: 'Email or password is incorrect.' };
     }
   };
 
   const logout = async () => {
     try {
-      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co') {
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+      ) {
         await supabase.auth.signOut();
       }
     } catch (e) {
       // Ignore
     }
-    localStorage.removeItem('tripkario_admin_session');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('tripkario_admin_session');
+      sessionStorage.removeItem('tripkario_admin_session');
+    }
     setUser(null);
   };
 
@@ -112,17 +155,41 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co') {
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+      ) {
         const { error } = await supabase.auth.updateUser({
           password: newPass,
         });
         if (error) {
-          return { success: false, error: error.message };
+          return { success: false, error: error.message || 'Failed to update password.' };
         }
       }
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err?.message || 'Failed to update password.' };
+    }
+  };
+
+  const requestPasswordReset = async (emailToReset: string) => {
+    const cleanEmail = emailToReset.trim().toLowerCase();
+    try {
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+      ) {
+        const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/adminconsole1811/settings/security` : undefined;
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: redirectUrl,
+        });
+        if (error) {
+          return { success: false, error: "Couldn't send reset link. Please try again." };
+        }
+      }
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: "Couldn't send reset link. Please try again." };
     }
   };
 
@@ -134,6 +201,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         login,
         logout,
         updatePassword,
+        requestPasswordReset,
       }}
     >
       {children}

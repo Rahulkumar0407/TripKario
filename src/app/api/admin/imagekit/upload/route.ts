@@ -18,9 +18,9 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
     const base64File = buffer.toString('base64');
 
-    const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
+    const publicKey = process.env.IMAGEKIT_PUBLIC_KEY || process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
     const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-    const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
+    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT;
 
     // If real ImageKit credentials exist, execute upload via SDK
     if (publicKey && privateKey && urlEndpoint) {
