@@ -2,12 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import ImageKit from 'imagekit';
-import { tripPackages } from '/home/rahul/demo/src/data/trips';
-import { TripPackage } from '/home/rahul/demo/src/types';
+import { tripPackages } from '../src/data/trips';
+import { TripPackage } from '../src/types';
 
 // Load .env variables
-const envPath = '/home/rahul/demo/.env';
-const envContent = fs.readFileSync(envPath, 'utf-8');
+const envPath = path.resolve(__dirname, '../.env');
+const envContent = fs.existsSync(envPath) ? fs.readFileSync(envPath, 'utf-8') : '';
 const envVars: Record<string, string> = {};
 envContent.split('\n').forEach((line) => {
   const [k, ...v] = line.split('=');
@@ -348,7 +348,7 @@ export function getPopularTrips(): TripPackage[] {
 }
 `;
 
-    const tripsPath = '/home/rahul/demo/src/data/trips.ts';
+    const tripsPath = path.resolve(__dirname, '../src/data/trips.ts');
     fs.writeFileSync(tripsPath, outputTs, 'utf-8');
     console.log(`\nSuccessfully updated all ${updatedTrips.length} canonical itineraries in ${tripsPath} with ImageKit CDN URLs!`);
   } else {
@@ -393,7 +393,7 @@ export function getPopularTrips(): TripPackage[] {
 
   reportMd += `\n---\n\n## 3. ImageKit Folder Architecture\n\n\`\`\`\ntripkario/\n  └── itineraries/\n        ├── kashmir/ (9 folders)\n        ├── ladakh/ (10 folders)\n        ├── spiti/ (5 folders)\n        ├── meghalaya/ (4 folders)\n        ├── tawang/ (4 folders)\n        ├── sikkim/ (3 folders)\n        ├── himachal/ (10 folders)\n        ├── uttarakhand/ (14 folders)\n        ├── rajasthan/ (5 folders)\n        ├── goa/ (2 folders)\n        ├── kerala/ (3 folders)\n        ├── south-india/ (11 folders)\n        ├── nagaland/ (1 folder)\n        ├── northeast/ (1 folder)\n        └── bengal/ (1 folder)\n\`\`\`\n`;
 
-  const reportPath = '/home/rahul/demo/docs/itinerary-image-migration-report.md';
+  const reportPath = path.resolve(__dirname, '../docs/itinerary-image-migration-report.md');
   fs.writeFileSync(reportPath, reportMd, 'utf-8');
   console.log(`Saved comprehensive migration report to ${reportPath}`);
 }
