@@ -30,6 +30,8 @@ export default function AdminTeamPage() {
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
   const [hoveredMemberId, setHoveredMemberId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [isConfirmingRemovePhoto, setIsConfirmingRemovePhoto] = useState(false);
 
   // Load team data from Supabase, fallback to localStorage
   useEffect(() => {
@@ -93,6 +95,9 @@ export default function AdminTeamPage() {
     setTeam(updatedList);
     try {
       localStorage.setItem('tripkario_admin_team', JSON.stringify(updatedList));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('tripkario-team-updated'));
+      }
     } catch (e) {
       console.warn('Could not save team to localStorage:', e);
     }
@@ -150,9 +155,7 @@ export default function AdminTeamPage() {
       name: editingMember.name.trim(),
       role: editingMember.role.trim() || 'Trip Specialist',
       bio: editingMember.bio.trim(),
-      photoUrl:
-        editingMember.photoUrl.trim() ||
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=85&w=800&auto=format&fit=crop',
+      photoUrl: editingMember.photoUrl?.trim() || '',
     };
 
     let updatedList: SeedTeamMember[];
@@ -172,30 +175,32 @@ export default function AdminTeamPage() {
     }, 400);
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to remove "${name || 'this team member'}" from your team?`)) {
-      const updatedList = team
-        .filter((m) => m.id !== id)
-        .map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
+  const handleConfirmDelete = async () => {
+    if (!memberToDelete) return;
+    const { id } = memberToDelete;
 
-      await persistTeam(updatedList);
+    const updatedList = team
+      .filter((m) => m.id !== id)
+      .map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
 
-      try {
-        if (
-          process.env.NEXT_PUBLIC_SUPABASE_URL &&
-          process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
-        ) {
-          await supabase.from('team_members').delete().eq('id', id);
-        }
-      } catch (e) {
-        // Table might not exist yet
+    await persistTeam(updatedList);
+
+    try {
+      if (
+        process.env.NEXT_PUBLIC_SUPABASE_URL &&
+        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
+      ) {
+        await supabase.from('team_members').delete().eq('id', id);
       }
-
-      if (editingMember?.id === id) {
-        setEditingMember(null);
-        setIsCreatingNew(false);
-      }
+    } catch (e) {
+      // Table might not exist yet
     }
+
+    if (editingMember?.id === id) {
+      setEditingMember(null);
+      setIsCreatingNew(false);
+    }
+    setMemberToDelete(null);
   };
 
   const handleMove = async (index: number, direction: 'up' | 'down') => {
@@ -456,7 +461,7 @@ export default function AdminTeamPage() {
 
                         <button
                           type="button"
-                          onClick={() => handleDelete(member.id, member.name)}
+                          onClick={() => setMemberToDelete({ id: member.id, name: member.name || 'this specialist' })}
                           className="p-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer"
                           title="Delete Member"
                         >
@@ -517,36 +522,62 @@ export default function AdminTeamPage() {
                     <label className="text-[#8C8479] uppercase block font-bold">
                       Magazine Portrait Photo
                     </label>
-                    <div className="flex items-center gap-4">
-                      <div className="relative w-20 h-24 rounded-2xl overflow-hidden bg-black/10 border border-black/10 dark:border-white/10 shrink-0 shadow-inner">
-                        {editingMember.photoUrl ? (
-                          <Image
-                            src={editingMember.photoUrl}
-                            alt={editingMember.name || 'Portrait'}
-                            fill
-                            sizes="100px"
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[#8C8479]">
-                            <ImageIcon className="w-6 h-6" />
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                      {editingMember.photoUrl ? (
+                        <>
+                          <div className="relative w-20 h-24 rounded-2xl overflow-hidden bg-black/10 border border-black/10 dark:border-white/10 shrink-0 shadow-inner">
+                            <Image
+                              src={editingMember.photoUrl}
+                              alt={editingMember.name || 'Portrait'}
+                              fill
+                              sizes="100px"
+                              className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                            <span className="absolute bottom-1 left-1.5 right-1.5 text-[8px] font-mono text-center text-white/90 uppercase font-bold tracking-wider">
+                              CURRENT
+                            </span>
                           </div>
-                        )}
-                      </div>
 
-                      <div className="space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => setIsMediaPickerOpen(true)}
-                          className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#262420] text-[#C85D3A] font-bold text-xs hover:bg-[#C85D3A] hover:text-white flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
-                        >
-                          <ImageIcon className="w-4 h-4" />
-                          <span>Choose from Library</span>
-                        </button>
-                        <span className="text-[10px] text-[#8C8479] block">
-                          3:4 aspect ratio recommended
-                        </span>
-                      </div>
+                          <div className="space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setIsMediaPickerOpen(true)}
+                                className="px-3.5 py-2 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#262420] text-[#C85D3A] font-bold text-xs hover:bg-[#C85D3A] hover:text-white flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
+                              >
+                                <ImageIcon className="w-4 h-4" />
+                                <span>Replace Image</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setIsConfirmingRemovePhoto(true)}
+                                className="px-3.5 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 text-xs font-mono font-bold transition-colors cursor-pointer"
+                              >
+                                <span>Remove Image</span>
+                              </button>
+                            </div>
+                            <span className="text-[10px] text-[#8C8479] block">
+                              3:4 aspect ratio recommended
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="space-y-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsMediaPickerOpen(true)}
+                            className="px-4 py-2.5 rounded-xl bg-white dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#262420] text-[#C85D3A] font-bold text-xs hover:bg-[#C85D3A] hover:text-white flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Add Photo</span>
+                          </button>
+                          <span className="text-[10px] text-[#8C8479] block">
+                            Optional. If omitted, profile displays in clean typography format.
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -724,6 +755,85 @@ export default function AdminTeamPage() {
         categoryFilter="Team"
         title="Select Specialist Portrait"
       />
+
+      {/* ══════════════════════════════════════════════════
+          DELETE MEMBER CONFIRMATION MODAL
+          ══════════════════════════════════════════════════ */}
+      {memberToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#FAF7F2] dark:bg-[#1C1916] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-[#E5DFD5] dark:border-[#262420] shadow-2xl space-y-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-serif font-bold text-[#171512] dark:text-white">
+                Remove Team Member?
+              </h3>
+              <p className="text-xs font-mono text-[#8C8479] leading-relaxed">
+                Are you sure you want to remove <span className="text-[#171512] dark:text-white font-bold">{memberToDelete.name}</span> from the team directory?
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setMemberToDelete(null)}
+                className="px-5 py-2.5 rounded-xl border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-mono font-bold uppercase transition-all shadow-md cursor-pointer"
+              >
+                Remove Member
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════
+          REMOVE PHOTO CONFIRMATION MODAL
+          ══════════════════════════════════════════════════ */}
+      {isConfirmingRemovePhoto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#FAF7F2] dark:bg-[#1C1916] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-[#E5DFD5] dark:border-[#262420] shadow-2xl space-y-5 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
+              <ImageIcon className="w-6 h-6" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-serif font-bold text-[#171512] dark:text-white">
+                Remove Member&apos;s Photo?
+              </h3>
+              <p className="text-xs font-mono text-[#8C8479] leading-relaxed">
+                The member will remain active in the directory and will be displayed in an elegant typography-only layout.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingRemovePhoto(false)}
+                className="px-5 py-2.5 rounded-xl border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold text-[#8C8479] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (editingMember) {
+                    setEditingMember({ ...editingMember, photoUrl: '' });
+                  }
+                  setIsConfirmingRemovePhoto(false);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-xs font-mono font-bold uppercase transition-all shadow-md cursor-pointer"
+              >
+                Remove Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

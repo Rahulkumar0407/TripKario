@@ -51,6 +51,7 @@ export interface SeedTrip {
   title: string;
   overview: string;
   coverImageUrl: string;
+  originalCoverImageUrl?: string;
   durationNights: number;
   durationDays: number;
   pricePerPerson: number;
@@ -244,6 +245,7 @@ export const initialTrips: SeedTrip[] = tripPackages.map((t) => ({
   title: t.title,
   overview: t.shortDescription,
   coverImageUrl: t.coverImage.src,
+  originalCoverImageUrl: t.coverImage.src,
   durationNights: t.durationNights,
   durationDays: t.durationDays,
   pricePerPerson: t.pricePerPerson,

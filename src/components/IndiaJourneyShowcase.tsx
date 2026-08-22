@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import TripDetailModal from '@/components/TripDetailModal';
 import { tripPackages, getTripById, getTripForDestination, getItineraryCount } from '@/data/trips';
+import { getCanonicalTripById } from '@/lib/trips';
 import { TripPackage } from '@/types';
 
 export interface JourneyDeckItem {
@@ -320,13 +321,27 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
   const [isHeroHovered, setIsHeroHovered] = useState(false);
   const [expandedMobileIdx, setExpandedMobileIdx] = useState<number | null>(0);
   const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripPackage | null>(null);
+  const [, setTripUpdateKey] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setTripUpdateKey((prev) => prev + 1);
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('tripkario-trips-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('tripkario-trips-updated', handleUpdate);
+    };
+  }, []);
 
   const shouldReduceMotion = useReducedMotion();
   const totalItems = journeyDeckItems.length;
   const currentItem = journeyDeckItems[activeIndex];
 
   const getDeckItemImage = useCallback((item: JourneyDeckItem) => {
-    const matched = getTripById(item.id);
+    const matched = getCanonicalTripById(item.id) || getTripById(item.id);
     if (matched && matched.coverImage) {
       const src = typeof matched.coverImage === 'string' ? matched.coverImage : matched.coverImage.src;
       const alt = typeof matched.coverImage === 'string' ? matched.title : matched.coverImage.alt || matched.title;
@@ -352,6 +367,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
 
   const handleExplore = (item: JourneyDeckItem) => {
     const matchedTrip =
+      getCanonicalTripById(item.id) ||
       getTripById(item.id) ||
       getTripForDestination(item.id) ||
       tripPackages.find((t) => t.id === item.id) ||

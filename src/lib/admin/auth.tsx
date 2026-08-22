@@ -179,7 +179,13 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         process.env.NEXT_PUBLIC_SUPABASE_URL &&
         process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
       ) {
-        const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/adminconsole1811/settings/security` : undefined;
+        let redirectUrl = 'https://tripkario.com/adminconsole1811/update-password';
+        if (typeof window !== 'undefined' && window.location.origin) {
+          redirectUrl = `${window.location.origin}/adminconsole1811/update-password`;
+        } else if (process.env.NEXT_PUBLIC_SITE_URL) {
+          redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '')}/adminconsole1811/update-password`;
+        }
+
         const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
           redirectTo: redirectUrl,
         });
@@ -188,7 +194,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       return { success: true };
-    } catch (err: any) {
+    } catch {
       return { success: false, error: "Couldn't send reset link. Please try again." };
     }
   };

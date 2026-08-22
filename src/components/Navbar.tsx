@@ -31,6 +31,7 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
     { name: 'India Tour', href: '/#india-journey' },
     { name: 'Destinations', href: '/#destinations' },
     { name: 'All Itineraries', href: '/itineraries' },
+    { name: 'Gallery', href: '/gallery' },
   ];
 
   return (

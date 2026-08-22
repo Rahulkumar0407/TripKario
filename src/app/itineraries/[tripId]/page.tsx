@@ -23,7 +23,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TravelChatbot from '@/components/TravelChatbot';
 import WhatsAppButton from '@/components/WhatsAppButton';
-import { tripPackages } from '@/data/trips';
+import { getCanonicalServerTrip, getAllCanonicalServerTrips } from '@/lib/serverTrips';
 import { formatPrice } from '@/lib/utils';
 import { getWhatsAppUrl } from '@/lib/whatsapp';
 
@@ -32,14 +32,15 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  return tripPackages.map((trip) => ({
+  const allTrips = getAllCanonicalServerTrips();
+  return allTrips.map((trip) => ({
     tripId: trip.id,
   }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { tripId } = await params;
-  const trip = tripPackages.find((t) => t.id === tripId);
+  const trip = getCanonicalServerTrip(tripId, false);
 
   if (!trip) {
     return {
@@ -71,7 +72,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ItineraryDetailPage({ params }: PageProps) {
   const { tripId } = await params;
-  const trip = tripPackages.find((t) => t.id === tripId);
+  const trip = getCanonicalServerTrip(tripId, false);
 
   if (!trip) {
     notFound();

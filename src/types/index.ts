@@ -106,6 +106,8 @@ export interface TripPackage {
   badge?: string;
   featured?: boolean;
   popular?: boolean;
+  status?: 'published' | 'draft' | 'archived';
+  originalCoverImageUrl?: string;
   coverImage: EditorialImage;
   galleryImages?: EditorialImage[];
   route?: string;

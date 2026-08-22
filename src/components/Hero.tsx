@@ -655,7 +655,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
             transition={{ type: 'spring', stiffness: 80, damping: 35 }}
           >
             <h1>
-              <span className="block overflow-hidden">
+              <span className="block overflow-hidden pb-1 -mb-1">
                 <motion.span
                   initial={{ y: '110%', opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -664,13 +664,13 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                     delay: 0.2,
                     ease: EASE.out as [number, number, number, number],
                   }}
-                  className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
+                  className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[1.04] tracking-[-0.02em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
                 >
                   Where will you
                 </motion.span>
               </span>
 
-              <span className="block overflow-hidden">
+              <span className="block overflow-hidden pb-4 -mb-4 pt-1">
                 <motion.span
                   initial={{ y: '110%', opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -679,7 +679,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                     delay: 0.4,
                     ease: EASE.out as [number, number, number, number],
                   }}
-                  className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-[#FF8A50] drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
+                  className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[1.04] tracking-[-0.02em] text-[#FF8A50] drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)] pb-1"
                 >
                   go next?
                 </motion.span>
@@ -859,21 +859,21 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <MagneticButton
                   onClick={() => prevScene(true)}
                   aria-label="Previous destination"
-                  className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#141816]/80 hover:bg-[#C85D3A] active:bg-[#141816] text-[#FAF4E8] hover:text-white border border-white/30 hover:border-[#C85D3A] backdrop-blur-md shadow-lg shadow-black/40 transition-all duration-200 ease-out flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#C85D3A] focus-visible:outline-hidden cursor-pointer"
                 >
-                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <ArrowLeft className="w-4 h-4" />
                 </MagneticButton>
 
                 <MagneticButton
                   onClick={() => nextScene(true)}
                   aria-label="Next destination"
-                  className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#141816]/80 hover:bg-[#C85D3A] active:bg-[#141816] text-[#FAF4E8] hover:text-white border border-white/30 hover:border-[#C85D3A] backdrop-blur-md shadow-lg shadow-black/40 transition-all duration-200 ease-out flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#C85D3A] focus-visible:outline-hidden cursor-pointer"
                 >
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4" />
                 </MagneticButton>
               </div>
             </div>

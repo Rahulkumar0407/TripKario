@@ -9,8 +9,8 @@ import {
   Star,
   MapPin,
 } from 'lucide-react';
-import { tripPackages } from '@/data/trips';
-import { TripPackage } from '@/types';
+import { tripPackages as defaultTripPackages } from '@/data/trips';
+import { loadClientTripPackages, TripPackage } from '@/lib/trips';
 import { formatPrice } from '@/lib/utils';
 import TripDetailModal from './TripDetailModal';
 
@@ -23,7 +23,27 @@ export default function TripCarousel({
   trips: tripsProp,
   onOpenPlanTrip,
 }: TripCarouselProps) {
-  const tripsList = tripsProp && tripsProp.length > 0 ? tripsProp : tripPackages;
+  const [canonicalTrips, setCanonicalTrips] = useState<TripPackage[]>(defaultTripPackages);
+
+  useEffect(() => {
+    if (!tripsProp || tripsProp.length === 0) {
+      setCanonicalTrips(loadClientTripPackages());
+
+      const handleUpdate = () => {
+        setCanonicalTrips(loadClientTripPackages());
+      };
+
+      window.addEventListener('storage', handleUpdate);
+      window.addEventListener('tripkario-trips-updated', handleUpdate);
+
+      return () => {
+        window.removeEventListener('storage', handleUpdate);
+        window.removeEventListener('tripkario-trips-updated', handleUpdate);
+      };
+    }
+  }, [tripsProp]);
+
+  const tripsList = tripsProp && tripsProp.length > 0 ? tripsProp : canonicalTrips;
   const [activeIndex, setActiveIndex] = useState(0);
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   const [isHovered, setIsHovered] = useState(false);

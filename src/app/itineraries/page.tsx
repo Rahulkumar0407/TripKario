@@ -18,13 +18,44 @@ import WhatsAppButton from '@/components/WhatsAppButton';
 import PlanTripModal from '@/components/PlanTripModal';
 import TripDetailModal from '@/components/TripDetailModal';
 import ItineraryCard from '@/components/ItineraryCard';
-import { tripPackages } from '@/data/trips';
-import { TripPackage } from '@/types';
+import { tripPackages as defaultTripPackages } from '@/data/trips';
+import { loadClientTripPackages, TripPackage } from '@/lib/trips';
 
 const BATCH_SIZE = 16;
 
 function ItinerariesCatalogueContent() {
   const searchParams = useSearchParams();
+
+  const [allTrips, setAllTrips] = useState<TripPackage[]>(defaultTripPackages);
+
+  useEffect(() => {
+    setAllTrips(loadClientTripPackages());
+
+    // Fetch authoritative canonical trips from server API for new browsers/sessions
+    fetch('/api/admin/trips')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.trips) && data.trips.length > 0) {
+          setAllTrips(data.trips);
+          try {
+            localStorage.setItem('tripkario_admin_trips', JSON.stringify(data.trips));
+          } catch (e) {}
+        }
+      })
+      .catch(() => {});
+
+    const handleUpdate = () => {
+      setAllTrips(loadClientTripPackages());
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('tripkario-trips-updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('tripkario-trips-updated', handleUpdate);
+    };
+  }, []);
 
   // Read initial filter values from URL params
   const initialDest = searchParams.get('destination') || 'ALL';
@@ -65,7 +96,7 @@ function ItinerariesCatalogueContent() {
   // Unique destinations present in actual data
   const dynamicDestinations = useMemo(() => {
     const counts = new Map<string, { name: string; count: number }>();
-    tripPackages.forEach((t) => {
+    allTrips.forEach((t) => {
       const existing = counts.get(t.destinationId);
       if (existing) {
         existing.count += 1;
@@ -78,16 +109,16 @@ function ItinerariesCatalogueContent() {
       name: data.name,
       count: data.count,
     }));
-  }, []);
+  }, [allTrips]);
 
   // Unique categories
   const categories = useMemo(() => {
     const set = new Set<string>();
-    tripPackages.forEach((t) => {
+    allTrips.forEach((t) => {
       if (t.category) set.add(t.category);
     });
     return ['ALL', ...Array.from(set).sort()];
-  }, []);
+  }, [allTrips]);
 
   // Filter count indicator
   const activeFiltersCount = useMemo(() => {
@@ -102,8 +133,13 @@ function ItinerariesCatalogueContent() {
 
   // Filtering & Sorting Logic
   const filteredTrips = useMemo(() => {
-    return tripPackages
+    return allTrips
       .filter((trip) => {
+        // Enforce published status for public catalogue
+        if (trip.status && trip.status !== 'published') {
+          return false;
+        }
+
         // Text Search
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
@@ -169,7 +205,7 @@ function ItinerariesCatalogueContent() {
         // Recommended / Default
         return (b.featured ? 2 : 0) + (b.popular ? 1 : 0) - ((a.featured ? 2 : 0) + (a.popular ? 1 : 0)) || b.rating - a.rating;
       });
-  }, [searchQuery, selectedDestination, selectedCategory, selectedDuration, selectedPriceFilter, sortBy]);
+  }, [allTrips, searchQuery, selectedDestination, selectedCategory, selectedDuration, selectedPriceFilter, sortBy]);
 
   const visibleTrips = useMemo(() => {
     return filteredTrips.slice(0, visibleCount);
@@ -209,7 +245,7 @@ function ItinerariesCatalogueContent() {
               <span>TripKario India Travel Archive</span>
               <span className="opacity-40">·</span>
               <span className="font-bold text-[var(--text-primary)]">
-                {tripPackages.length} journeys · {dynamicDestinations.length} destinations
+                {allTrips.length} journeys · {dynamicDestinations.length} destinations
               </span>
             </div>
 
@@ -325,7 +361,7 @@ function ItinerariesCatalogueContent() {
                       : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
                   }`}
                 >
-                  All ({tripPackages.length})
+                  All ({allTrips.length})
                 </button>
                 {dynamicDestinations.map((dest) => (
                   <button
@@ -454,7 +490,7 @@ function ItinerariesCatalogueContent() {
                       : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
                   }`}
                 >
-                  All ({tripPackages.length})
+                  All ({allTrips.length})
                 </button>
                 {dynamicDestinations.map((dest) => (
                   <button
@@ -574,7 +610,7 @@ function ItinerariesCatalogueContent() {
                     }}
                     className="w-full p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-base font-sans text-[var(--text-primary)]"
                   >
-                    <option value="ALL">All Destinations ({tripPackages.length})</option>
+                    <option value="ALL">All Destinations ({allTrips.length})</option>
                     {dynamicDestinations.map((d) => (
                       <option key={d.id} value={d.id}>
                         {d.name} ({d.count})
@@ -669,7 +705,7 @@ function ItinerariesCatalogueContent() {
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-[var(--text-muted)] px-1">
             <span>
               Showing <strong className="text-[var(--text-primary)]">{filteredTrips.length}</strong> of{' '}
-              {tripPackages.length} curated domestic journeys
+              {allTrips.length} curated domestic journeys
             </span>
             {activeFiltersCount > 0 && (
               <span className="text-[var(--accent)] font-medium">
@@ -754,7 +790,11 @@ function ItinerariesCatalogueContent() {
 
       {/* ── Trip Detail Quick-View Modal ────────────────────────────────────── */}
       <TripDetailModal
-        trip={selectedTripForDetail}
+        trip={
+          selectedTripForDetail
+            ? allTrips.find((t) => t.id === selectedTripForDetail.id) || selectedTripForDetail
+            : null
+        }
         onClose={() => setSelectedTripForDetail(null)}
         onPlanCustom={(title) => {
           setSelectedTripForDetail(null);

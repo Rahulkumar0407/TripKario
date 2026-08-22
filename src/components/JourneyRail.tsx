@@ -1,20 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { ArrowRight, Star, Clock } from 'lucide-react';
-import { tripPackages } from '@/data/trips';
+import { tripPackages as defaultTripPackages } from '@/data/trips';
+import { loadClientTripPackages, TripPackage } from '@/lib/trips';
 import { formatPrice } from '@/lib/utils';
 import MagneticButton from './ui/MagneticButton';
 import TripDetailModal from './TripDetailModal';
-import { TripPackage } from '@/types';
 
 interface JourneyRailProps {
   onOpenPlanTrip: (destination?: string) => void;
 }
 
 export default function JourneyRail({ onOpenPlanTrip }: JourneyRailProps) {
+  const [trips, setTrips] = useState<TripPackage[]>(defaultTripPackages);
   const [selectedTrip, setSelectedTrip] = useState<TripPackage | null>(null);
+
+  useEffect(() => {
+    setTrips(loadClientTripPackages());
+
+    const handleUpdate = () => {
+      setTrips(loadClientTripPackages());
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('tripkario-trips-updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('tripkario-trips-updated', handleUpdate);
+    };
+  }, []);
 
   return (
     <section id="journeys" className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-hidden">
@@ -30,7 +47,7 @@ export default function JourneyRail({ onOpenPlanTrip }: JourneyRailProps) {
       </div>
 
       <div className="flex gap-8 overflow-x-auto no-scrollbar px-4 sm:px-10 pb-6">
-        {tripPackages.map((trip) => {
+        {trips.map((trip) => {
           const coverSrc = typeof trip.coverImage === 'string' ? trip.coverImage : trip.coverImage.src;
 
           return (
@@ -45,6 +62,7 @@ export default function JourneyRail({ onOpenPlanTrip }: JourneyRailProps) {
                 fill
                 sizes="(max-width: 768px) 90vw, 50vw"
                 className="object-cover transition-transform duration-1000 ease-out group-hover:scale-104"
+                key={coverSrc}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
@@ -68,7 +86,7 @@ export default function JourneyRail({ onOpenPlanTrip }: JourneyRailProps) {
                   <div className="text-right">
                     <span className="text-[10px] font-mono text-white/70 block uppercase">From</span>
                     <span className="text-lg font-serif font-bold text-white">
-                      {formatPrice(trip.pricePerPerson)}
+                      {formatPrice(trip.pricePerPerson, trip.isPriceOnRequest)}
                     </span>
                   </div>
                   <MagneticButton

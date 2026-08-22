@@ -20,8 +20,17 @@ export default function AdminAuthGuard({ children }: { children: React.ReactNode
     );
   }
 
-  // If not logged in, render the login page directly (or login view)
-  if (!user && pathname !== '/adminconsole1811/login') {
+  const isAuthPage =
+    pathname === '/adminconsole1811/login' ||
+    pathname === '/adminconsole1811/update-password';
+
+  // Auth pages (login, update-password) handle their own states
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
+  // If not logged in on a protected admin page, render the login page
+  if (!user) {
     return <AdminLoginPage />;
   }
 

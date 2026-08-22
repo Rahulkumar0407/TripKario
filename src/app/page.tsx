@@ -18,13 +18,27 @@ import PlanTripModal from '@/components/PlanTripModal';
 import TripDetailModal from '@/components/TripDetailModal';
 import { getHomepageData, HomepageData } from '@/lib/supabase/homepageData';
 import { getTripForDestination } from '@/data/trips';
-import { TripPackage } from '@/types';
+import { loadClientTripPackages, getCanonicalTripById, TripPackage } from '@/lib/trips';
 
 export default function Home() {
   const [data, setData] = useState<HomepageData | null>(null);
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [preselectedDestination, setPreselectedDestination] = useState<string | undefined>(undefined);
   const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripPackage | null>(null);
+  const [, setTripUpdateKey] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setTripUpdateKey((prev) => prev + 1);
+    };
+
+    window.addEventListener('storage', handleUpdate);
+    window.addEventListener('tripkario-trips-updated', handleUpdate);
+    return () => {
+      window.removeEventListener('storage', handleUpdate);
+      window.removeEventListener('tripkario-trips-updated', handleUpdate);
+    };
+  }, []);
 
   // Load published database data with instant static fallback
   useEffect(() => {
@@ -40,9 +54,19 @@ export default function Home() {
 
   const handleOpenTripDetail = (tripOrDest: TripPackage | string) => {
     if (typeof tripOrDest === 'object' && tripOrDest !== null) {
-      setSelectedTripForDetail(tripOrDest);
+      const canonical = getCanonicalTripById(tripOrDest.id) || tripOrDest;
+      setSelectedTripForDetail(canonical);
     } else if (typeof tripOrDest === 'string') {
-      const matched = getTripForDestination(tripOrDest);
+      const allTrips = loadClientTripPackages();
+      const destLower = tripOrDest.toLowerCase().trim();
+      const matched =
+        allTrips.find(
+          (t) =>
+            t.destinationId.toLowerCase() === destLower ||
+            t.destination.toLowerCase() === destLower ||
+            t.destination.toLowerCase().includes(destLower)
+        ) || getTripForDestination(tripOrDest);
+
       if (matched) {
         setSelectedTripForDetail(matched);
       } else {

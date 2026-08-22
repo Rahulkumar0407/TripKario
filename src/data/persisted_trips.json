@@ -1,0 +1,143 @@
+{
+  "goa-honeymoon-beach-4d": {
+    "slug": "goa-honeymoon-beach-4d",
+    "destinationName": "Goa",
+    "title": "Goa Honeymoon Beach Escape",
+    "overview": "A romantic 3-night coastal retreat featuring luxury beachfront stays in South Goa, private Mandovi sunset yacht cruises, and candlelit seafood dinners.",
+    "coverImageUrl": "https://ik.imagekit.io/tripkario/tripkario/itineraries/goa/goa-honeymoon-beach-4d/hero.jpg?v=6a88c8045c7cd75eb830b88a",
+    "durationNights": 3,
+    "durationDays": 4,
+    "pricePerPerson": 0,
+    "isPriceOnRequest": true,
+    "status": "published",
+    "highlights": [
+      "Beachfront Resort Stays",
+      "Fontainhas Latin Walk",
+      "Mandovi Sunset Yacht"
+    ],
+    "inclusions": [
+      "3 Nights in Verified 5-Star Beachfront Luxury Resort",
+      "Daily Buffet Breakfast & Romantic Beachside Dinner",
+      "Private Chauffeur Car for All Transfers",
+      "Private Sunset Cruise on Mandovi River",
+      "Fontainhas Heritage Walking Tour"
+    ],
+    "exclusions": [
+      "Airfare / Train tickets to starting point",
+      "Personal expenses, laundry, telephone, and tipping",
+      "Monument entry tickets, camera fees, or optional adventure activities not mentioned in inclusions",
+      "Cost arising from natural calamities, roadblocks, or flight cancellations",
+      "Personal travel and medical insurance"
+    ],
+    "galleryUrls": [],
+    "route": "Panjim → Fontainhas → Palolem → Agonda → Cabo de Rama",
+    "sourceMetadata": {
+      "sourceName": "Ghumega India",
+      "sourceUrl": "https://www.ghumegaindia.com/goa/honeymoon-beach",
+      "sourceCheckedAt": "2026-08-22",
+      "source": "GHUMEGA",
+      "sourcePackageName": "Goa Honeymoon Beach Special (03 Nights / 04 Days)"
+    },
+    "itineraryDays": [
+      {
+        "dayNumber": 1,
+        "title": "Goa Arrival & Beach Resort Check-in",
+        "location": "South Goa",
+        "description": "Private airport transfer, welcome drinks, beach sunset.",
+        "images": [
+          "https://ik.imagekit.io/tripkario/tripkario/itineraries/goa/goa-honeymoon-beach-4d/hero.jpg"
+        ]
+      },
+      {
+        "dayNumber": 2,
+        "title": "Fontainhas Latin Quarters & Sunset Cruise",
+        "location": "Panjim",
+        "description": "Explore Portuguese heritage lanes and luxury river cruise.",
+        "images": [
+          "https://ik.imagekit.io/tripkario/tripkario/itineraries/goa/goa-honeymoon-beach-4d/hero.jpg"
+        ]
+      },
+      {
+        "dayNumber": 3,
+        "title": "Cabo de Rama Fort & South Goa Coves",
+        "location": "Palolem",
+        "description": "Cliff fort ocean views, Butterfly beach boat trip, candlelit dinner.",
+        "images": [
+          "https://ik.imagekit.io/tripkario/tripkario/itineraries/goa/goa-honeymoon-beach-4d/hero.jpg"
+        ]
+      },
+      {
+        "dayNumber": 4,
+        "title": "Leisure Morning & Airport Drop",
+        "location": "Goa",
+        "description": "Spa session and transfer to Dabolim/Mopa airport.",
+        "images": [
+          "https://ik.imagekit.io/tripkario/tripkario/itineraries/goa/goa-honeymoon-beach-4d/hero.jpg"
+        ]
+      }
+    ],
+    "id": "goa-honeymoon-beach-4d",
+    "updatedAt": "2026-08-22T08:04:44.617Z"
+  },
+  "trip-1787386436827": {
+    "slug": "trip-1787386436827",
+    "destinationName": "Kashmir",
+    "title": "QA - TripKario Builder Verification",
+    "overview": "A handpicked holiday experience planned around slow mornings and verified boutique stays.",
+    "coverImageUrl": "https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1600&auto=format&fit=crop",
+    "durationNights": 5,
+    "durationDays": 6,
+    "pricePerPerson": 29999,
+    "isPriceOnRequest": false,
+    "status": "published",
+    "highlights": [
+      "Private sanitized car",
+      "Boutique stays",
+      "Scenic drives"
+    ],
+    "inclusions": [
+      "Chauffeur transport",
+      "Breakfast & Dinner",
+      "Entry permits"
+    ],
+    "exclusions": [
+      "Flights",
+      "Personal expenses"
+    ],
+    "galleryUrls": [
+      "https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=800&auto=format&fit=crop"
+    ],
+    "itineraryDays": [
+      {
+        "dayNumber": 1,
+        "title": "Arrival & Welcome Stays",
+        "location": "Srinagar",
+        "description": "Airport pickup, check-in to boutique verified accommodations, and relaxed evening shikara ride.",
+        "images": [
+          "https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=800&auto=format&fit=crop"
+        ]
+      },
+      {
+        "dayNumber": 2,
+        "title": "Scenic Mountain Exploration",
+        "location": "Gulmarg",
+        "description": "High-altitude scenic drive through pine glades with gondola pass access and meadow tea stops.",
+        "images": [
+          "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=85&w=800&auto=format&fit=crop"
+        ]
+      },
+      {
+        "dayNumber": 3,
+        "title": "Day 3 Discovery",
+        "location": "Kashmir",
+        "description": "Relaxed morning exploration with private chauffeur transfers and local discoveries.",
+        "images": [
+          "https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1600&auto=format&fit=crop"
+        ]
+      }
+    ],
+    "id": "trip-1787386436827",
+    "updatedAt": "2026-08-22T08:17:54.390Z"
+  }
+}

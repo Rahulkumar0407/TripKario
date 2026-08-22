@@ -23,10 +23,10 @@ export default function AdminLoginPage() {
   const [forgotStatus, setForgotStatus] = useState<{ success?: boolean; message?: string } | null>(null);
   const [isForgotSubmitting, setIsForgotSubmitting] = useState(false);
 
-  // If already logged in, redirect to admin console
+  // If already logged in, redirect to admin trips
   useEffect(() => {
     if (user) {
-      router.replace('/adminconsole1811');
+      router.replace('/adminconsole1811/trips');
     }
   }, [user, router]);
 
@@ -44,7 +44,7 @@ export default function AdminLoginPage() {
     setIsSubmitting(false);
 
     if (result.success) {
-      router.replace('/adminconsole1811');
+      router.replace('/adminconsole1811/trips');
     } else {
       setErrorMsg(result.error || 'Email or password is incorrect.');
     }

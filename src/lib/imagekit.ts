@@ -25,10 +25,12 @@ export interface ImageKitTransformOptions {
 
 /**
  * Builds an optimized ImageKit delivery URL from a relative storage path or existing ImageKit URL.
+ * Preserves version query parameters (e.g. ?v=..., ?ik-obj-version=...) so newly uploaded versions
+ * are never served stale cached transforms.
  *
  * Example:
- * getImageKitUrl('tripkario/itineraries/kashmir/kashmir-signature/hero.jpg', { width: 800, quality: 85 })
- * -> "https://ik.imagekit.io/tripkario/tripkario/itineraries/kashmir/kashmir-signature/hero.jpg?tr=w-800,q-85,f-auto"
+ * getImageKitUrl('https://ik.imagekit.io/.../hero.jpg?v=123', { width: 800, quality: 85 })
+ * -> "https://ik.imagekit.io/.../hero.jpg?tr=w-800,q-85,f-auto&v=123"
  */
 export function getImageKitUrl(
   pathOrUrl: string | undefined | null,
@@ -42,39 +44,57 @@ export function getImageKitUrl(
   if (!cleanInput) return IMAGEKIT_FALLBACK_HERO;
 
   let baseUrl = '';
+  let versionQuery = '';
 
   if (cleanInput.startsWith('http://') || cleanInput.startsWith('https://')) {
-    // If it's already an ImageKit URL, strip existing ?tr= or ?updatedAt for clean re-transformation
     if (cleanInput.includes('ik.imagekit.io')) {
-      baseUrl = cleanInput.split('?')[0];
+      const [urlPart, queryPart] = cleanInput.split('?');
+      baseUrl = urlPart;
+      if (queryPart) {
+        // Extract version / cache-busting params to preserve (e.g. v, ik-obj-version, updatedAt, restored)
+        const params = new URLSearchParams(queryPart);
+        params.delete('tr'); // Remove old transformation to apply new one cleanly
+        const preserved = params.toString();
+        if (preserved) {
+          versionQuery = preserved;
+        }
+      }
     } else {
       // External source URL (e.g. fallback before migration)
       return cleanInput;
     }
   } else {
     // Relative path e.g. "tripkario/itineraries/kashmir/..."
-    const normalizedPath = cleanInput.startsWith('/') ? cleanInput.slice(1) : cleanInput;
+    const [pathPart, queryPart] = cleanInput.split('?');
+    const normalizedPath = pathPart.startsWith('/') ? pathPart.slice(1) : pathPart;
     baseUrl = `${IMAGEKIT_ENDPOINT}/${normalizedPath}`;
-  }
-
-  if (!options) {
-    return `${baseUrl}?tr=f-auto,q-85`;
+    if (queryPart) {
+      const params = new URLSearchParams(queryPart);
+      params.delete('tr');
+      const preserved = params.toString();
+      if (preserved) {
+        versionQuery = preserved;
+      }
+    }
   }
 
   const transforms: string[] = [];
 
-  if (options.width) transforms.push(`w-${Math.round(options.width)}`);
-  if (options.height) transforms.push(`h-${Math.round(options.height)}`);
-  if (options.quality) transforms.push(`q-${Math.round(options.quality)}`);
-  if (options.blur) transforms.push(`bl-${options.blur}`);
-  if (options.dpr && options.dpr > 1) transforms.push(`dpr-${options.dpr}`);
-  if (options.crop) transforms.push(`c-${options.crop}`);
-  if (options.focus) transforms.push(`fo-${options.focus}`);
+  if (options?.width) transforms.push(`w-${Math.round(options.width)}`);
+  if (options?.height) transforms.push(`h-${Math.round(options.height)}`);
+  if (options?.quality) transforms.push(`q-${Math.round(options.quality)}`);
+  if (options?.blur) transforms.push(`bl-${options.blur}`);
+  if (options?.dpr && options.dpr > 1) transforms.push(`dpr-${options.dpr}`);
+  if (options?.crop) transforms.push(`c-${options.crop}`);
+  if (options?.focus) transforms.push(`fo-${options.focus}`);
 
   // Default to automatic format selection (WebP / AVIF) based on client browser support
-  transforms.push(`f-${options.format || 'auto'}`);
+  transforms.push(`f-${options?.format || 'auto'}`);
 
-  return `${baseUrl}?tr=${transforms.join(',')}`;
+  const transformParam = `tr=${transforms.join(',')}`;
+  const fullQuery = versionQuery ? `${transformParam}&${versionQuery}` : transformParam;
+
+  return `${baseUrl}?${fullQuery}`;
 }
 
 /**
@@ -136,7 +156,6 @@ export function getOptimizedCardImageUrl(
   return rawUrl;
 }
 
-
 /**
  * Convenience helper for high-resolution modal hero image URLs
  */
@@ -158,4 +177,3 @@ export function getThumbnailImageUrl(pathOrUrl: string | undefined | null): stri
     format: 'auto',
   });
 }
-

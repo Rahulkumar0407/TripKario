@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { initialTrips, SeedTrip, SeedItineraryDay } from '@/lib/admin/seedData';
 import MediaPickerModal from '@/components/admin/MediaPickerModal';
+import ImageKitStorageWidget from '@/components/admin/ImageKitStorageWidget';
+import ItineraryImageManager from '@/components/admin/ItineraryImageManager';
 import {
   Plus,
   Trash2,
@@ -50,8 +52,9 @@ function AdminTripsContent() {
     | { type: 'itinerary'; dayIndex: number; imageIndex?: number; isAdd?: boolean }
   >({ type: 'cover' });
 
-  // Load from LocalStorage if available
+  // Load authoritative trips from server API and local storage
   useEffect(() => {
+    // 1. Try local cache for immediate visual response
     try {
       const saved = localStorage.getItem('tripkario_admin_trips');
       if (saved) {
@@ -63,6 +66,51 @@ function AdminTripsContent() {
     } catch (e) {
       console.warn('Could not read admin trips from local storage:', e);
     }
+
+    // 2. Fetch authoritative canonical trips from backend API (Supabase/server datastore)
+    fetch('/api/admin/trips')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.trips) && data.trips.length > 0) {
+          const transformed: SeedTrip[] = data.trips.map((t: any) => ({
+            slug: t.id || t.slug,
+            destinationName: t.destination || t.destinationName || 'India',
+            title: t.title,
+            overview: t.shortDescription || t.overview || '',
+            coverImageUrl: t.coverImage?.src || t.coverImageUrl || '',
+            originalCoverImageUrl: t.originalCoverImageUrl || t.coverImage?.src || t.coverImageUrl || '',
+            durationNights: t.durationNights || 5,
+            durationDays: t.durationDays || 6,
+            pricePerPerson: t.pricePerPerson || 0,
+            isPriceOnRequest: Boolean(t.isPriceOnRequest),
+            status: (t.status as any) || 'published',
+            highlights: t.highlights || [],
+            inclusions: t.inclusions || [],
+            exclusions: t.exclusions || [],
+            galleryUrls: Array.isArray(t.galleryUrls)
+              ? t.galleryUrls
+              : (t.galleryImages || []).map((img: any) => img.src || img),
+            itineraryDays: Array.isArray(t.itineraryDays)
+              ? t.itineraryDays
+              : Array.isArray(t.itinerary)
+              ? t.itinerary.map((d: any) => ({
+                  dayNumber: d.dayNumber,
+                  title: d.title,
+                  location: d.location || t.destination || 'India',
+                  description: d.description,
+                  images: d.images || [t.coverImage?.src || t.coverImageUrl || ''],
+                }))
+              : [],
+          }));
+          setTrips(transformed);
+          try {
+            localStorage.setItem('tripkario_admin_trips', JSON.stringify(transformed));
+          } catch (e) {}
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not fetch latest trips from backend:', err);
+      });
   }, []);
 
   // If URL has ?tab=itineraries, default editor to itinerary when a trip is selected
@@ -84,6 +132,7 @@ function AdminTripsContent() {
       title: 'New Curated Journey',
       overview: 'A handpicked holiday experience planned around slow mornings and verified boutique stays.',
       coverImageUrl: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1600&auto=format&fit=crop',
+      originalCoverImageUrl: 'https://images.unsplash.com/photo-1598091383021-15ddea10925d?q=85&w=1600&auto=format&fit=crop',
       durationNights: 5,
       durationDays: 6,
       pricePerPerson: 24999,
@@ -130,21 +179,36 @@ function AdminTripsContent() {
 
   const handleSaveTrip = async () => {
     if (!activeTrip) return;
-    const updated = trips.some((t) => t.slug === activeTrip.slug)
-      ? trips.map((t) => (t.slug === activeTrip.slug ? activeTrip : t))
-      : [activeTrip, ...trips];
+    const establishedOriginal = activeTrip.originalCoverImageUrl || activeTrip.coverImageUrl;
+    const tripToSave: SeedTrip = {
+      ...activeTrip,
+      originalCoverImageUrl: establishedOriginal,
+    };
+
+    const updated = trips.some((t) => t.slug === tripToSave.slug)
+      ? trips.map((t) => (t.slug === tripToSave.slug ? tripToSave : t))
+      : [tripToSave, ...trips];
 
     setTrips(updated);
 
     try {
       localStorage.setItem('tripkario_admin_trips', JSON.stringify(updated));
-      await fetch('/api/admin/revalidate', {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('tripkario-trips-updated'));
+      }
+
+      // Persist to backend database / canonical server store and trigger on-demand revalidation
+      await fetch('/api/admin/trips', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path: '/itineraries' }),
-      }).catch(() => {});
+        body: JSON.stringify({
+          tripId: tripToSave.slug,
+          slug: tripToSave.slug,
+          updates: tripToSave,
+        }),
+      });
     } catch (e) {
-      console.warn('Could not persist trips to local storage or trigger revalidation:', e);
+      console.warn('Could not persist trips to backend datastore:', e);
     }
 
     setIsDirty(false);
@@ -155,13 +219,23 @@ function AdminTripsContent() {
     }, 1000);
   };
 
-  const handleDeleteTrip = (slug: string) => {
+  const handleDeleteTrip = async (slug: string) => {
     if (confirm('Are you sure you want to delete this trip package?')) {
       const updated = trips.filter((t) => t.slug !== slug);
       setTrips(updated);
       try {
         localStorage.setItem('tripkario_admin_trips', JSON.stringify(updated));
-      } catch (e) {}
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('tripkario-trips-updated'));
+        }
+        await fetch('/api/admin/trips', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tripId: slug, slug }),
+        });
+      } catch (e) {
+        console.warn('Could not delete trip from backend datastore:', e);
+      }
       if (activeTrip?.slug === slug) {
         setIsDirty(false);
         setActiveTrip(null);
@@ -169,12 +243,13 @@ function AdminTripsContent() {
     }
   };
 
-  const handleSaveQuickPrice = (slug: string) => {
+  const handleSaveQuickPrice = async (slug: string) => {
+    const updatedPrice = quickPriceIsOnRequest ? 0 : quickPriceValue;
     const updated = trips.map((t) =>
       t.slug === slug
         ? {
             ...t,
-            pricePerPerson: quickPriceIsOnRequest ? 0 : quickPriceValue,
+            pricePerPerson: updatedPrice,
             isPriceOnRequest: quickPriceIsOnRequest,
           }
         : t
@@ -182,7 +257,24 @@ function AdminTripsContent() {
     setTrips(updated);
     try {
       localStorage.setItem('tripkario_admin_trips', JSON.stringify(updated));
-    } catch (e) {}
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('tripkario-trips-updated'));
+      }
+      await fetch('/api/admin/trips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tripId: slug,
+          slug: slug,
+          updates: {
+            pricePerPerson: updatedPrice,
+            isPriceOnRequest: quickPriceIsOnRequest,
+          },
+        }),
+      });
+    } catch (e) {
+      console.warn('Could not save quick price to backend datastore:', e);
+    }
     setQuickPriceTripSlug(null);
   };
 
@@ -323,7 +415,10 @@ function AdminTripsContent() {
           VIEW 1: SIMPLE TRIP LIST
           ══════════════════════════════════════════════════ */}
       {!activeTrip && (
-        <div className="space-y-4">
+        <div className="space-y-5">
+          {/* ImageKit Storage Summary Panel */}
+          <ImageKitStorageWidget variant="panel" />
+
           {/* Quick Search in Admin */}
           <div className="relative">
             <Search className="w-4 h-4 text-[#8C8479] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -685,39 +780,44 @@ function AdminTripsContent() {
             {/* SECTION 2: PHOTOS */}
             {editorSection === 'photos' && (
               <div className="space-y-8 max-w-3xl">
-                {/* Cover Photo */}
-                <div className="space-y-3">
-                  <span className="text-xs font-mono uppercase text-[#8C8479] font-bold block">
-                    Cover Photo
-                  </span>
-                  <div className="flex flex-col sm:flex-row items-start gap-4">
-                    <div className="relative w-full sm:w-72 aspect-[16/10] rounded-2xl overflow-hidden bg-black/10 border border-black/5 dark:border-white/10">
-                      <Image
-                        src={activeTrip.coverImageUrl}
-                        alt={activeTrip.title}
-                        fill
-                        sizes="300px"
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMediaTarget({ type: 'cover' });
-                          setIsMediaPickerOpen(true);
-                        }}
-                        className="px-4 py-2 rounded-xl bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#E5DFD5] dark:border-[#262420] text-xs font-mono font-bold text-[#C85D3A] hover:bg-[#FAF7F2]/80 flex items-center gap-2 cursor-pointer"
-                      >
-                        <ImageIcon className="w-4 h-4" />
-                        <span>Change Cover Photo</span>
-                      </button>
-                      <p className="text-[11px] font-mono text-[#8C8479]">
-                        Select or upload a high-resolution photo for the main card and hero.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                {/* Cover Photo Management & Original Restore */}
+                <ItineraryImageManager
+                  currentImageUrl={activeTrip.coverImageUrl}
+                  originalImageUrl={activeTrip.originalCoverImageUrl || activeTrip.coverImageUrl}
+                  tripTitle={activeTrip.title}
+                  tripSlug={activeTrip.slug}
+                  destinationName={activeTrip.destinationName}
+                  onChangeCoverImage={(url) => {
+                    setIsDirty(true);
+                    const establishedOriginal = activeTrip.originalCoverImageUrl || activeTrip.coverImageUrl;
+                    const updatedTrip = {
+                      ...activeTrip,
+                      coverImageUrl: url,
+                      originalCoverImageUrl: establishedOriginal,
+                    };
+                    setActiveTrip(updatedTrip);
+                    const updatedList = trips.map((t) => (t.slug === activeTrip.slug ? updatedTrip : t));
+                    setTrips(updatedList);
+                    try {
+                      localStorage.setItem('tripkario_admin_trips', JSON.stringify(updatedList));
+                      if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new Event('tripkario-trips-updated'));
+                      }
+                      fetch('/api/admin/trips', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          tripId: activeTrip.slug,
+                          slug: activeTrip.slug,
+                          updates: {
+                            coverImageUrl: url,
+                            originalCoverImageUrl: establishedOriginal,
+                          },
+                        }),
+                      }).catch(() => {});
+                    } catch {}
+                  }}
+                />
 
                 {/* Trip Gallery */}
                 <div className="space-y-3 pt-6 border-t border-[#E5DFD5] dark:border-[#262420]">

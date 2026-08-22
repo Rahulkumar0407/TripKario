@@ -2,34 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAdminAuth } from '@/lib/admin/auth';
-import {
-  Menu,
-  Plus,
-  Search,
-  ExternalLink,
-  Compass,
-  MapPin,
-  Image as ImageIcon,
-  MessageSquareQuote,
-  Users,
-  Bell,
-} from 'lucide-react';
+import { Menu, Plus, ExternalLink, Compass, Users, Image as ImageIcon } from 'lucide-react';
+import ImageKitStorageWidget from '@/components/admin/ImageKitStorageWidget';
 
 interface AdminHeaderProps {
   onToggleMobileMenu: () => void;
 }
 
 export default function AdminHeader({ onToggleMobileMenu }: AdminHeaderProps) {
-  const { user } = useAdminAuth();
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
   const quickActions = [
-    { label: 'Add a Trip', href: '/adminconsole1811/trips/new', icon: Compass },
-    { label: 'Add Destination', href: '/adminconsole1811/destinations/new', icon: MapPin },
-    { label: 'Upload Photos', href: '/adminconsole1811/media?upload=true', icon: ImageIcon },
-    { label: 'Add Testimonial', href: '/adminconsole1811/testimonials/new', icon: MessageSquareQuote },
-    { label: 'Add Team Member', href: '/adminconsole1811/team/new', icon: Users },
+    { label: 'Add Itinerary', href: '/adminconsole1811/trips', icon: Compass },
+    { label: 'Add Team Member', href: '/adminconsole1811/team', icon: Users },
+    { label: 'Add Photograph', href: '/adminconsole1811/gallery', icon: ImageIcon },
   ];
 
   return (
@@ -47,12 +33,14 @@ export default function AdminHeader({ onToggleMobileMenu }: AdminHeaderProps) {
 
         <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-[#6D665E] dark:text-[#8C8479]">
           <span className="w-2 h-2 rounded-full bg-[#174E48] dark:bg-[#1E5A53]" />
-          <span>TripKario Production Console</span>
+          <span>TripKario Console</span>
         </div>
       </div>
 
-      {/* Right Actions: Quick Add Dropdown, View Website, Notifications */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      {/* Right Actions: Storage Monitor, Quick Add Dropdown, View Website */}
+      <div className="flex items-center gap-2.5 sm:gap-4">
+        {/* ImageKit Storage Summary Widget */}
+        <ImageKitStorageWidget variant="header" />
         {/* Quick Add Menu */}
         <div className="relative">
           <button
@@ -70,9 +58,9 @@ export default function AdminHeader({ onToggleMobileMenu }: AdminHeaderProps) {
                 className="fixed inset-0 z-30"
                 onClick={() => setIsQuickAddOpen(false)}
               />
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#1C1916] rounded-2xl shadow-xl border border-[#E5DFD5] dark:border-[#2C2824] p-1.5 z-40 space-y-1">
+              <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-[#1C1916] rounded-2xl shadow-xl border border-[#E5DFD5] dark:border-[#2C2824] p-1.5 z-40 space-y-1">
                 <span className="px-3 py-1 text-[10px] font-mono tracking-widest text-[#8C8479] uppercase block font-semibold">
-                  Create New
+                  Management
                 </span>
                 {quickActions.map((action) => {
                   const Icon = action.icon;
