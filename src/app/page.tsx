@@ -30,13 +30,18 @@ export default function Home() {
   useEffect(() => {
     const handleUpdate = () => {
       setTripUpdateKey((prev) => prev + 1);
+      getHomepageData().then((res) => {
+        setData(res);
+      });
     };
 
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('tripkario-trips-updated', handleUpdate);
+    window.addEventListener('tripkario-settings-updated', handleUpdate);
     return () => {
       window.removeEventListener('storage', handleUpdate);
       window.removeEventListener('tripkario-trips-updated', handleUpdate);
+      window.removeEventListener('tripkario-settings-updated', handleUpdate);
     };
   }, []);
 
@@ -114,6 +119,7 @@ export default function Home() {
       {isSectionActive('hero') && (
         <Hero
           slides={data?.heroSlides}
+          signature={data?.settings}
           onOpenPlanTrip={(dest) => handleOpenPlanTrip(dest)}
           onExploreJourney={(dest) => handleOpenTripDetail(dest)}
           onSearch={handleSearchFilter}
@@ -154,7 +160,10 @@ export default function Home() {
 
       {/* 08. FINAL DEPARTURE CTA: Ready to Go Somewhere? */}
       {isSectionActive('final_cta') && (
-        <FinalCinematicCTA onOpenPlanTrip={() => handleOpenPlanTrip()} />
+        <FinalCinematicCTA
+          signature={data?.settings}
+          onOpenPlanTrip={() => handleOpenPlanTrip()}
+        />
       )}
 
       {/* 09. MINIMAL FOOTER */}

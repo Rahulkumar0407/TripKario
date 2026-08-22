@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import TripkarioLogo from '@/components/TripkarioLogo';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useAdminAuth } from '@/lib/admin/auth';
-import { Compass, Users, Image as ImageIcon, ExternalLink, LogOut } from 'lucide-react';
+import { Compass, Users, Image as ImageIcon, ExternalLink, LogOut, Sliders } from 'lucide-react';
 
 interface AdminSidebarProps {
   onCloseMobile?: () => void;
@@ -20,6 +20,7 @@ export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
     { label: 'Trips', href: '/adminconsole1811/trips', icon: Compass },
     { label: 'Team', href: '/adminconsole1811/team', icon: Users },
     { label: 'Gallery', href: '/adminconsole1811/gallery', icon: ImageIcon },
+    { label: 'Brand & Signature', href: '/adminconsole1811/settings', icon: Sliders },
   ];
 
   return (

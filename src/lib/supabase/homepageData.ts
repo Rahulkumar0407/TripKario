@@ -6,19 +6,61 @@ import { testimonials } from '@/data/testimonials';
 import type { Destination, TripPackage, Testimonial } from '@/types';
 import { initialHomepageSections } from '@/lib/admin/seedData';
 
+export interface SiteSettingsData {
+  signatureEnabled: boolean;
+  signatureName: string;
+  signaturePrefix: string;
+  companyName?: string;
+  phone?: string;
+  email?: string;
+  whatsappNumber?: string;
+  address?: string;
+}
+
 export interface HomepageData {
   heroSlides: HeroDestination[];
   destinations: Destination[];
   trips: TripPackage[];
   testimonials: Testimonial[];
   sections: Array<{ key: string; title: string; subtitle?: string; isActive: boolean; order: number }>;
+  settings: SiteSettingsData;
 }
+
+export const defaultSettings: SiteSettingsData = {
+  signatureEnabled: true,
+  signatureName: 'Yashi',
+  signaturePrefix: 'with love,',
+  companyName: 'TripKario',
+  phone: '+91 98765 43210',
+  email: 'hello@tripkario.com',
+  whatsappNumber: '+919876543210',
+  address: 'New Delhi, India',
+};
 
 /**
  * Robust data-access layer for the public homepage.
  * Queries published/active records from Supabase, with automatic graceful fallback to seeded data.
  */
 export async function getHomepageData(): Promise<HomepageData> {
+  // Check local client storage cache first if available
+  let initialClientSettings = { ...defaultSettings };
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = localStorage.getItem('tripkario_site_settings');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          initialClientSettings = {
+            ...initialClientSettings,
+            ...parsed,
+          };
+        }
+      }
+    } catch (e) {
+      // Ignore JSON parse errors
+    }
+  }
+
   // Defaults from approved static repository data
   const fallbackData: HomepageData = {
     heroSlides: heroDestinations,
@@ -26,9 +68,10 @@ export async function getHomepageData(): Promise<HomepageData> {
     trips: tripPackages,
     testimonials: testimonials,
     sections: initialHomepageSections,
+    settings: initialClientSettings,
   };
 
-  // If Supabase URL is mock/empty, return approved static data immediately
+  // If Supabase URL is mock/empty, return approved static data with local client settings
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     process.env.NEXT_PUBLIC_SUPABASE_URL === 'https://mock-tripkario.supabase.co'
@@ -38,7 +81,7 @@ export async function getHomepageData(): Promise<HomepageData> {
 
   try {
     // Parallel fetch of published records
-    const [heroRes, destRes, tripRes, testRes, secRes] = await Promise.allSettled([
+    const [heroRes, destRes, tripRes, testRes, secRes, settingsRes] = await Promise.allSettled([
       supabase
         .from('hero_slides')
         .select('*')
@@ -63,6 +106,11 @@ export async function getHomepageData(): Promise<HomepageData> {
         .from('homepage_sections')
         .select('*')
         .order('display_order', { ascending: true }),
+      supabase
+        .from('site_settings')
+        .select('*')
+        .limit(1)
+        .maybeSingle(),
     ]);
 
     // 01. Transform Hero Slides
@@ -198,12 +246,31 @@ export async function getHomepageData(): Promise<HomepageData> {
       }));
     }
 
+    // 06. Site Settings & Brand Signature
+    let settingsData = fallbackData.settings;
+    if (settingsRes.status === 'fulfilled' && settingsRes.value.data) {
+      const row = settingsRes.value.data;
+      settingsData = {
+        signatureEnabled: row.signature_enabled !== undefined && row.signature_enabled !== null
+          ? Boolean(row.signature_enabled)
+          : initialClientSettings.signatureEnabled,
+        signatureName: row.signature_name || initialClientSettings.signatureName,
+        signaturePrefix: row.signature_prefix || initialClientSettings.signaturePrefix,
+        companyName: row.company_name || initialClientSettings.companyName,
+        phone: row.phone || initialClientSettings.phone,
+        email: row.email || initialClientSettings.email,
+        whatsappNumber: row.whatsapp_number || initialClientSettings.whatsappNumber,
+        address: row.address || initialClientSettings.address,
+      };
+    }
+
     return {
       heroSlides,
       destinations: destList,
       trips: tripList,
       testimonials: testList,
       sections: sectionList,
+      settings: settingsData,
     };
   } catch (e) {
     console.warn('Failed to query Supabase homepage data, falling back gracefully:', e);

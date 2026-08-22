@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Menu, Plus, ExternalLink, Compass, Users, Image as ImageIcon } from 'lucide-react';
 import ImageKitStorageWidget from '@/components/admin/ImageKitStorageWidget';
+import BrandSignatureToggleWidget from '@/components/admin/BrandSignatureToggleWidget';
 import ThemeToggle from '@/components/ThemeToggle';
 
 interface AdminHeaderProps {
@@ -38,8 +39,11 @@ export default function AdminHeader({ onToggleMobileMenu }: AdminHeaderProps) {
         </div>
       </div>
 
-      {/* Right Actions: Theme Toggle, Storage Monitor, Quick Add Dropdown, View Website */}
+      {/* Right Actions: Brand Signature Quick Toggle, Theme Toggle, Storage Monitor, Quick Add Dropdown, View Website */}
       <div className="flex items-center gap-2 sm:gap-3.5">
+        {/* On/Off Quick Toggle for 'with love, [Name]' Signature */}
+        <BrandSignatureToggleWidget />
+
         <ThemeToggle className="bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/15" />
 
         {/* ImageKit Storage Summary Widget */}

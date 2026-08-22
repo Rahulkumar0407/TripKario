@@ -153,6 +153,14 @@ const SCENE_SETTLED = {
 
 interface HeroProps {
   slides?: HeroDestination[];
+  signature?: {
+    enabled?: boolean;
+    name?: string;
+    prefix?: string;
+    signatureEnabled?: boolean;
+    signatureName?: string;
+    signaturePrefix?: string;
+  };
   onOpenPlanTrip: (destination?: string) => void;
   onExploreJourney?: (destination: string) => void;
   onSearch: (filters: {
@@ -163,7 +171,7 @@ interface HeroProps {
   }) => void;
 }
 
-export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearch }: HeroProps) {
+export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourney, onSearch }: HeroProps) {
   const slidesList = slides && slides.length > 0 ? slides : heroDestinations;
   const slideCount = slidesList.length;
 
@@ -735,25 +743,27 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
               </AnimatePresence>
             </div>
 
-            {/* ─── YASHI BRAND SIGNATURE (Brand layer: mounts once, stable across slide transitions) ─── */}
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.5,
-                delay: 0.85,
-                ease: EASE.out as [number, number, number, number],
-              }}
-              className="pt-1 flex items-baseline gap-1.5 select-none"
-              aria-label="with love, Yashi"
-            >
-              <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/55">
-                with love,
-              </span>
-              <span className="text-sm sm:text-[15px] font-serif font-normal text-[#F4A261] tracking-normal">
-                Yashi
-              </span>
-            </motion.div>
+            {/* ─── DYNAMIC BRAND SIGNATURE (Brand layer: mounts once, stable across slide transitions) ─── */}
+            {((signature?.signatureEnabled !== undefined ? signature.signatureEnabled : signature?.enabled) !== false) && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.85,
+                  ease: EASE.out as [number, number, number, number],
+                }}
+                className="pt-1 flex items-baseline gap-1.5 select-none"
+                aria-label={`${signature?.signaturePrefix || signature?.prefix || 'with love,'} ${signature?.signatureName || signature?.name || 'Yashi'}`}
+              >
+                <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/55">
+                  {signature?.signaturePrefix || signature?.prefix || 'with love,'}
+                </span>
+                <span className="text-sm sm:text-[15px] font-serif font-normal text-[#F4A261] tracking-normal">
+                  {signature?.signatureName || signature?.name || 'Yashi'}
+                </span>
+              </motion.div>
+            )}
 
             {/* Brand Wit */}
             <p className="text-[11px] font-mono tracking-[0.06em] text-white/40 max-w-xs">

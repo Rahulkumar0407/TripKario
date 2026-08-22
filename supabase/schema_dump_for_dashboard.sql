@@ -65,6 +65,9 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     logo_url TEXT,
     favicon_url TEXT,
     footer_copyright TEXT DEFAULT '© 2026 TripKario. All rights reserved.',
+    signature_enabled BOOLEAN DEFAULT TRUE,
+    signature_name TEXT DEFAULT 'Yashi',
+    signature_prefix TEXT DEFAULT 'with love,',
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 

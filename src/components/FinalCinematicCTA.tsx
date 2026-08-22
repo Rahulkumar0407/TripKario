@@ -10,9 +10,17 @@ import MagneticButton from './ui/MagneticButton';
 
 interface FinalCinematicCTAProps {
   onOpenPlanTrip: () => void;
+  signature?: {
+    enabled?: boolean;
+    name?: string;
+    prefix?: string;
+    signatureEnabled?: boolean;
+    signatureName?: string;
+    signaturePrefix?: string;
+  };
 }
 
-export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAProps) {
+export default function FinalCinematicCTA({ onOpenPlanTrip, signature }: FinalCinematicCTAProps) {
   return (
     <section className="relative min-h-[460px] sm:min-h-[580px] md:min-h-[700px] flex items-center justify-center overflow-hidden border-t border-[var(--border-subtle)] bg-[#090908]">
       {/* Background Full-Viewport Authentic Mountain Road Landscape */}
@@ -144,66 +152,68 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
           </button>
         </motion.div>
 
-        {/* End-of-Journey Personal Brand Signature: with love, Yashi */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 2.1 }}
-          className="pt-10 flex flex-col items-center justify-center gap-3 select-none"
-        >
-          {/* Connecting route line & endpoint */}
-          <div className="flex items-center gap-2">
-            <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              whileInView={{ width: 44, opacity: 0.4 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 2.1, ease: 'easeOut' }}
-              className="h-[1px] bg-gradient-to-r from-transparent via-[#E46B3B] to-[#E46B3B]"
-            />
-            <motion.span
-              initial={{ scale: 0, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: 2.3, ease: 'easeOut' }}
-              className="w-1.5 h-1.5 rounded-full bg-[#E46B3B] shadow-[0_0_8px_rgba(228,107,59,0.8)]"
-            />
-          </div>
-
-          {/* Signature text: with love, Yashi */}
-          <div
-            tabIndex={0}
-            role="note"
-            aria-label="with love, Yashi"
-            className="group inline-flex items-baseline gap-1.5 cursor-default focus:outline-none transition-all duration-300"
+        {/* End-of-Journey Personal Brand Signature */}
+        {((signature?.signatureEnabled !== undefined ? signature.signatureEnabled : signature?.enabled) !== false) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 2.1 }}
+            className="pt-10 flex flex-col items-center justify-center gap-3 select-none"
           >
-            {/* 'with love,' - small, calm, font-mono */}
-            <motion.span
-              initial={{ opacity: 0, x: -4 }}
-              whileInView={{ opacity: 0.7, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 2.4, ease: 'easeOut' }}
-              className="text-xs sm:text-[13px] font-mono font-normal tracking-wide text-white/60 group-hover:text-white/85 group-focus-visible:text-white/85 transition-colors"
-            >
-              with love,
-            </motion.span>
+            {/* Connecting route line & endpoint */}
+            <div className="flex items-center gap-2">
+              <motion.div
+                initial={{ width: 0, opacity: 0 }}
+                whileInView={{ width: 44, opacity: 0.4 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 2.1, ease: 'easeOut' }}
+                className="h-[1px] bg-gradient-to-r from-transparent via-[#E46B3B] to-[#E46B3B]"
+              />
+              <motion.span
+                initial={{ scale: 0, opacity: 0 }}
+                whileInView={{ scale: 1, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.3, delay: 2.3, ease: 'easeOut' }}
+                className="w-1.5 h-1.5 rounded-full bg-[#E46B3B] shadow-[0_0_8px_rgba(228,107,59,0.8)]"
+              />
+            </div>
 
-            {/* 'Yashi' - elegant, warm gold tone, strictly font-normal (zero italics) */}
-            <motion.span
-              initial={{ opacity: 0, x: 4 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 2.55, ease: 'easeOut' }}
-              className="text-base sm:text-lg font-serif font-normal text-[#F4A261] group-hover:text-[#ED7B4D] group-focus-visible:text-[#ED7B4D] group-hover:tracking-[0.02em] group-focus-visible:tracking-[0.02em] transition-all duration-300"
+            {/* Signature text */}
+            <div
+              tabIndex={0}
+              role="note"
+              aria-label={`${signature?.signaturePrefix || signature?.prefix || 'with love,'} ${signature?.signatureName || signature?.name || 'Yashi'}`}
+              className="group inline-flex items-baseline gap-1.5 cursor-default focus:outline-none transition-all duration-300"
             >
-              Yashi
-            </motion.span>
-          </div>
+              {/* prefix - small, calm, font-mono */}
+              <motion.span
+                initial={{ opacity: 0, x: -4 }}
+                whileInView={{ opacity: 0.7, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 2.4, ease: 'easeOut' }}
+                className="text-xs sm:text-[13px] font-mono font-normal tracking-wide text-white/60 group-hover:text-white/85 group-focus-visible:text-white/85 transition-colors"
+              >
+                {signature?.signaturePrefix || signature?.prefix || 'with love,'}
+              </motion.span>
 
-          <div className="text-[9px] font-mono text-white/25 tracking-widest uppercase">
-            Road into the Himalayas · Ladakh · Photo — Rohit Sharma
-          </div>
-        </motion.div>
+              {/* name - elegant, warm gold tone, strictly font-normal (zero italics) */}
+              <motion.span
+                initial={{ opacity: 0, x: 4 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 2.55, ease: 'easeOut' }}
+                className="text-base sm:text-lg font-serif font-normal text-[#F4A261] group-hover:text-[#ED7B4D] group-focus-visible:text-[#ED7B4D] group-hover:tracking-[0.02em] group-focus-visible:tracking-[0.02em] transition-all duration-300"
+              >
+                {signature?.signatureName || signature?.name || 'Yashi'}
+              </motion.span>
+            </div>
+
+            <div className="text-[9px] font-mono text-white/25 tracking-widest uppercase">
+              Road into the Himalayas · Ladakh · Photo — Rohit Sharma
+            </div>
+          </motion.div>
+        )}
       </div>
     </section>
   );
