@@ -10,8 +10,26 @@ export default function TeamSection() {
   useEffect(() => {
     setMembers(loadClientTeamMembers());
 
+    fetch('/api/admin/team?active=true')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.team)) {
+          setMembers(data.team);
+        }
+      })
+      .catch(() => {});
+
     const handleTeamUpdate = () => {
-      setMembers(loadClientTeamMembers());
+      fetch('/api/admin/team?active=true')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.team)) {
+            setMembers(data.team);
+          }
+        })
+        .catch(() => {
+          setMembers(loadClientTeamMembers());
+        });
     };
 
     window.addEventListener('storage', handleTeamUpdate);

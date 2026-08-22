@@ -33,42 +33,28 @@ export default function AdminTeamPage() {
   const [memberToDelete, setMemberToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isConfirmingRemovePhoto, setIsConfirmingRemovePhoto] = useState(false);
 
-  // Load team data from Supabase, fallback to localStorage
+  // Load team data from authoritative backend API on mount
   useEffect(() => {
     async function loadTeamData() {
       setIsLoading(true);
       try {
-        if (
-          process.env.NEXT_PUBLIC_SUPABASE_URL &&
-          process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
-        ) {
-          const { data, error } = await supabase
-            .from('team_members')
-            .select('*')
-            .order('display_order', { ascending: true });
-
-          if (!error && Array.isArray(data)) {
-            const mapped: SeedTeamMember[] = data.map((row: any, idx: number) => ({
-              id: row.id,
-              name: row.name,
-              role: row.role,
-              bio: row.bio || '',
-              photoUrl: row.photo_url,
-              phone: row.phone || '',
-              email: row.email || '',
-              displayOrder: row.display_order ?? idx + 1,
-              isActive: row.is_active ?? true,
-            }));
-            setTeam(mapped);
+        const res = await fetch('/api/admin/team');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && Array.isArray(data.team)) {
+            setTeam(data.team);
+            try {
+              localStorage.setItem('tripkario_admin_team', JSON.stringify(data.team));
+            } catch (e) {}
             setIsLoading(false);
             return;
           }
         }
       } catch (err) {
-        console.warn('Could not query Supabase team_members table:', err);
+        console.warn('Could not query /api/admin/team:', err);
       }
 
-      // Check persistent localStorage
+      // Check local cache fallback
       try {
         const local = localStorage.getItem('tripkario_admin_team');
         if (local) {
@@ -91,46 +77,9 @@ export default function AdminTeamPage() {
     loadTeamData();
   }, []);
 
-  const persistTeam = async (updatedList: SeedTeamMember[]) => {
-    setTeam(updatedList);
-    try {
-      localStorage.setItem('tripkario_admin_team', JSON.stringify(updatedList));
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('tripkario-team-updated'));
-      }
-    } catch (e) {
-      console.warn('Could not save team to localStorage:', e);
-    }
-
-    // Attempt to persist to Supabase if connected
-    try {
-      if (
-        process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
-      ) {
-        const rows = updatedList.map((m, idx) => ({
-          id: m.id.includes('-') && m.id.length > 20 ? m.id : undefined,
-          name: m.name,
-          role: m.role,
-          bio: m.bio,
-          photo_url: m.photoUrl,
-          phone: m.phone || null,
-          email: m.email || null,
-          display_order: idx + 1,
-          is_active: m.isActive,
-          updated_at: new Date().toISOString(),
-        }));
-
-        await supabase.from('team_members').upsert(rows);
-      }
-    } catch (e) {
-      console.warn('Supabase sync skipped/pending table setup:', e);
-    }
-  };
-
   const handleAddNew = () => {
     const newMember: SeedTeamMember = {
-      id: `tm_${Date.now()}`,
+      id: crypto.randomUUID(),
       name: '',
       role: '',
       bio: '',
@@ -146,7 +95,7 @@ export default function AdminTeamPage() {
 
   const handleSaveMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingMember || !editingMember.name.trim()) return;
+    if (!editingMember || !editingMember.name.trim() || !editingMember.role?.trim()) return;
 
     setSaveStatus('saving');
 
@@ -154,46 +103,77 @@ export default function AdminTeamPage() {
       ...editingMember,
       name: editingMember.name.trim(),
       role: editingMember.role.trim() || 'Trip Specialist',
-      bio: editingMember.bio.trim(),
+      bio: editingMember.bio?.trim() || '',
       photoUrl: editingMember.photoUrl?.trim() || '',
     };
 
-    let updatedList: SeedTeamMember[];
-    if (isCreatingNew) {
-      updatedList = [...team, sanitizedMember];
-    } else {
-      updatedList = team.map((m) => (m.id === sanitizedMember.id ? sanitizedMember : m));
+    try {
+      const res = await fetch('/api/admin/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ member: sanitizedMember }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const savedMember: SeedTeamMember = data.member || sanitizedMember;
+
+        let updatedList: SeedTeamMember[];
+        if (isCreatingNew) {
+          updatedList = [...team, savedMember];
+        } else {
+          updatedList = team.map((m) => (m.id === savedMember.id ? savedMember : m));
+        }
+
+        setTeam(updatedList);
+        try {
+          localStorage.setItem('tripkario_admin_team', JSON.stringify(updatedList));
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new Event('tripkario-team-updated'));
+          }
+        } catch (e) {}
+
+        setSaveStatus('saved');
+        setTimeout(() => {
+          setSaveStatus('idle');
+          setEditingMember(null);
+          setIsCreatingNew(false);
+        }, 600);
+      } else {
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to save team member to backend:', err);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 2000);
     }
-
-    await persistTeam(updatedList);
-    setSaveStatus('saved');
-
-    setTimeout(() => {
-      setSaveStatus('idle');
-      setEditingMember(null);
-      setIsCreatingNew(false);
-    }, 400);
   };
 
   const handleConfirmDelete = async () => {
     if (!memberToDelete) return;
     const { id } = memberToDelete;
 
-    const updatedList = team
-      .filter((m) => m.id !== id)
-      .map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
-
-    await persistTeam(updatedList);
-
     try {
-      if (
-        process.env.NEXT_PUBLIC_SUPABASE_URL &&
-        process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://mock-tripkario.supabase.co'
-      ) {
-        await supabase.from('team_members').delete().eq('id', id);
-      }
-    } catch (e) {
-      // Table might not exist yet
+      await fetch('/api/admin/team', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      const updatedList = team
+        .filter((m) => m.id !== id)
+        .map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
+
+      setTeam(updatedList);
+      try {
+        localStorage.setItem('tripkario_admin_team', JSON.stringify(updatedList));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('tripkario-team-updated'));
+        }
+      } catch (e) {}
+    } catch (err) {
+      console.error('Failed to delete team member from backend:', err);
     }
 
     if (editingMember?.id === id) {
@@ -213,7 +193,20 @@ export default function AdminTeamPage() {
     list[targetIdx] = temp;
 
     const reordered = list.map((m, idx) => ({ ...m, displayOrder: idx + 1 }));
-    await persistTeam(reordered);
+    setTeam(reordered);
+    try {
+      localStorage.setItem('tripkario_admin_team', JSON.stringify(reordered));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('tripkario-team-updated'));
+      }
+      await fetch('/api/admin/team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ members: reordered }),
+      });
+    } catch (err) {
+      console.warn('Failed to persist reordered team:', err);
+    }
   };
 
   const teamCountLabel = String(team.length).padStart(2, '0');

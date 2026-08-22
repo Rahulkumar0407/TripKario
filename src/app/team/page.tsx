@@ -16,10 +16,35 @@ export default function TeamPage() {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   useEffect(() => {
+    // 1. Initial fast display from cache if present
     setMembers(loadClientTeamMembers());
 
+    // 2. Fetch authoritative canonical team from backend
+    fetch('/api/admin/team?active=true')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.team)) {
+          setMembers(data.team);
+          try {
+            localStorage.setItem('tripkario_admin_team', JSON.stringify(data.team));
+          } catch (e) {}
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load team from backend:', err);
+      });
+
     const handleTeamUpdate = () => {
-      setMembers(loadClientTeamMembers());
+      fetch('/api/admin/team?active=true')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.team)) {
+            setMembers(data.team);
+          }
+        })
+        .catch(() => {
+          setMembers(loadClientTeamMembers());
+        });
     };
 
     window.addEventListener('storage', handleTeamUpdate);

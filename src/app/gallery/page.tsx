@@ -17,10 +17,35 @@ export default function GalleryPage() {
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   useEffect(() => {
+    // 1. Initial fast display from cache if present
     setAllImages(loadClientGalleryImages());
 
+    // 2. Fetch authoritative canonical gallery from backend
+    fetch('/api/admin/gallery')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.images)) {
+          setAllImages(data.images);
+          try {
+            localStorage.setItem('tripkario_admin_gallery', JSON.stringify(data.images));
+          } catch (e) {}
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load gallery from backend:', err);
+      });
+
     const handleStorageChange = () => {
-      setAllImages(loadClientGalleryImages());
+      fetch('/api/admin/gallery')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.images)) {
+            setAllImages(data.images);
+          }
+        })
+        .catch(() => {
+          setAllImages(loadClientGalleryImages());
+        });
     };
 
     window.addEventListener('storage', handleStorageChange);

@@ -11,6 +11,10 @@ export interface GalleryImage {
   elevation?: string;
   filmNote?: string;
   rotation?: string;
+  imagekitFileId?: string;
+  displayOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /**

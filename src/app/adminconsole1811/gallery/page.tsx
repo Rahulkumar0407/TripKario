@@ -57,21 +57,30 @@ export default function AdminGalleryPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load persistent gallery from localStorage or default data
+  // Load authoritative gallery from backend API on mount
   useEffect(() => {
-    try {
-      const local = localStorage.getItem('tripkario_admin_gallery');
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (Array.isArray(parsed)) {
-          setImages(parsed);
-          return;
+    fetch('/api/admin/gallery')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.images)) {
+          setImages(data.images);
+          try {
+            localStorage.setItem('tripkario_admin_gallery', JSON.stringify(data.images));
+          } catch (e) {}
         }
-      }
-    } catch (e) {
-      console.warn('Could not load gallery from localStorage:', e);
-    }
-    setImages(defaultGalleryImages);
+      })
+      .catch((err) => {
+        console.warn('Could not load gallery from backend:', err);
+        try {
+          const local = localStorage.getItem('tripkario_admin_gallery');
+          if (local) {
+            const parsed = JSON.parse(local);
+            if (Array.isArray(parsed)) {
+              setImages(parsed);
+            }
+          }
+        } catch (e) {}
+      });
   }, []);
 
   const persistImages = (updatedList: GalleryImage[]) => {
@@ -90,7 +99,7 @@ export default function AdminGalleryPage() {
   const existingLocations = useMemo(() => {
     const map = new Map<string, number>();
     images.forEach((img) => {
-      const loc = img.location.trim();
+      const loc = img.location ? img.location.trim() : '';
       if (loc) {
         map.set(loc, (map.get(loc) || 0) + 1);
       }
@@ -125,13 +134,13 @@ export default function AdminGalleryPage() {
   const displayedImages = useMemo(() => {
     let list = images;
     if (selectedLocationFilter !== 'ALL') {
-      list = list.filter((img) => img.location.trim().toLowerCase() === selectedLocationFilter.toLowerCase());
+      list = list.filter((img) => img.location && img.location.trim().toLowerCase() === selectedLocationFilter.toLowerCase());
     }
     if (gallerySearchQuery.trim()) {
       const q = gallerySearchQuery.toLowerCase();
       list = list.filter(
         (img) =>
-          img.location.toLowerCase().includes(q) ||
+          (img.location && img.location.toLowerCase().includes(q)) ||
           (img.caption && img.caption.toLowerCase().includes(q)) ||
           (img.tripName && img.tripName.toLowerCase().includes(q))
       );
@@ -244,6 +253,7 @@ export default function AdminGalleryPage() {
     setUploadError('');
 
     let finalImageUrl = previewUrl;
+    let uploadedFileId = '';
 
     // If new file selected, upload via server endpoint (ImageKit)
     if (selectedFile) {
@@ -264,9 +274,10 @@ export default function AdminGalleryPage() {
           throw new Error(data.error || 'Upload failed');
         }
         finalImageUrl = data.url;
+        uploadedFileId = data.fileId || '';
       } catch (err: any) {
         console.error('Image upload failed:', err);
-        setUploadError('Could not upload photo. Please check your internet connection and try again.');
+        setUploadError('Could not upload photo to media storage. Please check your internet connection and try again.');
         setIsUploading(false);
         return;
       }
@@ -274,45 +285,67 @@ export default function AdminGalleryPage() {
 
     const tripObj = tripPackages.find((t) => t.id === selectedTripId);
 
-    if (editingImage) {
-      // Update existing photo
-      const updated: GalleryImage = {
-        ...editingImage,
-        imageUrl: finalImageUrl,
-        location: location.trim(),
-        tripId: selectedTripId || undefined,
-        tripName: tripObj ? tripObj.title : (selectedTripId ? editingImage.tripName : undefined),
-        destination: tripObj ? tripObj.destination.toUpperCase() : editingImage.destination,
-        caption: caption.trim() || undefined,
-        alt: `${location.trim()} photograph`,
-      };
-      const updatedList = images.map((img) => (img.id === editingImage.id ? updated : img));
-      persistImages(updatedList);
-    } else {
-      // Create new photo
-      const newImg: GalleryImage = {
-        id: `gal-${Date.now()}`,
-        imageUrl: finalImageUrl,
-        location: location.trim(),
-        destination: tripObj ? tripObj.destination.toUpperCase() : 'INDIA',
-        tripId: selectedTripId || undefined,
-        tripName: tripObj ? tripObj.title : undefined,
-        caption: caption.trim() || undefined,
-        alt: `${location.trim()} travel photograph`,
-        aspect: 'landscape',
-      };
-      persistImages([newImg, ...images]);
-    }
+    const payload: Partial<GalleryImage> = {
+      id: editingImage ? editingImage.id : crypto.randomUUID(),
+      imageUrl: finalImageUrl,
+      location: location.trim(),
+      tripId: selectedTripId || undefined,
+      tripName: tripObj ? tripObj.title : (selectedTripId ? editingImage?.tripName : undefined),
+      caption: caption.trim() || undefined,
+      imagekitFileId: uploadedFileId || editingImage?.imagekitFileId || undefined,
+    };
 
-    setIsUploading(false);
-    setIsModalOpen(false);
+    try {
+      const res = await fetch('/api/admin/gallery', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: payload }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const savedImage: GalleryImage = data.image || payload;
+
+        let updatedList: GalleryImage[];
+        if (editingImage) {
+          updatedList = images.map((img) => (img.id === editingImage.id ? savedImage : img));
+        } else {
+          updatedList = [savedImage, ...images];
+        }
+
+        persistImages(updatedList);
+        setIsUploading(false);
+        setIsModalOpen(false);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setUploadError(errData.error || 'Could not save gallery record to database.');
+        setIsUploading(false);
+      }
+    } catch (err) {
+      console.error('Failed to save gallery photo to database:', err);
+      setUploadError('Database connection error. Could not persist photo metadata.');
+      setIsUploading(false);
+    }
   };
 
   // Delete photo confirmation
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!photoToDelete) return;
-    const updated = images.filter((item) => item.id !== photoToDelete.id);
-    persistImages(updated);
+    const { id } = photoToDelete;
+
+    try {
+      await fetch('/api/admin/gallery', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+
+      const updated = images.filter((item) => item.id !== id);
+      persistImages(updated);
+    } catch (err) {
+      console.error('Failed to delete photo from backend:', err);
+    }
+
     setPhotoToDelete(null);
   };
 

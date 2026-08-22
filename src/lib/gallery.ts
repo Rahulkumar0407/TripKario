@@ -1,4 +1,21 @@
-import { galleryImages as defaultGalleryImages, GalleryImage } from '@/data/gallery';
+export interface GalleryImage {
+  id: string;
+  imageUrl: string;
+  location: string;
+  destination?: string;
+  tripId?: string;
+  tripName?: string;
+  caption?: string;
+  alt?: string;
+  aspect?: 'landscape' | 'portrait' | 'square' | 'panoramic';
+  elevation?: string;
+  filmNote?: string;
+  rotation?: string;
+  imagekitFileId?: string;
+  displayOrder?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface LocationGroup {
   slug: string;
@@ -95,7 +112,7 @@ export function getLocationBySlug(images: GalleryImage[], slug: string): Locatio
 
 /**
  * Loads current canonical gallery images from localStorage if available in browser,
- * otherwise falls back to default gallery images.
+ * otherwise returns an empty array (NO FAKE / MOCK DATA).
  */
 export function loadClientGalleryImages(): GalleryImage[] {
   if (typeof window !== 'undefined') {
@@ -111,5 +128,5 @@ export function loadClientGalleryImages(): GalleryImage[] {
       console.warn('Could not read admin gallery from localStorage:', e);
     }
   }
-  return defaultGalleryImages;
+  return [];
 }

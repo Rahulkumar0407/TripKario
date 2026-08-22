@@ -1,11 +1,18 @@
-import { teamMembers as defaultTeamMembers, TeamMember } from '@/data/team';
-
-export type { TeamMember };
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio?: string;
+  photoUrl?: string | null;
+  phone?: string;
+  email?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}
 
 /**
- * Loads current canonical active team members from localStorage if available in browser,
- * otherwise falls back to default empty team array.
- * Deterministically sorted by displayOrder.
+ * Loads current canonical active team members from localStorage cache if available in browser,
+ * otherwise returns an empty array (NO FAKE / MOCK DATA).
  */
 export function loadClientTeamMembers(): TeamMember[] {
   if (typeof window !== 'undefined') {
@@ -34,5 +41,5 @@ export function loadClientTeamMembers(): TeamMember[] {
       console.warn('Could not read admin team from localStorage:', e);
     }
   }
-  return defaultTeamMembers;
+  return [];
 }
