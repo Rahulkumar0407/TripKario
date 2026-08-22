@@ -32,6 +32,7 @@ import {
 } from '@/data/heroDestinations';
 import type { HeroDestination } from '@/data/heroDestinations';
 import { destinations } from '@/data/destinations';
+import { openWhatsApp } from '@/lib/whatsapp';
 
 // ════════════════════════════════════════════════════════════════
 // TRANSITION DIRECTION & PHYSICAL OVERSHOOT HELPERS
@@ -383,557 +384,547 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
       ref={heroRef}
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
-      className="relative min-h-[105vh] flex flex-col justify-end pb-[12vh] px-4 sm:px-6 md:px-10 overflow-hidden bg-[#090908]"
+      className="relative overflow-hidden bg-[#090908] text-white"
     >
-      {/* ════════════════════════════════════════════
-          LAYER 0: Full-Bleed Photography Viewport
-          TWO-LAYER CINEMATIC TRANSITION SYSTEM
-          ════════════════════════════════════════════ */}
-      <motion.div
-        className="absolute inset-0 z-0 overflow-hidden cursor-grab active:cursor-grabbing"
-        style={{ scale: imgExitScale }}
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.12}
-        onDragEnd={handleDragEnd}
-      >
-        {/* ── EXITING SCENE (visible only during transition) ── */}
-        <AnimatePresence>
-          {exiting && exitingIdx !== null && (
-            <motion.div
-              key={`exit-${exitingIdx}`}
-              className="absolute inset-0 z-0"
-              initial={false}
-              animate={exitAnimate}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: HERO_TRANSITION_DURATION,
-                ease: EASE.out as [number, number, number, number],
-              }}
+      {/* ════════════════════════════════════════════════════════════════
+          MOBILE COMPOSITION (< 1024px)
+          Fast, thumb-friendly, beautiful travel app composition
+          Structure: NAV -> PHOTOGRAPH -> METADATA -> HEADLINE -> COPY -> CTAs -> QUICK PILLS -> SEARCH
+          ════════════════════════════════════════════════════════════════ */}
+      <div className="lg:hidden relative z-10 flex flex-col justify-between pt-20 pb-8 px-4 sm:px-6 min-h-[92vh] sm:min-h-screen">
+        {/* 01. Mobile Photograph Viewport */}
+        <div className="relative w-full h-[40vh] sm:h-[46vh] min-h-[260px] max-h-[380px] rounded-3xl overflow-hidden shadow-2xl border border-white/15 bg-black/40">
+          <Image
+            src={current.image}
+            alt={current.alt}
+            fill
+            priority
+            sizes="100vw"
+            style={{ objectPosition: current.focalPosition }}
+            className="object-cover transition-opacity duration-300"
+          />
+          {/* Subtle protective gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
+
+          {/* Top Floating Badges */}
+          <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between pointer-events-none z-10">
+            <span className="px-3 py-1 rounded-full bg-[#E46B3B] text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-md">
+              {current.destination}
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-mono border border-white/20">
+              {current.duration}
+            </span>
+          </div>
+
+          {/* Bottom Route Bar */}
+          <div className="absolute bottom-3 left-4 right-4 text-white pointer-events-none z-10 flex items-center justify-between text-[11px] font-mono">
+            <span className="flex items-center gap-1.5 text-[#FFAA70] font-semibold truncate drop-shadow-sm">
+              <MapPin className="w-3 h-3 shrink-0" />
+              <span className="truncate">{current.routeString}</span>
+            </span>
+            <span className="text-[10px] text-white/70 font-mono pl-2 shrink-0">
+              {current.region}
+            </span>
+          </div>
+        </div>
+
+        {/* 02. Mobile Typography & Primary Actions */}
+        <div className="space-y-4 pt-4">
+          <div className="space-y-1.5">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E46B3B]" />
+              <span>{current.destination} · {current.contactSheet}</span>
+            </span>
+
+            <h1 className="text-3xl sm:text-4xl font-serif font-normal leading-[1.08] tracking-tight text-white">
+              Where will you <span className="text-[#FF8A50]">go next?</span>
+            </h1>
+
+            <p className="text-xs sm:text-sm text-white/80 font-normal leading-relaxed line-clamp-2">
+              Verified boutique stays, dedicated private chauffeurs, and curated itineraries across India.
+            </p>
+          </div>
+
+          {/* Primary & Secondary CTAs */}
+          <div className="grid grid-cols-2 gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={() => onOpenPlanTrip(current.destination)}
+              className="h-12 px-4 rounded-2xl bg-[#E46B3B] hover:bg-[#ED7B4D] active:scale-[0.98] text-white text-xs font-bold tracking-wide transition-all shadow-lg flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation"
             >
+              <span>Find My Trip</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                openWhatsApp(
+                  `Hi TripKario! I am interested in planning a trip to ${current.destination}. Please help me with curated stays and private transport.`
+                );
+              }}
+              className="h-12 px-4 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-[0.98] border border-white/25 text-white text-xs font-bold tracking-wide transition-all flex items-center justify-center gap-1.5 cursor-pointer touch-manipulation"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+              <span>WhatsApp</span>
+            </button>
+          </div>
+
+          {/* Destination Quick Selector Strip */}
+          <div className="pt-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+              {slidesList.map((dest, i) => {
+                const isActive = i === activeIdx;
+                return (
+                  <button
+                    key={dest.id}
+                    type="button"
+                    onClick={() => goTo(i, i > activeIdx ? 'next' : 'prev', true)}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-mono tracking-wider transition-all cursor-pointer shrink-0 flex items-center gap-1 touch-manipulation ${
+                      isActive
+                        ? 'bg-[#E46B3B] text-white font-bold shadow-md'
+                        : 'bg-white/10 hover:bg-white/15 text-white/80 border border-white/15'
+                    }`}
+                  >
+                    <span
+                      className={`w-1 h-1 rounded-full ${
+                        isActive ? 'bg-white' : 'bg-white/40'
+                      }`}
+                    />
+                    <span>{dest.destination}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Search Trigger Button */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => onOpenPlanTrip()}
+              className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-left flex items-center gap-3 cursor-pointer shadow-lg active:scale-[0.98] transition-all touch-manipulation"
+            >
+              <div className="w-8 h-8 rounded-xl bg-[#E46B3B]/25 text-[#FF8A50] flex items-center justify-center shrink-0">
+                <Search className="w-4 h-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="block text-[9px] font-mono uppercase tracking-wider text-white/60 font-bold">
+                  WHERE ARE YOU GOING?
+                </span>
+                <span className="block text-xs text-white font-medium truncate">
+                  Search destinations across India →
+                </span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════════════════════════
+          DESKTOP COMPOSITION (>= 1024px)
+          Full-bleed cinematic layers with physical depth & glass controls
+          ════════════════════════════════════════════════════════════════ */}
+      <div className="hidden lg:flex min-h-[105vh] flex-col justify-end pb-[12vh] px-6 md:px-10 relative">
+        {/* ── LAYER 0: Full-Bleed Photography Viewport ── */}
+        <motion.div
+          className="absolute inset-0 z-0 overflow-hidden cursor-grab active:cursor-grabbing"
+          style={{ scale: imgExitScale }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.12}
+          onDragEnd={handleDragEnd}
+        >
+          {/* ── EXITING SCENE (visible only during transition) ── */}
+          <AnimatePresence>
+            {exiting && exitingIdx !== null && (
               <motion.div
-                className="absolute inset-0"
-                animate={{
-                  x: mouseParallax.x * 3,
-                  y: mouseParallax.y * 2,
+                key={`exit-${exitingIdx}`}
+                className="absolute inset-0 z-0"
+                initial={false}
+                animate={exitAnimate}
+                exit={{ opacity: 0 }}
+                transition={{
+                  duration: HERO_TRANSITION_DURATION,
+                  ease: EASE.out as [number, number, number, number],
                 }}
-                transition={{ type: 'spring', stiffness: 80, damping: 40 }}
               >
-                <Image
-                  src={exiting.image}
-                  alt={exiting.alt}
-                  fill
-                  sizes="100vw"
-                  style={{ objectPosition: exiting.focalPosition }}
-                  className="object-cover"
+                <motion.div
+                  className="absolute inset-0"
+                  animate={{
+                    x: mouseParallax.x * 3,
+                    y: mouseParallax.y * 2,
+                  }}
+                  transition={{ type: 'spring', stiffness: 80, damping: 40 }}
+                >
+                  <Image
+                    src={exiting.image}
+                    alt={exiting.alt}
+                    fill
+                    sizes="100vw"
+                    style={{ objectPosition: exiting.focalPosition }}
+                    className="object-cover"
+                  />
+                </motion.div>
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      'linear-gradient(to right, rgba(9,9,8,0.92) 0%, rgba(9,9,8,0.82) 28%, rgba(9,9,8,0.48) 48%, rgba(9,9,8,0.12) 68%, rgba(9,9,8,0) 100%), linear-gradient(to top, #090908 0%, rgba(9,9,8,0.82) 10%, rgba(9,9,8,0.25) 24%, transparent 40%)',
+                  }}
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background:
+                      'radial-gradient(ellipse 70% 70% at 18% 46%, rgba(9,9,8,0.65) 0%, rgba(9,9,8,0.25) 50%, transparent 80%)',
+                  }}
                 />
               </motion.div>
-              {/* Responsive Cinematic Directional Overlays */}
-              {/* Desktop: Left-to-Right gradient (dark text zone on left -> crystal clear photograph on right) */}
-              <div
-                className="hidden lg:block absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'linear-gradient(to right, rgba(9,9,8,0.92) 0%, rgba(9,9,8,0.82) 28%, rgba(9,9,8,0.48) 48%, rgba(9,9,8,0.12) 68%, rgba(9,9,8,0) 100%), linear-gradient(to top, #090908 0%, rgba(9,9,8,0.82) 10%, rgba(9,9,8,0.25) 24%, transparent 40%)',
+            )}
+          </AnimatePresence>
+
+          {/* ── ENTERING / CURRENT SCENE ── */}
+          <motion.div
+            key={`scene-${activeIdx}`}
+            className="absolute inset-0 z-[1] hero-camera-breathe"
+            initial={isTransitioning ? enterInitial : false}
+            animate={isTransitioning ? enterAnimate : SCENE_SETTLED}
+            transition={{
+              duration: HERO_TRANSITION_DURATION,
+              times: isTransitioning ? [0, 0.78, 1] : undefined,
+              ease: EASE.out as [number, number, number, number],
+            }}
+          >
+            <motion.div
+              className="absolute inset-0"
+              animate={{
+                x: mouseParallax.x * 4,
+                y: mouseParallax.y * 3,
+              }}
+              transition={{ type: 'spring', stiffness: 80, damping: 40 }}
+            >
+              <Image
+                src={current.image}
+                alt={current.alt}
+                fill
+                priority
+                sizes="100vw"
+                style={{ objectPosition: current.focalPosition }}
+                className="object-cover"
+                onError={() => {
+                  if (lastValidIdx.current !== activeIdx) {
+                    setActiveIdx(lastValidIdx.current);
+                  }
                 }}
-              />
-              {/* Desktop Localized Text Focus Zone */}
-              <div
-                className="hidden lg:block absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'radial-gradient(ellipse 70% 70% at 18% 46%, rgba(9,9,8,0.65) 0%, rgba(9,9,8,0.25) 50%, transparent 80%)',
-                }}
-              />
-              {/* Mobile: Top-to-Bottom gradient (visible image on top -> dark text zone at bottom) */}
-              <div
-                className="lg:hidden block absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'linear-gradient(to bottom, rgba(9,9,8,0.30) 0%, transparent 18%, rgba(9,9,8,0.35) 45%, rgba(9,9,8,0.85) 70%, #090908 100%)',
-                }}
-              />
-              {/* Exiting atmosphere wash — slides toward exit edge */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none"
-                initial={{ opacity: 0.4 }}
-                animate={{ opacity: 0 }}
-                transition={{ duration: HERO_TRANSITION_DURATION * 0.8 }}
-                style={{ backgroundColor: exiting.atmosphereWash }}
               />
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        {/* ── ENTERING / CURRENT SCENE ── */}
-        <motion.div
-          key={`scene-${activeIdx}`}
-          className="absolute inset-0 z-[1] hero-camera-breathe"
-          initial={isTransitioning ? enterInitial : false}
-          animate={isTransitioning ? enterAnimate : SCENE_SETTLED}
-          transition={{
-            duration: HERO_TRANSITION_DURATION,
-            times: isTransitioning ? [0, 0.78, 1] : undefined,
-            ease: EASE.out as [number, number, number, number],
-          }}
-        >
-          {/* Parallax Image */}
-          <motion.div
-            className="absolute inset-0"
-            animate={{
-              x: mouseParallax.x * 4,
-              y: mouseParallax.y * 3,
-            }}
-            transition={{ type: 'spring', stiffness: 80, damping: 40 }}
-          >
-            <Image
-              src={current.image}
-              alt={current.alt}
-              fill
-              priority
-              sizes="100vw"
-              style={{ objectPosition: current.focalPosition }}
-              className="object-cover"
-              onError={() => {
-                // If image fails to load, revert to last valid
-                if (lastValidIdx.current !== activeIdx) {
-                  setActiveIdx(lastValidIdx.current);
-                }
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'linear-gradient(to right, rgba(9,9,8,0.92) 0%, rgba(9,9,8,0.80) 28%, rgba(9,9,8,0.45) 48%, rgba(9,9,8,0.10) 68%, rgba(9,9,8,0) 100%), linear-gradient(to top, #090908 0%, rgba(9,9,8,0.82) 10%, rgba(9,9,8,0.22) 24%, transparent 40%)',
               }}
+            />
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(ellipse 70% 70% at 18% 46%, rgba(9,9,8,0.65) 0%, rgba(9,9,8,0.25) 50%, transparent 80%)',
+              }}
+            />
+
+            <div
+              className="absolute inset-0 bg-grain pointer-events-none"
+              style={{ opacity: 0.12 }}
             />
           </motion.div>
-
-          {/* ── Responsive Cinematic Directional Overlays ── */}
-          {/* Desktop: Left-to-Right directional gradient (left 35-40% dark for typography -> right half 100% transparent & visible photograph) */}
-          <div
-            className="hidden lg:block absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                'linear-gradient(to right, rgba(9,9,8,0.92) 0%, rgba(9,9,8,0.80) 28%, rgba(9,9,8,0.45) 48%, rgba(9,9,8,0.10) 68%, rgba(9,9,8,0) 100%), linear-gradient(to top, #090908 0%, rgba(9,9,8,0.82) 10%, rgba(9,9,8,0.22) 24%, transparent 40%)',
-            }}
-          />
-          {/* Desktop Localized Text Focus Zone */}
-          <div
-            className="hidden lg:block absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                'radial-gradient(ellipse 70% 70% at 18% 46%, rgba(9,9,8,0.65) 0%, rgba(9,9,8,0.25) 50%, transparent 80%)',
-            }}
-          />
-
-          {/* Mobile: Top-to-Bottom directional gradient (photograph clear on top -> rich dark contrast for text at bottom) */}
-          <div
-            className="lg:hidden block absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                'linear-gradient(to bottom, rgba(9,9,8,0.30) 0%, transparent 18%, rgba(9,9,8,0.35) 45%, rgba(9,9,8,0.85) 70%, #090908 100%)',
-            }}
-          />
-
-          {/* Subtle Destination atmosphere tint */}
-          <motion.div
-            key={`tint-${current.id}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.12 }}
-            transition={{ duration: 0.8 }}
-            className="absolute inset-0 pointer-events-none"
-            style={{ backgroundColor: current.atmosphereColor }}
-          />
-
-          {/* Entering atmosphere wash — arrives with the scene */}
-          {isTransitioning && (
-            <motion.div
-              className="absolute inset-0 pointer-events-none"
-              initial={{ opacity: 0.3 }}
-              animate={{ opacity: 0 }}
-              transition={{
-                duration: HERO_TRANSITION_DURATION,
-                delay: 0.25,
-              }}
-              style={{ backgroundColor: current.atmosphereWash }}
-            />
-          )}
-
-          {/* Restrained photographic film grain */}
-          <div
-            className="absolute inset-0 bg-grain pointer-events-none"
-            style={{ opacity: 0.12 }}
-          />
         </motion.div>
-      </motion.div>
 
-      {/* ════════════════════════════════════════════
-          LAYER 2: Foreground Content
-          Stable headline + staggered destination story
-          Choreography: IMAGE -> CONTEXT -> INFO -> ACTION
-          ════════════════════════════════════════════ */}
-      <div className="relative z-20 max-w-[1400px] mx-auto w-full flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-12 pt-32">
-        {/* ── Left Column: Permanent Headline + Dynamic Destination ── */}
-        <motion.div
-          className="max-w-3xl space-y-5"
-          style={{ y: headingExitY, opacity: headingExitOpacity }}
-          animate={{
-            x: mouseParallax.x * 8,
-            y: mouseParallax.y * 6,
-          }}
-          transition={{ type: 'spring', stiffness: 80, damping: 35 }}
-        >
-          {/* ─── STABLE HEADLINE (animates once on mount, then stays) ─── */}
-          <h1>
-            <span className="block overflow-hidden">
-              <motion.span
-                initial={{ y: '110%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.2,
-                  ease: EASE.out as [number, number, number, number],
-                }}
-                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
+        {/* ── LAYER 2: Foreground Content ── */}
+        <div className="relative z-20 max-w-[1400px] mx-auto w-full flex flex-row items-end justify-between gap-12 pt-32">
+          {/* Left Column: Stable Headline */}
+          <motion.div
+            className="max-w-3xl space-y-5"
+            style={{ y: headingExitY, opacity: headingExitOpacity }}
+            animate={{
+              x: mouseParallax.x * 8,
+              y: mouseParallax.y * 6,
+            }}
+            transition={{ type: 'spring', stiffness: 80, damping: 35 }}
+          >
+            <h1>
+              <span className="block overflow-hidden">
+                <motion.span
+                  initial={{ y: '110%', opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{
+                    duration: 0.8,
+                    delay: 0.2,
+                    ease: EASE.out as [number, number, number, number],
+                  }}
+                  className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-white drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
+                >
+                  Where will you
+                </motion.span>
+              </span>
+
+              <span className="block overflow-hidden">
+                <motion.span
+                  initial={{ y: '110%', opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{
+                    duration: 0.8,
+                    delay: 0.4,
+                    ease: EASE.out as [number, number, number, number],
+                  }}
+                  className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-[#FF8A50] drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
+                >
+                  go next?
+                </motion.span>
+              </span>
+            </h1>
+
+            {/* Staggered Destination Info */}
+            <div className="space-y-2 pt-1 min-h-[54px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={current.id}
+                  initial={{ opacity: 0, x: contentEnterX }}
+                  animate={{
+                    opacity: 1,
+                    x: anticipationOffset,
+                  }}
+                  exit={{ opacity: 0, x: contentExitX }}
+                  transition={{
+                    duration: 0.45,
+                    ease: EASE.out as [number, number, number, number],
+                  }}
+                  className="space-y-2"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.06,
+                      ease: EASE.out as [number, number, number, number],
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-md"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A50]" />
+                    <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
+                      {current.destination}
+                    </span>
+                    <span className="text-white/40 text-xs">·</span>
+                    <span className="text-[11px] font-mono text-white/90 font-medium">
+                      {current.region}
+                    </span>
+                  </motion.div>
+
+                  <p className="text-base text-white/90 font-light leading-relaxed max-w-xl drop-shadow-[0_1px_8px_rgba(0,0,0,0.8)]">
+                    {current.caption}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Primary Action Buttons */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <MagneticButton
+                onClick={() => onOpenPlanTrip(current.destination)}
+                className="px-7 h-[48px] rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl shadow-black/60 text-[13px] font-bold tracking-wide transition-all border border-white/20"
               >
-                Where will you
-              </motion.span>
-            </span>
+                <span>Find My Trip</span>
+                <ArrowRight className="w-4 h-4 ml-1.5" />
+              </MagneticButton>
 
-            <span className="block overflow-hidden">
-              <motion.span
-                initial={{ y: '110%', opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{
-                  duration: 0.8,
-                  delay: 0.4,
-                  ease: EASE.out as [number, number, number, number],
+              <MagneticButton
+                onClick={() => {
+                  window.open(
+                    `https://wa.me/919999999999?text=${encodeURIComponent(
+                      'Hi TripKario! I am interested in planning a trip.'
+                    )}`,
+                    '_blank'
+                  );
                 }}
-                className="block text-[clamp(2.8rem,7vw+0.5rem,7.5rem)] font-serif font-normal leading-[0.95] tracking-[-0.02em] text-[#FF8A50] drop-shadow-[0_2px_24px_rgba(0,0,0,0.75)]"
+                className="px-5 h-[48px] rounded-full text-white text-[13px] font-bold tracking-wide border border-white/40 bg-black/60 hover:bg-black/80 hover:border-white/70 backdrop-blur-md shadow-xl shadow-black/50 transition-all"
               >
-                go next?
-              </motion.span>
-            </span>
-          </h1>
+                <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
+                <span>Talk to an Expert</span>
+              </MagneticButton>
+            </div>
+          </motion.div>
 
-          {/* ─── STAGGERED DESTINATION INFO (changes with scene) ─── */}
-          <div className="space-y-2 pt-1 min-h-[54px]">
+          {/* Right Column: Glass Journey Note + Controls */}
+          <motion.div
+            className="mb-1 flex flex-col items-end gap-4"
+            style={{ y: infoExitY, opacity: infoExitOpacity }}
+            animate={{
+              x: mouseParallax.x * 10,
+              y: mouseParallax.y * 8,
+            }}
+            transition={{ type: 'spring', stiffness: 80, damping: 35 }}
+          >
             <AnimatePresence mode="wait">
               <motion.div
-                key={current.id}
-                initial={{ opacity: 0, x: contentEnterX }}
-                animate={{
-                  opacity: 1,
-                  x: anticipationOffset,
+                key={`note-${current.id}`}
+                initial={{
+                  opacity: 0,
+                  x: direction === 'next' ? 22 : -22,
                 }}
-                exit={{ opacity: 0, x: contentExitX }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{
+                  opacity: 0,
+                  x: direction === 'next' ? -22 : 22,
+                }}
                 transition={{
                   duration: 0.45,
                   ease: EASE.out as [number, number, number, number],
                 }}
-                className="space-y-2"
               >
-                {/* 1. Destination Label (50-80ms behind image) */}
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.4,
-                    delay: 0.06,
-                    ease: EASE.out as [number, number, number, number],
-                  }}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-md"
+                <GlassSurface
+                  variant="dark"
+                  enableRefraction
+                  rounded="2xl"
+                  className="p-5 text-white w-[310px] shadow-2xl border border-white/20 bg-black/60 backdrop-blur-xl space-y-2.5"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A50]" />
-                  <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
-                    {current.destination}
-                  </span>
-                  <span className="text-white/40 text-xs">·</span>
-                  <span className="text-[11px] font-mono text-white/90 font-medium">
-                    {current.region}
-                  </span>
-                </motion.div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
+                      {current.destination}
+                    </span>
+                    <span className="text-[10px] font-mono text-white/85 font-medium px-2 py-0.5 rounded-full bg-white/10 border border-white/10">
+                      {current.duration}
+                    </span>
+                  </div>
 
-                {/* 2. Description (80-120ms behind image) */}
-                <motion.p
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.45,
-                    delay: 0.1,
-                    ease: EASE.out as [number, number, number, number],
-                  }}
-                  className="text-[14px] sm:text-base text-white/95 max-w-md leading-relaxed font-normal drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
-                >
-                  {current.caption}
-                </motion.p>
+                  <div className="text-[11px] font-mono text-white/90 truncate font-medium flex items-center gap-1.5 pt-0.5">
+                    <MapPin className="w-3 h-3 text-[#FFAA70] shrink-0" />
+                    <span className="truncate">{current.routeString}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onExploreJourney) {
+                        onExploreJourney(current.destination);
+                      } else {
+                        onOpenPlanTrip(current.destination);
+                      }
+                    }}
+                    className="w-full text-center text-[11px] font-semibold tracking-wide text-[#FF8A50] hover:text-white hover:bg-white/10 transition-all py-2 rounded-xl border border-white/15 cursor-pointer flex items-center justify-center gap-1.5 mt-1"
+                  >
+                    <span>Explore journey</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </GlassSurface>
               </motion.div>
             </AnimatePresence>
-          </div>
 
-          {/* ─── YASHI BRAND SIGNATURE (Brand layer: mounts once, stable across slide transitions) ─── */}
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.5,
-              delay: 0.85,
-              ease: EASE.out as [number, number, number, number],
-            }}
-            className="pt-1 select-none"
-            aria-label="with love, Yashi"
-          >
-            <div className="inline-flex items-baseline gap-1.5 px-3 py-1 rounded-full bg-black/45 backdrop-blur-md border border-white/15 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-              <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/90">
-                with love,
-              </span>
-              <span className="text-sm sm:text-[15px] font-serif text-[#FFAA70] tracking-normal font-semibold">
-                Yashi
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Brand Wit */}
-          <p className="text-[11px] font-mono tracking-[0.06em] text-white/80 max-w-xs drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
-            Planning a trip shouldn&apos;t require 47 WhatsApp messages.
-          </p>
-
-          {/* CTAs (150-220ms behind image) */}
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.5,
-              delay: 0.18,
-              ease: EASE.out as [number, number, number, number],
-            }}
-            className="flex flex-wrap items-center gap-3 pt-2"
-          >
-            <MagneticButton
-              onClick={() => onOpenPlanTrip(current.destination)}
-              className="px-7 h-[48px] rounded-full bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-xl shadow-black/60 text-[13px] font-bold tracking-wide transition-all border border-white/20"
-            >
-              <span>Find My Trip</span>
-              <ArrowRight className="w-4 h-4 ml-1.5" />
-            </MagneticButton>
-
-            <MagneticButton
-              onClick={() => {
-                window.open(
-                  `https://wa.me/919999999999?text=${encodeURIComponent(
-                    'Hi TripKario! I am interested in planning a trip.'
-                  )}`,
-                  '_blank'
-                );
-              }}
-              className="px-5 h-[48px] rounded-full text-white text-[13px] font-bold tracking-wide border border-white/40 bg-black/60 hover:bg-black/80 hover:border-white/70 backdrop-blur-md shadow-xl shadow-black/50 transition-all"
-            >
-              <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
-              <span>Talk to an Expert</span>
-            </MagneticButton>
-          </motion.div>
-        </motion.div>
-
-        {/* ── Right Column: Glass Journey Note + Nav Controls ── */}
-        <motion.div
-          className="lg:mb-1 flex flex-col items-start sm:items-end gap-4"
-          style={{ y: infoExitY, opacity: infoExitOpacity }}
-          animate={{
-            x: mouseParallax.x * 10,
-            y: mouseParallax.y * 8,
-          }}
-          transition={{ type: 'spring', stiffness: 80, damping: 35 }}
-        >
-          {/* ─── GLASS JOURNEY NOTE ─── */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`note-${current.id}`}
-              initial={{
-                opacity: 0,
-                x: direction === 'next' ? 22 : -22,
-              }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{
-                opacity: 0,
-                x: direction === 'next' ? -22 : 22,
-              }}
-              transition={{
-                duration: 0.45,
-                ease: EASE.out as [number, number, number, number],
-              }}
-            >
-              <GlassSurface
-                variant="dark"
-                enableRefraction
-                rounded="2xl"
-                className="p-4 sm:p-5 text-white w-[280px] sm:w-[310px] shadow-2xl border border-white/20 bg-black/60 backdrop-blur-xl space-y-2.5"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
-                    {current.destination}
-                  </span>
-                  <span className="text-[10px] font-mono text-white/85 font-medium px-2 py-0.5 rounded-full bg-white/10 border border-white/10">
-                    {current.duration}
-                  </span>
+            {/* Desktop Prev / Next & Progress Bar */}
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end gap-1 min-w-[84px]">
+                <div className="overflow-hidden h-[18px]">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={`navtitle-${current.id}`}
+                      initial={{ opacity: 0, y: isNext ? 8 : -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: isNext ? -8 : 8 }}
+                      transition={{
+                        duration: 0.3,
+                        ease: EASE.out as [number, number, number, number],
+                      }}
+                      className="block text-[11px] font-mono tracking-[0.2em] text-white font-bold uppercase tabular-nums"
+                    >
+                      {current.destination}
+                    </motion.span>
+                  </AnimatePresence>
                 </div>
 
-                {/* Route (100-150ms behind) */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.12, duration: 0.35 }}
-                  className="text-[11px] font-mono text-white/90 truncate font-medium flex items-center gap-1.5 pt-0.5"
-                >
-                  <MapPin className="w-3 h-3 text-[#FFAA70] shrink-0" />
-                  <span className="truncate">{current.routeString}</span>
-                </motion.div>
-
-                {/* CTA Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onExploreJourney) {
-                      onExploreJourney(current.destination);
-                    } else {
-                      onOpenPlanTrip(current.destination);
-                    }
-                  }}
-                  className="w-full text-center text-[11px] font-semibold tracking-wide text-[#FF8A50] hover:text-white hover:bg-white/10 transition-all py-2 rounded-xl border border-white/15 cursor-pointer flex items-center justify-center gap-1.5 mt-1"
-                >
-                  <span>Explore journey</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </GlassSurface>
-            </motion.div>
-
-          </AnimatePresence>
-
-          {/* ─── COMPACT GLASS CONTROLS + DESTINATION TITLE TRANSITION ─── */}
-          <div className="flex items-center gap-4">
-            {/* Sliding Destination Title & Contact Sheet (Section 21) */}
-            <div className="flex flex-col items-end gap-1 min-w-[84px]">
-              <div className="overflow-hidden h-[18px]">
-                <AnimatePresence mode="wait">
-                  <motion.span
-                    key={`navtitle-${current.id}`}
-                    initial={{ opacity: 0, y: isNext ? 8 : -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: isNext ? -8 : 8 }}
-                    transition={{
-                      duration: 0.3,
-                      ease: EASE.out as [number, number, number, number],
-                    }}
-                    className="block text-[11px] font-mono tracking-[0.2em] text-white font-bold uppercase tabular-nums"
-                  >
-                    {current.destination}
-                  </motion.span>
-                </AnimatePresence>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono tracking-[0.15em] text-white/50 tabular-nums">
+                    {current.contactSheet}
+                  </span>
+                  <div className="w-16 h-[1.5px] bg-white/15 rounded-full overflow-hidden">
+                    <div
+                      key={`hero-progress-${activeIdx}`}
+                      className="h-full bg-[#E46B3B]"
+                      style={{
+                        animation: isPaused || isTransitioning ? 'none' : `progressAnim ${HERO_AUTOPLAY_MS}ms linear forwards`,
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono tracking-[0.15em] text-white/50 tabular-nums">
-                  {current.contactSheet}
-                </span>
-                {/* 1.5px Progress Line (Section 11) */}
-                <div className="w-16 h-[1.5px] bg-white/15 rounded-full overflow-hidden">
-                  <div
-                    key={`hero-progress-${activeIdx}`}
-                    className="h-full bg-[#E46B3B]"
-                    style={{
-                      animation: isPaused || isTransitioning ? 'none' : `progressAnim ${HERO_AUTOPLAY_MS}ms linear forwards`,
-                    }}
-                  />
-                </div>
+                <MagneticButton
+                  onClick={() => prevScene(true)}
+                  aria-label="Previous destination"
+                  className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                </MagneticButton>
+
+                <MagneticButton
+                  onClick={() => nextScene(true)}
+                  aria-label="Next destination"
+                  className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
+                >
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </MagneticButton>
               </div>
             </div>
+          </motion.div>
+        </div>
 
-            {/* Prev / Next Buttons */}
-            <div className="flex items-center gap-2">
-              <MagneticButton
-                onClick={() => prevScene(true)}
-                aria-label="Previous destination"
-                className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-              </MagneticButton>
-
-              <MagneticButton
-                onClick={() => nextScene(true)}
-                aria-label="Next destination"
-                className="w-9 h-9 rounded-full glass-surface flex items-center justify-center text-white/80 hover:text-white hover:border-[#E46B3B]/50 shadow-lg cursor-pointer"
-              >
-                <ArrowRight className="w-3.5 h-3.5" />
-              </MagneticButton>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ════════════════════════════════════════════
-          LAYER 3: Destination Switcher & Search Dock
-          ════════════════════════════════════════════ */}
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{
-          duration: 0.6,
-          delay: 0.6,
-          ease: EASE.out as [number, number, number, number],
-        }}
-        style={{ y: searchExitY, opacity: searchExitOpacity }}
-        className="relative z-30 max-w-4xl mx-auto w-full mt-6 space-y-3"
-      >
-        {/* Destination Quick Selector Strip */}
-        <div className="flex items-center justify-center sm:justify-start gap-1.5 overflow-x-auto no-scrollbar py-1">
-          {heroDestinations.map((dest, i) => {
-            const isActive = i === activeIdx;
-            return (
-              <button
-                key={dest.id}
-                type="button"
-                onClick={() => goTo(i, i > activeIdx ? 'next' : 'prev', true)}
-                className={`group relative px-3.5 py-1.5 rounded-full text-[11px] font-mono tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isActive
-                    ? 'bg-[#E46B3B] text-white font-bold shadow-lg shadow-[#E46B3B]/30'
-                    : 'bg-black/35 hover:bg-black/60 text-white/70 hover:text-white border border-white/10 hover:border-white/25 backdrop-blur-md'
-                }`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full transition-all ${
+        {/* ── LAYER 3: Desktop Search Bar Dock ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{
+            duration: 0.6,
+            delay: 0.6,
+            ease: EASE.out as [number, number, number, number],
+          }}
+          style={{ y: searchExitY, opacity: searchExitOpacity }}
+          className="relative z-30 max-w-4xl mx-auto w-full mt-6 space-y-3"
+        >
+          {/* Destination Quick Selector Strip */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+            {slidesList.map((dest, i) => {
+              const isActive = i === activeIdx;
+              return (
+                <button
+                  key={dest.id}
+                  type="button"
+                  onClick={() => goTo(i, i > activeIdx ? 'next' : 'prev', true)}
+                  className={`group relative px-3.5 py-1.5 rounded-full text-[11px] font-mono tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 ${
                     isActive
-                      ? 'bg-white scale-110'
-                      : 'bg-white/30 group-hover:bg-white/60'
+                      ? 'bg-[#E46B3B] text-white font-bold shadow-lg shadow-[#E46B3B]/30'
+                      : 'bg-black/35 hover:bg-black/60 text-white/70 hover:text-white border border-white/10 hover:border-white/25 backdrop-blur-md'
                   }`}
-                />
-                <span>{dest.destination}</span>
-                {isActive && (
-                  <span className="text-[9px] opacity-80 pl-0.5">
-                    {dest.contactSheet}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      isActive
+                        ? 'bg-white scale-110'
+                        : 'bg-white/30 group-hover:bg-white/60'
+                    }`}
+                  />
+                  <span>{dest.destination}</span>
+                  {isActive && (
+                    <span className="text-[9px] opacity-80 pl-0.5">
+                      {dest.contactSheet}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Mobile: single prominent search CTA */}
-        <div className="sm:hidden">
-          <button
-            type="button"
-            onClick={() => onOpenPlanTrip()}
-            className="w-full px-4 py-3.5 rounded-2xl bg-[var(--bg-surface)]/95 backdrop-blur-xl border border-[var(--border-card)] text-left flex items-center gap-3 cursor-pointer shadow-xl active:scale-98 transition-all"
-          >
-            <div className="w-9 h-9 rounded-xl bg-[#E46B3B]/15 text-[#E46B3B] flex items-center justify-center shrink-0">
-              <Search className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="block text-[10px] font-mono uppercase tracking-wider text-[#6B625A] dark:text-[#A89F91] font-bold">
-                WHERE ARE YOU GOING?
-              </span>
-              <span className="block text-sm text-[#24211F] dark:text-[#FAF4E8] font-medium truncate">
-                Search destinations across India →
-              </span>
-            </div>
-          </button>
-        </div>
-
-        {/* Desktop: compact search bar */}
-        <div className="hidden sm:block">
           <GlassSurface
             variant="frost"
             enableRefraction
@@ -1194,35 +1185,32 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
               </div>
             </form>
           </GlassSurface>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* ════════════════════════════════════════════
-          LAYER 4: Scroll Invitation
-          ════════════════════════════════════════════ */}
-      <motion.div
-        style={{ opacity: scrollInviteOpacity }}
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 transition-opacity duration-500 ${
-          hasScrolled ? 'opacity-0 pointer-events-none' : ''
-        }`}
-      >
-        <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/50 font-semibold">
-          Scroll to explore
-        </span>
-        <div className="w-px h-8 bg-white/30 scroll-line-anim" />
-      </motion.div>
+        {/* ── LAYER 4: Scroll Invitation ── */}
+        <motion.div
+          style={{ opacity: scrollInviteOpacity }}
+          className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 transition-opacity duration-500 ${
+            hasScrolled ? 'opacity-0 pointer-events-none' : ''
+          }`}
+        >
+          <span className="text-[9px] font-mono tracking-[0.25em] uppercase text-white/50 font-semibold">
+            Scroll to explore
+          </span>
+          <div className="w-px h-8 bg-white/30 scroll-line-anim" />
+        </motion.div>
 
-      {/* ════════════════════════════════════════════
-          LAYER 5: Attribution
-          ════════════════════════════════════════════ */}
-      {current.photographer && (
-        <div className="absolute bottom-4 left-6 z-10 flex items-center gap-2 text-[9px] font-mono text-white/40 tracking-wide">
-          <span className="w-1 h-1 rounded-full bg-[#E46B3B]" />
-          <span>Photo — {current.photographer}</span>
-          <span className="text-white/20">·</span>
-          <span className="hidden sm:inline">{current.source}</span>
-        </div>
-      )}
+        {/* ── LAYER 5: Attribution ── */}
+        {current.photographer && (
+          <div className="absolute bottom-4 left-6 z-10 flex items-center gap-2 text-[9px] font-mono text-white/40 tracking-wide">
+            <span className="w-1 h-1 rounded-full bg-[#E46B3B]" />
+            <span>Photo — {current.photographer}</span>
+            <span className="text-white/20">·</span>
+            <span className="hidden sm:inline">{current.source}</span>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
+

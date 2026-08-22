@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   Search,
   Compass,
   MapPin,
+  Clock,
   RotateCcw,
   SlidersHorizontal,
   X,
@@ -22,22 +23,13 @@ import { TripPackage } from '@/types';
 
 const BATCH_SIZE = 16;
 
-
-
-
 function ItinerariesCatalogueContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   // Read initial filter values from URL params
   const initialDest = searchParams.get('destination') || 'ALL';
   const initialSearch = searchParams.get('search') || '';
   const initialCategory = searchParams.get('category') || 'ALL';
-
-  // Development-only image audit mode (?imageAudit=1)
-  const isDev = process.env.NODE_ENV === 'development';
-  const isImageAuditParam = searchParams.get('imageAudit') === '1' || searchParams.get('imageAudit') === 'true';
-  const isAuditMode = isDev && isImageAuditParam;
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedDestination, setSelectedDestination] = useState<string>(initialDest);
@@ -45,15 +37,8 @@ function ItinerariesCatalogueContent() {
   const [selectedDuration, setSelectedDuration] = useState<string>('ALL');
   const [selectedPriceFilter, setSelectedPriceFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'RECOMMENDED' | 'PRICE_ASC' | 'PRICE_DESC' | 'DURATION_ASC' | 'DURATION_DESC' | 'ALPHA'>('RECOMMENDED');
-  const [visibleCount, setVisibleCount] = useState<number>(isAuditMode ? tripPackages.length : BATCH_SIZE);
+  const [visibleCount, setVisibleCount] = useState<number>(BATCH_SIZE);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-
-  // Auto-expand all packages when entering audit mode
-  useEffect(() => {
-    if (isAuditMode) {
-      setVisibleCount(tripPackages.length);
-    }
-  }, [isAuditMode]);
 
   // Modal states
   const [selectedTripForDetail, setSelectedTripForDetail] = useState<TripPackage | null>(null);
@@ -72,13 +57,10 @@ function ItinerariesCatalogueContent() {
     if (selectedCategory && selectedCategory !== 'ALL') {
       params.set('category', selectedCategory);
     }
-    if (isImageAuditParam) {
-      params.set('imageAudit', '1');
-    }
     const queryString = params.toString();
     const newUrl = queryString ? `/itineraries?${queryString}` : '/itineraries';
     window.history.replaceState(null, '', newUrl);
-  }, [selectedDestination, searchQuery, selectedCategory, isImageAuditParam]);
+  }, [selectedDestination, searchQuery, selectedCategory]);
 
   // Unique destinations present in actual data
   const dynamicDestinations = useMemo(() => {
@@ -214,7 +196,7 @@ function ItinerariesCatalogueContent() {
 
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-500 relative flex flex-col justify-between select-none">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-500 relative flex flex-col justify-between">
       {/* Floating Glass Navigation */}
       <Navbar onOpenPlanTrip={() => handleOpenCustomPlan()} />
 
@@ -239,62 +221,10 @@ function ItinerariesCatalogueContent() {
             </p>
           </div>
 
-          {/* ── Dev Image Audit Mode Banner (Development Only) ──────────────── */}
-          {isDev && (
-            <div className={`p-4 sm:p-5 rounded-3xl border text-xs font-mono transition-all ${
-              isAuditMode 
-                ? 'bg-amber-950/30 border-amber-500/50 text-amber-200 shadow-lg' 
-                : 'bg-[var(--bg-surface)] border-[var(--border-subtle)] text-[var(--text-muted)]'
-            }`}>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`w-2.5 h-2.5 rounded-full ${isAuditMode ? 'bg-amber-400 animate-pulse' : 'bg-stone-500'}`} />
-                  <span className="font-bold uppercase tracking-wider text-[var(--text-primary)]">
-                    {isAuditMode ? '🛠️ DEV IMAGE QA MODE ACTIVE (?imageAudit=1)' : '🛠️ MANUAL IMAGE QA TOOLS'}
-                  </span>
-                  <span className="opacity-40 hidden sm:inline">·</span>
-                  <span>
-                    {isAuditMode 
-                      ? `All ${tripPackages.length} journeys expanded with ID, location metadata & provenance overlays`
-                      : 'Enable dev overlay to inspect Trip ID, location metadata, and source provenance'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {isAuditMode ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const params = new URLSearchParams(window.location.search);
-                        params.delete('imageAudit');
-                        const qs = params.toString();
-                        router.push(qs ? `/itineraries?${qs}` : '/itineraries');
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-mono transition-all cursor-pointer"
-                    >
-                      Exit Audit Overlay
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const params = new URLSearchParams(window.location.search);
-                        params.set('imageAudit', '1');
-                        router.push(`/itineraries?${params.toString()}`);
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-[var(--accent)] hover:opacity-90 text-white text-xs font-mono font-medium transition-all cursor-pointer shadow-sm"
-                    >
-                      Enable ?imageAudit=1
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* ── Search & Filter Command Panel ───────────────────────────────── */}
-          <div className="bg-[var(--bg-surface)] p-4 sm:p-6 md:p-8 rounded-3xl border border-[var(--border-subtle)] shadow-sm space-y-6">
-            {/* Search Input and Sort Selection */}
-            <div className="flex flex-col md:flex-row gap-3 sm:gap-4 justify-between items-stretch md:items-center">
+          <div className="bg-[var(--bg-surface)] p-4 sm:p-6 md:p-8 rounded-3xl border border-[var(--border-subtle)] shadow-sm space-y-5">
+            {/* 01. DESKTOP SEARCH + SORT ROW (>= 1024px) */}
+            <div className="hidden lg:flex gap-4 justify-between items-center">
               {/* Primary Search Input */}
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-4 top-1/2 -translate-y-1/2" />
@@ -311,7 +241,7 @@ function ItinerariesCatalogueContent() {
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
                     aria-label="Clear search"
                   >
                     <X className="w-4 h-4" />
@@ -319,41 +249,182 @@ function ItinerariesCatalogueContent() {
                 )}
               </div>
 
-              {/* Controls Group: Sort & Mobile Filter Toggle */}
-              <div className="flex items-center gap-2 sm:gap-3">
-                {/* Mobile Filter Drawer Button */}
-                <button
-                  onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-                  className="md:hidden flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)]"
+              {/* Desktop Sort Dropdown */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider whitespace-nowrap">
+                  Sort:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  aria-label="Sort itineraries"
+                  className="px-4 py-3 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] cursor-pointer transition-all"
                 >
-                  <SlidersHorizontal className="w-4 h-4 text-[var(--accent)]" />
-                  <span>Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}</span>
-                </button>
-
-                {/* Sort Dropdown */}
-                <div className="flex items-center gap-2 flex-1 md:flex-initial">
-                  <span className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider hidden sm:inline-block whitespace-nowrap">
-                    Sort:
-                  </span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    aria-label="Sort itineraries"
-                    className="w-full md:w-auto px-4 py-3.5 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] cursor-pointer transition-all"
-                  >
-                    <option value="RECOMMENDED">Recommended / Featured</option>
-                    <option value="PRICE_ASC">Price: Low → High</option>
-                    <option value="PRICE_DESC">Price: High → Low</option>
-                    <option value="DURATION_ASC">Duration: Shortest First</option>
-                    <option value="DURATION_DESC">Duration: Longest First</option>
-                    <option value="ALPHA">A – Z Alphabetical</option>
-                  </select>
-                </div>
+                  <option value="RECOMMENDED">Recommended / Featured</option>
+                  <option value="PRICE_ASC">Price: Low → High</option>
+                  <option value="PRICE_DESC">Price: High → Low</option>
+                  <option value="DURATION_ASC">Duration: Shortest First</option>
+                  <option value="DURATION_DESC">Duration: Longest First</option>
+                  <option value="ALPHA">A – Z Alphabetical</option>
+                </select>
               </div>
             </div>
 
-            {/* ── Dynamic Destination Shortcuts (Chips) ────────────────────── */}
-            <div className="space-y-2.5 pt-4 border-t border-[var(--border-subtle)]">
+            {/* 02. TABLET & MOBILE FULL-WIDTH SEARCH BAR (< 1024px) */}
+            <div className="lg:hidden relative w-full">
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-4 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setVisibleCount(BATCH_SIZE);
+                }}
+                placeholder="Search trip name, destination, route..."
+                className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-sm font-sans text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  aria-label="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* 03. TABLET & MOBILE HORIZONTAL DESTINATION CHIP RAIL (< 1024px) */}
+            <div className="lg:hidden space-y-2 pt-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
+                  <MapPin className="w-3 h-3 text-[var(--accent)]" />
+                  Destinations:
+                </span>
+                {activeFiltersCount > 0 && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="text-[11px] font-mono text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    Reset ({activeFiltersCount})
+                  </button>
+                )}
+              </div>
+
+              {/* Single-row horizontal scroll rail (overflow-x-auto, no-scrollbar, nowrap) */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 text-xs font-mono">
+                <button
+                  onClick={() => {
+                    setSelectedDestination('ALL');
+                    setVisibleCount(BATCH_SIZE);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                    selectedDestination === 'ALL'
+                      ? 'bg-[var(--accent)] text-white font-medium shadow-sm'
+                      : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
+                  }`}
+                >
+                  All ({tripPackages.length})
+                </button>
+                {dynamicDestinations.map((dest) => (
+                  <button
+                    key={dest.id}
+                    onClick={() => {
+                      setSelectedDestination(dest.id);
+                      setVisibleCount(BATCH_SIZE);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-full whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                      selectedDestination === dest.id
+                        ? 'bg-[var(--accent)] text-white font-medium shadow-sm'
+                        : 'bg-[var(--bg-primary)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)]'
+                    }`}
+                  >
+                    {dest.name} ({dest.count})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 04. TABLET & MOBILE FILTER PILLS + SORT ROW (< 1024px) */}
+            <div className="lg:hidden flex flex-col md:flex-row gap-3 md:items-center justify-between pt-3 border-t border-[var(--border-subtle)]">
+              {/* Filter Pills Trigger Strip */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                <button
+                  type="button"
+                  onClick={() => setIsFilterDrawerOpen(true)}
+                  className={`px-3 py-2 rounded-xl text-xs font-mono shrink-0 flex items-center gap-1.5 border transition-all active:scale-95 touch-manipulation cursor-pointer ${
+                    selectedDestination !== 'ALL'
+                      ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                      : 'bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--border-subtle)]'
+                  }`}
+                >
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>{selectedDestination !== 'ALL' ? selectedDestination : 'Destination'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFilterDrawerOpen(true)}
+                  className={`px-3 py-2 rounded-xl text-xs font-mono shrink-0 flex items-center gap-1.5 border transition-all active:scale-95 touch-manipulation cursor-pointer ${
+                    selectedCategory !== 'ALL'
+                      ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                      : 'bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--border-subtle)]'
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>{selectedCategory !== 'ALL' ? selectedCategory : 'Style'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFilterDrawerOpen(true)}
+                  className={`px-3 py-2 rounded-xl text-xs font-mono shrink-0 flex items-center gap-1.5 border transition-all active:scale-95 touch-manipulation cursor-pointer ${
+                    selectedDuration !== 'ALL'
+                      ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                      : 'bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--border-subtle)]'
+                  }`}
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{selectedDuration !== 'ALL' ? selectedDuration : 'Duration'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFilterDrawerOpen(true)}
+                  className={`px-3 py-2 rounded-xl text-xs font-mono shrink-0 flex items-center gap-1.5 border transition-all active:scale-95 touch-manipulation cursor-pointer ${
+                    selectedPriceFilter !== 'ALL'
+                      ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                      : 'bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--border-subtle)]'
+                  }`}
+                >
+                  <span>{selectedPriceFilter !== 'ALL' ? 'Budget Filtered' : 'Budget'}</span>
+                </button>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs font-mono text-[var(--text-muted)] uppercase tracking-wider whitespace-nowrap">
+                  Sort:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  aria-label="Sort itineraries"
+                  className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-xs font-mono text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] cursor-pointer transition-all"
+                >
+                  <option value="RECOMMENDED">Recommended / Featured</option>
+                  <option value="PRICE_ASC">Price: Low → High</option>
+                  <option value="PRICE_DESC">Price: High → Low</option>
+                  <option value="DURATION_ASC">Duration: Shortest First</option>
+                  <option value="DURATION_DESC">Duration: Longest First</option>
+                  <option value="ALPHA">A – Z Alphabetical</option>
+                </select>
+              </div>
+            </div>
+
+            {/* 05. DESKTOP DESTINATION SHORTCUTS (CHIPS) (>= 1024px) */}
+            <div className="space-y-2.5 pt-4 border-t border-[var(--border-subtle)] hidden lg:block">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--text-muted)] font-semibold flex items-center gap-1.5">
                   <MapPin className="w-3 h-3 text-[var(--accent)]" />
@@ -370,7 +441,7 @@ function ItinerariesCatalogueContent() {
                 )}
               </div>
 
-              {/* Scrollable Destination Pills */}
+              {/* Wrapped Desktop Destination Pills */}
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   onClick={() => {
@@ -404,8 +475,8 @@ function ItinerariesCatalogueContent() {
               </div>
             </div>
 
-            {/* ── Desktop & Expanded Filter Selectors ───────────────────────── */}
-            <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-[var(--border-subtle)] text-xs font-mono ${isFilterDrawerOpen ? 'block' : 'hidden md:grid'}`}>
+            {/* 06. DESKTOP 3-COLUMN FILTER SELECTORS (>= 1024px) */}
+            <div className="hidden lg:grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border-subtle)] text-xs font-mono">
               {/* Trip Style / Category */}
               <div>
                 <label className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] block mb-1.5 font-semibold">
@@ -471,6 +542,129 @@ function ItinerariesCatalogueContent() {
             </div>
           </div>
 
+          {/* ── Mobile & Tablet Filter Bottom Sheet Drawer ───────────────── */}
+          {isFilterDrawerOpen && (
+            <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/60 backdrop-blur-sm">
+              <div className="bg-[var(--bg-surface)] rounded-t-3xl sm:rounded-3xl border-t sm:border border-[var(--border-card)] p-6 space-y-4 max-h-[85vh] sm:max-w-xl sm:mx-auto sm:mb-8 overflow-y-auto safe-area-inset-bottom w-full shadow-2xl">
+                <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="w-4 h-4 text-[var(--accent)]" />
+                    <h3 className="text-base font-serif font-bold text-[var(--text-primary)]">
+                      Filter Journeys
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setIsFilterDrawerOpen(false)}
+                    className="p-1 rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Destination selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-mono uppercase text-[var(--text-muted)] font-bold">
+                    Destination:
+                  </label>
+                  <select
+                    value={selectedDestination}
+                    onChange={(e) => {
+                      setSelectedDestination(e.target.value);
+                      setVisibleCount(BATCH_SIZE);
+                    }}
+                    className="w-full p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-base font-sans text-[var(--text-primary)]"
+                  >
+                    <option value="ALL">All Destinations ({tripPackages.length})</option>
+                    {dynamicDestinations.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} ({d.count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Style selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-mono uppercase text-[var(--text-muted)] font-bold">
+                    Trip Style:
+                  </label>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      setSelectedCategory(e.target.value);
+                      setVisibleCount(BATCH_SIZE);
+                    }}
+                    className="w-full p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-base font-sans text-[var(--text-primary)]"
+                  >
+                    <option value="ALL">All Trip Styles</option>
+                    {categories.filter((c) => c !== 'ALL').map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Duration selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-mono uppercase text-[var(--text-muted)] font-bold">
+                    Duration:
+                  </label>
+                  <select
+                    value={selectedDuration}
+                    onChange={(e) => {
+                      setSelectedDuration(e.target.value);
+                      setVisibleCount(BATCH_SIZE);
+                    }}
+                    className="w-full p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-base font-sans text-[var(--text-primary)]"
+                  >
+                    <option value="ALL">All Durations</option>
+                    <option value="SHORT">Short (1–4 Days)</option>
+                    <option value="MEDIUM">Classic (5–7 Days)</option>
+                    <option value="LONG">Extended (8+ Days)</option>
+                  </select>
+                </div>
+
+                {/* Budget selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-mono uppercase text-[var(--text-muted)] font-bold">
+                    Budget / Pricing:
+                  </label>
+                  <select
+                    value={selectedPriceFilter}
+                    onChange={(e) => {
+                      setSelectedPriceFilter(e.target.value);
+                      setVisibleCount(BATCH_SIZE);
+                    }}
+                    className="w-full p-3 rounded-xl bg-[var(--bg-primary)] border border-[var(--border-subtle)] text-base font-sans text-[var(--text-primary)]"
+                  >
+                    <option value="ALL">All Price Tiers</option>
+                    <option value="UNDER_10K">Under ₹10,000</option>
+                    <option value="10K_TO_20K">₹10,000 – ₹20,000</option>
+                    <option value="20K_PLUS">₹20,000 & Above</option>
+                    <option value="PRICE_ON_REQUEST">Price on Request</option>
+                  </select>
+                </div>
+
+                <div className="pt-2 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="h-12 rounded-2xl border border-[var(--border-subtle)] text-xs font-mono font-medium text-[var(--text-muted)] active:scale-95 touch-manipulation cursor-pointer"
+                  >
+                    Reset All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsFilterDrawerOpen(false)}
+                    className="h-12 rounded-2xl bg-[var(--accent)] text-white text-xs font-mono font-bold active:scale-95 touch-manipulation shadow-md cursor-pointer"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {/* ── Results Bar ─────────────────────────────────────────────────── */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs font-mono text-[var(--text-muted)] px-1">
             <span>
@@ -517,7 +711,6 @@ function ItinerariesCatalogueContent() {
                   trip={trip}
                   index={index}
                   isFirstHero={index === 0 && activeFiltersCount === 0}
-                  isAuditMode={isAuditMode}
                   onSelect={handleOpenQuickView}
                 />
               ))}
@@ -528,18 +721,18 @@ function ItinerariesCatalogueContent() {
           {/* ── Progressive Load More Bar ───────────────────────────────────── */}
           {visibleCount < filteredTrips.length && (
             <div className="text-center pt-8 space-y-3">
-              <div className="flex flex-wrap items-center justify-center gap-3">
+              <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 max-w-full">
                 <button
                   type="button"
                   onClick={() => setVisibleCount((prev) => prev + BATCH_SIZE)}
-                  className="px-8 py-3.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white border border-[var(--border-subtle)] text-xs font-mono uppercase tracking-widest text-[var(--text-primary)] font-medium transition-all shadow-sm cursor-pointer active:scale-95"
+                  className="w-full sm:w-auto px-5 sm:px-8 py-3 sm:py-3.5 rounded-full bg-[var(--bg-surface)] hover:bg-[var(--accent)] hover:text-white border border-[var(--border-subtle)] text-[11px] sm:text-xs font-mono uppercase tracking-wider text-[var(--text-primary)] font-medium transition-all shadow-sm cursor-pointer active:scale-95 min-h-[44px] flex items-center justify-center"
                 >
                   Load more journeys ({filteredTrips.length - visibleCount} remaining)
                 </button>
                 <button
                   type="button"
                   onClick={() => setVisibleCount(filteredTrips.length)}
-                  className="px-6 py-3.5 rounded-full bg-[var(--bg-surface)] hover:border-[var(--accent)] text-xs font-mono uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] transition-all cursor-pointer"
+                  className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-3.5 rounded-full bg-[var(--bg-surface)] hover:border-[var(--accent)] text-[11px] sm:text-xs font-mono uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--border-subtle)] transition-all cursor-pointer min-h-[44px] flex items-center justify-center"
                 >
                   Show All ({filteredTrips.length})
                 </button>

@@ -159,6 +159,7 @@ export default function Testimonials({
   const marqueeItems = [...testList, ...testList];
   const sectionRef = React.useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = React.useState(false);
+  const [isTouchActive, setIsTouchActive] = React.useState(false);
 
   React.useEffect(() => {
     if (!sectionRef.current) return;
@@ -176,18 +177,18 @@ export default function Testimonials({
     <section
       ref={sectionRef}
       id="testimonials"
-      className="py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]"
+      className="py-14 sm:py-20 md:py-24 bg-[var(--bg-surface-2)]/40 relative overflow-hidden border-y border-[var(--border-subtle)]"
     >
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-[var(--brand-saffron, #E85D30)]/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 mb-10">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 mb-8 sm:mb-10">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="space-y-3">
             {/* Google Rating Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-white/10 border border-black/8 dark:border-white/15 shadow-sm">
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <div className="inline-flex flex-wrap items-center gap-2 px-3 sm:px-3.5 py-1.5 rounded-full bg-white dark:bg-white/10 border border-black/8 dark:border-white/15 shadow-sm max-w-full">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -205,7 +206,7 @@ export default function Testimonials({
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                 />
               </svg>
-              <div className="flex items-center gap-1 text-xs font-bold text-[var(--text-primary)]">
+              <div className="flex items-center gap-1 text-xs font-bold text-[var(--text-primary)] shrink-0">
                 <span>5.0 / 5.0</span>
                 <span className="flex text-[#F59E0B]">
                   {[...Array(5)].map((_, i) => (
@@ -213,8 +214,8 @@ export default function Testimonials({
                   ))}
                 </span>
               </div>
-              <span className="text-[11px] font-mono text-[var(--text-muted)] border-l border-black/10 dark:border-white/10 pl-2">
-                TripKario.com · New Delhi
+              <span className="text-[10.5px] sm:text-[11px] font-mono text-[var(--text-muted)] border-l border-black/10 dark:border-white/10 pl-2 truncate">
+                TripKario.com
               </span>
             </div>
 
@@ -247,9 +248,42 @@ export default function Testimonials({
       </div>
 
       {/* ════════════════════════════════════════════
-          SMOOTH RIGHT-TO-LEFT MOVING MARQUEE TRACK
+          MOBILE: CONTINUOUS RIGHT-TO-LEFT SMOOTH MARQUEE (< 768px)
+          Seamless infinite loop, pause on touch, reduced-motion aware
           ════════════════════════════════════════════ */}
-      <div className="relative w-full overflow-hidden">
+      <div
+        className="md:hidden relative w-full overflow-hidden"
+        onTouchStart={() => setIsTouchActive(true)}
+        onTouchEnd={() => setIsTouchActive(false)}
+        onTouchCancel={() => setIsTouchActive(false)}
+        onPointerDown={() => setIsTouchActive(true)}
+        onPointerUp={() => setIsTouchActive(false)}
+        onPointerCancel={() => setIsTouchActive(false)}
+      >
+        {/* Subtle Edge Fade Gradients (Left & Right) */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-r from-[var(--bg-primary)] via-[var(--bg-primary)]/80 to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-8 z-10 bg-gradient-to-l from-[var(--bg-primary)] via-[var(--bg-primary)]/80 to-transparent pointer-events-none" />
+
+        <div
+          className={`animate-mobile-marquee flex items-stretch gap-3 py-1 ${
+            isTouchActive ? 'is-touch-paused' : ''
+          }`}
+          style={{
+            animationPlayState: isVisible && !isTouchActive ? 'running' : 'paused',
+          }}
+        >
+          {marqueeItems.map((item, idx) => (
+            <div key={`mob-${item.id}-${idx}`} className="shrink-0 w-[84vw] max-w-[320px]">
+              <TestimonialCard item={item} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ════════════════════════════════════════════
+          DESKTOP: SMOOTH RIGHT-TO-LEFT MOVING MARQUEE (>= 768px)
+          ════════════════════════════════════════════ */}
+      <div className="hidden md:block relative w-full overflow-hidden">
         {/* Left & Right edge blur masks */}
         <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-28 z-10 bg-gradient-to-r from-[var(--bg-primary)] via-[var(--bg-primary)]/70 to-transparent pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-28 z-10 bg-gradient-to-l from-[var(--bg-primary)] via-[var(--bg-primary)]/70 to-transparent pointer-events-none" />
@@ -263,13 +297,13 @@ export default function Testimonials({
             <TestimonialCard key={`${item.id}-m1-${idx}`} item={item} />
           ))}
         </div>
-      </div>
 
-      {/* Hover to pause hint */}
-      <div className="text-center mt-6">
-        <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider uppercase">
-          Hover card to pause · Smooth Right-to-Left Continuous Scroll
-        </span>
+        {/* Hover to pause hint */}
+        <div className="text-center mt-6">
+          <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider uppercase">
+            Hover card to pause · Verified Traveler Feedback
+          </span>
+        </div>
       </div>
     </section>
   );

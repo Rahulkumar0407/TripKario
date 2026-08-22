@@ -241,52 +241,52 @@ I would like to check available departure dates and get the complete day-by-day 
           </div>
 
           {trip.itinerary && trip.itinerary.length > 0 ? (
-            <div className="relative pl-6 sm:pl-8 border-l-2 border-[var(--border-subtle)] space-y-8 my-4 ml-3 sm:ml-4">
+            <div className="relative pl-5 sm:pl-8 border-l-2 border-[var(--border-subtle)] space-y-6 sm:space-y-8 my-4 ml-2.5 sm:ml-4 min-w-0 max-w-full">
               {trip.itinerary.map((day, index) => {
                 const dayFormatted = String(day.dayNumber).padStart(2, '0');
 
                 return (
-                  <div key={day.dayNumber || index} className="relative group">
+                  <div key={day.dayNumber || index} className="relative group min-w-0 max-w-full">
                     {/* Timeline Milestone Dot */}
-                    <div className="absolute -left-[31px] sm:-left-[39px] top-1 w-6 h-6 rounded-full bg-[var(--bg-surface)] border-2 border-[var(--accent)] flex items-center justify-center shadow-xs">
-                      <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
+                    <div className="absolute -left-[27px] sm:-left-[39px] top-2.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[var(--bg-surface)] border-2 border-[var(--accent)] flex items-center justify-center shadow-xs">
+                      <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[var(--accent)]" />
                     </div>
 
                     {/* Milestone Content Box */}
-                    <div className="rounded-2xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] p-5 sm:p-6 space-y-3.5 transition-all hover:border-[var(--accent)]/40 hover:shadow-sm">
+                    <div className="rounded-2xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] p-4 sm:p-6 space-y-3 sm:space-y-3.5 transition-all hover:border-[var(--accent)]/40 hover:shadow-sm min-w-0 max-w-full">
                       {/* Header: Day Badge + Location */}
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2.5">
-                          <span className="px-2.5 py-0.5 rounded-md bg-[var(--accent)] text-white text-[10px] font-mono font-bold tracking-wider">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 min-w-0">
+                        <div className="flex items-start sm:items-center gap-2 min-w-0 flex-1">
+                          <span className="px-2 py-0.5 rounded-md bg-[var(--accent)] text-white text-[9.5px] sm:text-[10px] font-mono font-bold tracking-wider shrink-0 mt-0.5 sm:mt-0">
                             DAY {dayFormatted}
                           </span>
-                          <h3 className="font-serif font-bold text-base text-[var(--text-primary)]">
+                          <h3 className="font-serif font-bold text-sm sm:text-base text-[var(--text-primary)] leading-snug break-words min-w-0 flex-1">
                             {day.title}
                           </h3>
                         </div>
 
                         {day.location && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-[10.5px] font-mono font-semibold">
+                          <span className="self-start sm:self-auto px-2 py-0.5 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-[9.5px] sm:text-[10.5px] font-mono font-semibold shrink-0">
                             📍 {day.location}
                           </span>
                         )}
                       </div>
 
                       {/* Description */}
-                      <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed font-normal">
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] leading-relaxed font-normal break-words min-w-0">
                         {day.description}
                       </p>
 
                       {/* Key Places Tags */}
                       {day.places && day.places.length > 0 && (
-                        <div className="pt-1 flex flex-wrap items-center gap-1.5">
-                          <span className="text-[9.5px] font-mono uppercase text-[var(--text-muted)] font-bold mr-1">
+                        <div className="pt-1 flex flex-wrap items-center gap-1.5 min-w-0">
+                          <span className="text-[9.5px] font-mono uppercase text-[var(--text-muted)] font-bold mr-0.5 shrink-0">
                             Key Stops:
                           </span>
                           {day.places.map((place, i) => (
                             <span
                               key={i}
-                              className="px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10.5px] font-mono text-[var(--text-primary)]"
+                              className="px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[10px] sm:text-[10.5px] font-mono text-[var(--text-primary)] break-words max-w-full"
                             >
                               {place}
                             </span>
@@ -296,14 +296,14 @@ I would like to check available departure dates and get the complete day-by-day 
 
                       {/* Activities Tags */}
                       {day.activities && day.activities.length > 0 && (
-                        <div className="pt-0.5 flex flex-wrap items-center gap-1.5">
-                          <span className="text-[9.5px] font-mono uppercase text-[var(--accent)] font-bold mr-1">
+                        <div className="pt-0.5 flex flex-wrap items-center gap-1.5 min-w-0">
+                          <span className="text-[9.5px] font-mono uppercase text-[var(--accent)] font-bold mr-0.5 shrink-0">
                             Experiences:
                           </span>
                           {day.activities.map((act, i) => (
                             <span
                               key={i}
-                              className="px-2 py-0.5 rounded-md bg-[var(--accent)]/10 text-[var(--accent)] text-[10.5px] font-mono font-medium"
+                              className="px-2 py-0.5 rounded-md bg-[var(--accent)]/10 text-[var(--accent)] text-[10px] sm:text-[10.5px] font-mono font-medium break-words max-w-full"
                             >
                               ✦ {act}
                             </span>
@@ -313,17 +313,17 @@ I would like to check available departure dates and get the complete day-by-day 
 
                       {/* Meals & Overnight Info */}
                       {(day.meals || day.overnight) && (
-                        <div className="pt-2 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-4 text-[11px] font-mono text-[var(--text-muted)]">
+                        <div className="pt-2 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-x-4 gap-y-1 text-[10.5px] sm:text-[11px] font-mono text-[var(--text-muted)] min-w-0">
                           {day.meals && (
-                            <div className="flex items-center gap-1">
-                              <Utensils className="w-3 h-3 text-[var(--accent)]" />
-                              <span>Meals: {day.meals}</span>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <Utensils className="w-3 h-3 text-[var(--accent)] shrink-0" />
+                              <span className="break-words">Meals: {day.meals}</span>
                             </div>
                           )}
                           {day.overnight && (
-                            <div className="flex items-center gap-1">
-                              <Moon className="w-3 h-3 text-[var(--accent)]" />
-                              <span>Stay: {day.overnight}</span>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <Moon className="w-3 h-3 text-[var(--accent)] shrink-0" />
+                              <span className="break-words">Stay: {day.overnight}</span>
                             </div>
                           )}
                         </div>

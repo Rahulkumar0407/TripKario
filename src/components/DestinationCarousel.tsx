@@ -78,56 +78,53 @@ export default function DestinationCarousel({
     himachal: 'rgba(232, 106, 58, 0.18)',
     ladakh: 'rgba(232, 106, 58, 0.20)',
   };
-  const activeGlow = ambientGlowColors[activeDest.id] || 'rgba(232, 106, 58, 0.20)';
+  const activeColor = ambientGlowColors[activeDest.id] || 'rgba(232, 106, 58, 0.20)';
 
   return (
     <section
       ref={sectionRef}
       id="destinations"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => {
-        setIsHovered(false);
-        setHoveredCardIdx(null);
-      }}
-      className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative"
+      onMouseLeave={() => setIsHovered(false)}
+      className="py-14 sm:py-20 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative select-none"
     >
-      {/* LAYER 1: Ambient Background Color Wash */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
-        <motion.div
-          animate={{ backgroundColor: activeGlow }}
-          transition={{ duration: 1.0 }}
-          className="absolute inset-0"
-        />
-      </div>
+      {/* Dynamic Ambient Color Wash per destination */}
+      <motion.div
+        animate={{ backgroundColor: activeColor }}
+        transition={{ duration: 1.2, ease: 'easeOut' }}
+        className="absolute inset-0 pointer-events-none blur-[140px] opacity-60"
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 mb-8 sm:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-6 relative z-10">
         <div>
-          <span className="text-xs font-mono uppercase tracking-[0.3em] text-[var(--accent)] font-semibold block mb-2">
-            Territory Carousel
-          </span>
-          <h2 className="text-4xl sm:text-6xl md:text-7xl font-serif font-normal text-[var(--text-primary)] tracking-tight">
-            India is calling.
-          </h2>
-        </div>
-
-        {/* Carousel Navigation & Animated Progress Bar */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-xs">
-            <span className="text-xs font-mono tracking-wider text-[var(--text-muted)] font-semibold">
-              {activeIndex + 1 < 10 ? `0${activeIndex + 1}` : activeIndex + 1} / {total < 10 ? `0${total}` : total}
-            </span>
-            <div className="w-14 h-[2px] bg-[var(--border-subtle)] rounded-full overflow-hidden ml-1">
-              <div
-                key={`dest-progress-${activeIndex}`}
-                className="h-full bg-[var(--accent)]"
-                style={{
-                  animation: !isVisible || isHovered || hoveredCardIdx !== null ? 'none' : `progressAnim ${AUTOPLAY_DURATION}ms linear forwards`,
-                }}
-              />
-            </div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[10px] sm:text-xs font-mono uppercase tracking-[0.2em] text-[var(--accent)] mb-3 shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+            <span>Curated Circuits</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-normal tracking-tight leading-[1.08] text-[var(--text-primary)]">
+            Explore India by{' '}
+            <span className="italic font-normal text-[var(--accent)]">
+              landscape.
+            </span>
+          </h2>
+
+          <p className="text-xs sm:text-sm md:text-base text-[var(--text-muted)] max-w-xl mt-2 font-normal">
+            From high Himalayan snow passes and Kashmir valleys to desert forts and serene backwaters.
+          </p>
+        </div>
+
+        {/* Desktop Carousel HUD Navigation */}
+        <div className="hidden md:flex items-center gap-4">
+          <div className="text-xs font-mono text-[var(--text-muted)] tracking-wider">
+            <span className="text-[var(--text-primary)] font-bold text-sm">
+              {String(activeIndex + 1).padStart(2, '0')}
+            </span>
+            <span className="mx-1">/</span>
+            <span>{String(total).padStart(2, '0')}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={prevSlide}
@@ -136,7 +133,6 @@ export default function DestinationCarousel({
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-
             <button
               type="button"
               onClick={nextSlide}
@@ -149,8 +145,68 @@ export default function DestinationCarousel({
         </div>
       </div>
 
-      {/* LAYER 2 & 3: Layered 3D Depth Carousel Container with Momentum Physics */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[460px] sm:min-h-[540px] flex items-center justify-center overflow-visible">
+      {/* ══════════════════════════════════════════════════
+          MOBILE NATIVE SCROLL-SNAP CAROUSEL (< 768px)
+          Native touch swipe, zero JS transform lag
+          ══════════════════════════════════════════════════ */}
+      <div className="md:hidden flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 px-4 pb-4 pt-1">
+        {destList.map((dest) => {
+          const imgSrc = failedImages[dest.id] ? FALLBACK_DESTINATION_IMAGE : dest.image.src;
+          return (
+            <div
+              key={dest.id}
+              onClick={() => onSelectDestination(dest.id || dest.name)}
+              className="snap-center shrink-0 w-[84vw] max-w-[340px] rounded-3xl overflow-hidden border border-[var(--border-card)] bg-[var(--bg-surface)] shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.98] transition-transform touch-manipulation"
+            >
+              <div className="relative h-48 w-full overflow-hidden bg-black/20">
+                <Image
+                  src={imgSrc}
+                  alt={dest.image.alt || dest.name}
+                  fill
+                  sizes="85vw"
+                  className="object-cover"
+                  loading="lazy"
+                  onError={() => {
+                    setFailedImages((prev) => ({ ...prev, [dest.id]: true }));
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute top-3 left-3 pointer-events-none z-10">
+                  <span className="px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono uppercase tracking-wider border border-white/20">
+                    {dest.region}
+                  </span>
+                </div>
+                <div className="absolute bottom-3 left-4 right-4 pointer-events-none z-10">
+                  <h3 className="text-xl font-serif font-medium text-white drop-shadow-sm">
+                    {dest.name}
+                  </h3>
+                </div>
+              </div>
+              <div className="p-4 flex items-center justify-between gap-3 bg-[var(--bg-surface)]">
+                <p className="text-xs text-[var(--text-muted)] line-clamp-1 font-sans flex-1">
+                  {dest.tagline || dest.description || `Explore curated circuits in ${dest.name}`}
+                </p>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectDestination(dest.id || dest.name);
+                  }}
+                  className="px-3.5 py-1.5 rounded-full bg-[var(--accent)] text-white text-[11px] font-mono font-medium hover:opacity-90 transition-all flex items-center gap-1 shrink-0 cursor-pointer shadow-xs active:scale-95 touch-manipulation"
+                >
+                  <span>Explore</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          DESKTOP 3D DEPTH CAROUSEL (>= 768px)
+          ══════════════════════════════════════════════════ */}
+      <div className="hidden md:flex relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[460px] sm:min-h-[540px] items-center justify-center overflow-visible">
         {destList.map((dest, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import TripkarioLogo from './TripkarioLogo';
@@ -13,6 +14,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -81,13 +83,13 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
           </div>
 
           {/* ===== RIGHT: Theme Toggle + CTA + Mobile Menu ===== */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             <ThemeToggle />
 
             <MagneticButton
               onClick={() => {
                 if (onOpenPlanTrip) onOpenPlanTrip();
-                else window.location.assign('/itineraries');
+                else router.push('/itineraries');
               }}
               className={`
                 hidden sm:inline-flex items-center gap-1.5
@@ -102,13 +104,13 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
               <ArrowRight className="w-3.5 h-3.5" />
             </MagneticButton>
 
-            {/* Mobile hamburger */}
+            {/* Mobile menu toggle (min 44x44px touch target) */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               className={`
-                p-2 rounded-full lg:hidden cursor-pointer
+                min-w-[44px] min-h-[44px] rounded-full lg:hidden flex items-center justify-center cursor-pointer active:scale-95 touch-manipulation
                 transition-colors duration-200
                 ${scrolled
                   ? 'text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)]'
@@ -122,7 +124,7 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
         </nav>
       </header>
 
-      {/* ===== MOBILE DRAWER ===== */}
+      {/* ===== MOBILE DRAWER (< 1024px) ===== */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -133,7 +135,7 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 z-[95] bg-black/50 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-[95] bg-black/60 backdrop-blur-md lg:hidden"
             />
 
             {/* Menu Panel */}
@@ -142,37 +144,51 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed left-4 right-4 top-[88px] z-[96] lg:hidden"
+              className="fixed left-3 right-3 top-[80px] z-[96] lg:hidden max-h-[calc(100vh-100px)] overflow-y-auto"
             >
-              <div className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl backdrop-blur-2xl p-6 space-y-4">
+              <div className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl backdrop-blur-2xl p-5 sm:p-6 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--accent)] font-bold">
+                    Menu
+                  </span>
+                  <span className="text-[11px] font-mono text-[var(--text-muted)]">
+                    TripKario.com
+                  </span>
+                </div>
+
                 <nav className="flex flex-col gap-1">
                   {navLinks.map((link, i) => (
                     <motion.a
                       key={link.name}
                       href={link.href}
                       onClick={() => setMobileMenuOpen(false)}
-                      initial={{ opacity: 0, x: -12 }}
+                      initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.04, duration: 0.25 }}
-                      className="text-[15px] font-medium text-[var(--text-primary)] hover:text-[var(--accent)] py-2.5 px-2 rounded-xl hover:bg-[var(--bg-surface-2)] transition-colors"
+                      transition={{ delay: i * 0.03, duration: 0.2 }}
+                      className="min-h-[44px] text-[15px] font-medium text-[var(--text-primary)] hover:text-[var(--accent)] py-2.5 px-3 rounded-xl hover:bg-[var(--bg-surface-2)] active:bg-[var(--bg-surface-2)] transition-colors flex items-center justify-between touch-manipulation"
                     >
-                      {link.name}
+                      <span>{link.name}</span>
+                      <ArrowRight className="w-3.5 h-3.5 opacity-40" />
                     </motion.a>
                   ))}
                 </nav>
 
-                <div className="pt-3 border-t border-[var(--border-subtle)]">
+                <div className="pt-2 border-t border-[var(--border-subtle)] space-y-2">
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
                       if (onOpenPlanTrip) onOpenPlanTrip();
-                      else window.location.assign('/itineraries');
+                      else router.push('/itineraries');
                     }}
-                    className="w-full flex items-center justify-center gap-2 rounded-full h-[44px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm transition-colors cursor-pointer"
+                    className="w-full min-h-[48px] flex items-center justify-center gap-2 rounded-2xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-mono font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md active:scale-95 touch-manipulation"
                   >
                     <span>Plan My Trip</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
+
+                  <p className="text-[10px] font-mono text-center text-[var(--text-muted)] pt-1">
+                    Aap destination batao. Baaki hum dekh lenge.
+                  </p>
                 </div>
               </div>
             </motion.div>

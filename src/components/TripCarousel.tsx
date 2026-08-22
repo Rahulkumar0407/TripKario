@@ -2,23 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   ArrowRight,
   Star,
-  Eye,
-  Check,
   MapPin,
-  Clock,
-  Sparkles,
-  Calendar,
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
-import MagneticButton from './ui/MagneticButton';
 import { tripPackages } from '@/data/trips';
 import { TripPackage } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -97,7 +87,7 @@ export default function TripCarousel({
       id="packages"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="py-24 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative"
+      className="py-14 sm:py-20 md:py-36 bg-[var(--bg-primary)] text-[var(--text-primary)] border-t border-[var(--border-subtle)] overflow-x-clip overflow-y-visible relative"
     >
       {/* Ambient Backdrop Illumination */}
       <motion.div
@@ -156,9 +146,103 @@ export default function TripCarousel({
       </div>
 
       {/* ══════════════════════════════════════════════════
-          LAYERED PACKAGE CAROUSEL CONTAINER
+          MOBILE NATIVE SCROLL-SNAP CAROUSEL (< 768px)
+          One beautiful card at a time, zero JS scroll lag
           ══════════════════════════════════════════════════ */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[640px] sm:min-h-[680px] md:min-h-[620px] flex items-center justify-center overflow-visible">
+      <div className="md:hidden flex overflow-x-auto snap-x-mandatory no-scrollbar gap-4 px-4 pb-4 pt-1">
+        {tripsList.map((trip) => {
+          const formattedPrice = formatPrice(trip.pricePerPerson, trip.isPriceOnRequest);
+          const coverSrc = typeof trip.coverImage === 'string' ? trip.coverImage : trip.coverImage.src;
+          const imageAlt = typeof trip.coverImage === 'string' ? trip.title : trip.coverImage?.alt || trip.title;
+
+          return (
+            <div
+              key={trip.id}
+              onClick={() => setActiveModalTrip(trip)}
+              className="snap-center shrink-0 w-[84vw] max-w-[340px] bg-[var(--bg-surface)] rounded-3xl overflow-hidden border border-[var(--border-card)] shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.98] transition-transform touch-manipulation"
+            >
+              {/* Image Box */}
+              <div className="relative h-56 w-full overflow-hidden bg-black/20">
+                <Image
+                  src={coverSrc}
+                  alt={imageAlt}
+                  fill
+                  sizes="85vw"
+                  className="object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
+
+                {/* Top Badges */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full font-bold border border-white/15 shadow-xs">
+                    {trip.durationNights}N · {trip.durationDays}D
+                  </span>
+                  {trip.category && (
+                    <span className="text-[10px] font-mono tracking-wider uppercase text-white/90 bg-white/15 backdrop-blur-md px-2 py-0.5 rounded-full font-semibold">
+                      {trip.category}
+                    </span>
+                  )}
+                </div>
+
+                {/* Bottom Image Destination & Title */}
+                <div className="absolute bottom-3 left-3.5 right-3.5 text-white pointer-events-none z-10">
+                  <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#FFAA70] font-bold block mb-0.5">
+                    {trip.destination}
+                  </span>
+                  <h3 className="text-base font-serif font-medium text-white line-clamp-1 leading-snug drop-shadow-sm">
+                    {trip.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Info Body */}
+              <div className="p-4 space-y-3 flex-1 flex flex-col justify-between bg-[var(--bg-surface)]">
+                <div className="space-y-1.5">
+                  {trip.route && (
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-primary)]">
+                      <MapPin className="w-3 h-3 text-[var(--accent)] shrink-0" />
+                      <span className="truncate">{trip.route}</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-[var(--text-muted)] line-clamp-2 leading-relaxed font-sans">
+                    {trip.shortDescription}
+                  </p>
+                </div>
+
+                {/* Bottom Price & Explore CTA */}
+                <div className="pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--text-muted)] block">
+                      {trip.isPriceOnRequest ? 'Pricing' : 'Starting From'}
+                    </span>
+                    <span className="text-sm font-serif font-bold text-[var(--text-primary)]">
+                      {formattedPrice}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveModalTrip(trip);
+                    }}
+                    className="px-3.5 py-1.5 rounded-full bg-[var(--accent)] text-white text-[11px] font-mono font-medium hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer shadow-xs active:scale-95 touch-manipulation"
+                  >
+                    <span>Explore</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ══════════════════════════════════════════════════
+          DESKTOP LAYERED PACKAGE CAROUSEL CONTAINER (>= 768px)
+          ══════════════════════════════════════════════════ */}
+      <div className="hidden md:flex relative max-w-7xl mx-auto px-4 sm:px-6 md:px-10 min-h-[640px] sm:min-h-[680px] md:min-h-[620px] items-center justify-center overflow-visible">
         {tripsList.map((trip, idx) => {
           let position = idx - activeIndex;
           if (position < -2) position += total;

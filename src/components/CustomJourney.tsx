@@ -12,8 +12,8 @@ interface CustomJourneyProps {
 
 export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
   return (
-    <section className="py-24 md:py-32 px-4 sm:px-6 md:px-10 max-w-7xl mx-auto">
-      <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] min-h-[480px] flex items-center p-8 sm:p-14 md:p-20">
+    <section className="py-14 sm:py-20 md:py-32 px-4 sm:px-6 md:px-10 max-w-7xl mx-auto">
+      <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-[var(--border-card)] min-h-[340px] sm:min-h-[440px] md:min-h-[480px] flex items-center p-6 sm:p-12 md:p-20">
         {/* Background Full-Bleed Authentic Indian Photography */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -24,21 +24,21 @@ export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
             className="object-cover"
           />
           {/* Subtle Dark Gradient Overlay for Readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/75 to-black/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/80 to-black/50" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-2xl text-white space-y-6">
+        <div className="relative z-10 max-w-2xl text-white space-y-4 sm:space-y-6">
           <span className="text-xs font-mono uppercase tracking-[0.3em] text-[#E86A3A] font-bold block">
             Bespoke Planning
           </span>
 
-          <h2 className="text-4xl sm:text-6xl md:text-7xl font-serif font-normal leading-[1.04] text-white tracking-tight">
+          <h2 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-normal leading-[1.06] text-white tracking-tight">
             Your route. <br />
             Your rules.
           </h2>
 
-          <p className="text-base sm:text-lg text-white/85 leading-relaxed font-normal">
+          <p className="text-sm sm:text-base text-white/85 leading-relaxed font-normal">
             Tell us where you want to go. We&apos;ll figure out the rest — verified boutique stays, private chauffeurs, passes, and flexible pacing.
           </p>
 
@@ -46,14 +46,14 @@ export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
             Aap destination batao. Baaki hum dekh lenge.
           </div>
 
-          <div className="flex flex-wrap items-center gap-3.5 pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <Button
               variant="default"
               size="lg"
               onClick={onOpenPlanTrip}
-              className="gap-2.5 rounded-full px-8 h-12 bg-[#E86A3A] hover:bg-[#F07A4C] text-white"
+              className="gap-2 rounded-full px-6 sm:px-8 h-12 bg-[#E86A3A] hover:bg-[#F07A4C] text-white text-xs font-bold tracking-wide active:scale-95 touch-manipulation"
             >
-              <span>BUILD MY TRIP</span>
+              <span>PLAN YOUR TRIP</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
 
@@ -61,9 +61,9 @@ export default function CustomJourney({ onOpenPlanTrip }: CustomJourneyProps) {
               variant="outline"
               size="lg"
               onClick={() => openWhatsApp('Hi TripKario! Aap destination batao, baaki hum dekh lenge. I want to build a custom route.')}
-              className="border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-8 h-12"
+              className="border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-5 sm:px-8 h-12 text-xs font-bold tracking-wide active:scale-95 touch-manipulation"
             >
-              <MessageCircle className="w-4 h-4 text-[#E86A3A]" />
+              <MessageCircle className="w-4 h-4 text-[#25D366]" />
               <span>CHAT ON WHATSAPP</span>
             </Button>
           </div>

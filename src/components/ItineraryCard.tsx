@@ -11,7 +11,6 @@ export interface ItineraryCardProps {
   trip: TripPackage;
   index: number;
   isFirstHero: boolean;
-  isAuditMode: boolean;
   onSelect: (trip: TripPackage) => void;
 }
 
@@ -19,7 +18,6 @@ function ItineraryCard({
   trip,
   index,
   isFirstHero,
-  isAuditMode,
   onSelect,
 }: ItineraryCardProps) {
   const formattedPrice = formatPrice(trip.pricePerPerson, trip.isPriceOnRequest);
@@ -33,16 +31,16 @@ function ItineraryCard({
         if (e.key === 'Enter') onSelect(trip);
       }}
       onClick={() => onSelect(trip)}
-      className={`group bg-[var(--bg-surface)] rounded-3xl overflow-hidden border border-[var(--border-subtle)] shadow-xs transition-[transform,box-shadow,border-color] duration-200 flex flex-col justify-between cursor-pointer relative outline-none focus:ring-2 focus:ring-[var(--accent)] active:scale-[0.99] [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:shadow-md [@media(hover:hover)]:hover:border-[var(--accent)]/50 ${
+      className={`group bg-[var(--bg-surface)] rounded-3xl overflow-hidden border border-[var(--border-subtle)] shadow-xs transition-[transform,box-shadow,border-color] duration-200 flex flex-col justify-between cursor-pointer relative outline-none focus:ring-2 focus:ring-[var(--accent)] active:scale-[0.98] touch-manipulation min-w-0 w-full [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:shadow-md [@media(hover:hover)]:hover:border-[var(--accent)]/50 ${
         isFirstHero ? 'sm:col-span-2 lg:col-span-2 lg:flex-row' : ''
-      } ${index >= 3 ? '[content-visibility:auto] [contain-intrinsic-size:auto_420px]' : ''}`}
+      } ${index >= 3 ? '[content-visibility:auto] [contain-intrinsic-size:auto_400px]' : ''}`}
     >
       {/* ── Cover Image Box ────────────────────────────────────────────── */}
       <div
         className={`relative overflow-hidden bg-black/20 ${
           isFirstHero
-            ? 'w-full lg:w-1/2 h-64 sm:h-80 lg:h-auto min-h-[260px]'
-            : 'w-full h-60 sm:h-64'
+            ? 'w-full lg:w-1/2 h-52 sm:h-72 lg:h-auto min-h-[220px] sm:min-h-[240px]'
+            : 'w-full h-48 sm:h-60'
         }`}
       >
         <Image
@@ -64,13 +62,13 @@ function ItineraryCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
 
         {/* Top Floating Badges (Crisp Translucent Black - Zero Blur Compositing Cost) */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/75 px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5 shadow-sm">
+        <div className="absolute top-3 sm:top-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center justify-between pointer-events-none z-10 min-w-0">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/75 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full border border-white/20 flex items-center gap-1.5 shadow-sm shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
             <span>{trip.destination}</span>
           </span>
 
-          <span className="text-[10px] font-mono text-white bg-black/75 px-2.5 py-1 rounded-full border border-white/20 flex items-center gap-1 shadow-sm">
+          <span className="text-[10px] font-mono text-white bg-black/75 px-2.5 py-0.5 sm:py-1 rounded-full border border-white/20 flex items-center gap-1 shadow-sm shrink-0">
             <Clock className="w-3 h-3 text-[var(--accent)]" />
             <span>
               {trip.durationNights}N · {trip.durationDays}D
@@ -80,8 +78,8 @@ function ItineraryCard({
 
         {/* Bottom Route Preview */}
         {trip.route && (
-          <div className="absolute bottom-3 left-4 right-4 pointer-events-none z-10">
-            <span className="text-[11px] font-mono text-white/95 line-clamp-1 drop-shadow-sm">
+          <div className="absolute bottom-3 left-3 sm:left-4 right-3 sm:right-4 pointer-events-none z-10 min-w-0">
+            <span className="text-[10.5px] sm:text-[11px] font-mono text-white/95 truncate block drop-shadow-sm">
               {trip.route}
             </span>
           </div>
@@ -90,19 +88,19 @@ function ItineraryCard({
 
       {/* ── Card Body ─────────────────────────────────────────────────── */}
       <div
-        className={`p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4 ${
+        className={`p-4 sm:p-6 flex-1 flex flex-col justify-between space-y-3.5 sm:space-y-4 min-w-0 ${
           isFirstHero ? 'lg:w-1/2' : ''
         }`}
       >
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between gap-2">
+        <div className="space-y-2 min-w-0">
+          <div className="flex items-center justify-between gap-2 min-w-0">
             {trip.category && (
-              <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--accent)] font-semibold">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--accent)] font-semibold truncate">
                 {trip.category}
               </span>
             )}
             {trip.featured && (
-              <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-[var(--accent)] px-2 py-0.5 rounded-full font-medium shadow-xs flex items-center gap-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-[var(--accent)] px-2 py-0.5 rounded-full font-medium shadow-xs flex items-center gap-1 shrink-0">
                 <Sparkles className="w-2.5 h-2.5" />
                 <span>Featured</span>
               </span>
@@ -110,84 +108,39 @@ function ItineraryCard({
           </div>
 
           <h3
-            className={`font-serif font-normal text-[var(--text-primary)] leading-snug [@media(hover:hover)]:group-hover:text-[var(--accent)] transition-colors ${
-              isFirstHero ? 'text-2xl sm:text-3xl' : 'text-lg sm:text-xl'
+            className={`font-serif font-normal text-[var(--text-primary)] leading-snug break-words min-w-0 [@media(hover:hover)]:group-hover:text-[var(--accent)] transition-colors ${
+              isFirstHero ? 'text-xl sm:text-3xl' : 'text-base sm:text-xl'
             }`}
           >
             {trip.title}
           </h3>
 
-          <p className="text-xs text-[var(--text-muted)] line-clamp-2 leading-relaxed font-sans">
+          <p className="text-xs text-[var(--text-muted)] line-clamp-2 leading-relaxed font-sans break-words min-w-0">
             {trip.shortDescription}
           </p>
 
           {/* Highlights Snippet */}
           {trip.highlights && trip.highlights.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-mono">
+            <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-mono min-w-0">
               {trip.highlights.slice(0, 3).map((h, hi) => (
                 <span
                   key={hi}
-                  className="bg-[var(--bg-primary)] text-[var(--text-muted)] px-2 py-0.5 rounded border border-[var(--border-subtle)] line-clamp-1"
+                  className="bg-[var(--bg-primary)] text-[var(--text-muted)] px-2 py-0.5 rounded border border-[var(--border-subtle)] truncate max-w-full"
                 >
                   {h}
                 </span>
               ))}
             </div>
           )}
-
-          {/* ── Development-Only Image Audit Overlay ──────────────────── */}
-          {isAuditMode && (
-            <div className="mt-3 p-3.5 rounded-2xl bg-black/90 text-stone-200 border border-amber-500/40 text-[11px] font-mono space-y-1.5 select-text shadow-lg">
-              <div className="flex items-center justify-between gap-1 border-b border-white/10 pb-1.5">
-                <span className="text-amber-400 font-bold">
-                  #{index + 1} ID: {trip.id}
-                </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase font-semibold">
-                  {trip.destinationId}
-                </span>
-              </div>
-              <div className="space-y-1 text-[10px] leading-tight">
-                <div className="flex items-start gap-1">
-                  <span className="text-stone-400 whitespace-nowrap">📍 Location:</span>
-                  <span className="text-emerald-300 font-medium line-clamp-1">
-                    {typeof trip.coverImage === 'object' && trip.coverImage?.location
-                      ? trip.coverImage.location
-                      : 'None specified'}
-                  </span>
-                </div>
-                <div className="flex items-start gap-1">
-                  <span className="text-stone-400 whitespace-nowrap">🏛️ Source:</span>
-                  <span className="text-sky-300 font-medium line-clamp-1">
-                    {trip.sourceMetadata?.source ||
-                      trip.sourceMetadata?.sourceName ||
-                      (typeof trip.coverImage === 'object' && trip.coverImage?.source) ||
-                      'N/A'}
-                  </span>
-                </div>
-                <div className="flex items-start gap-1">
-                  <span className="text-stone-400 whitespace-nowrap">📝 Alt:</span>
-                  <span className="text-stone-300 italic line-clamp-1">
-                    &ldquo;{typeof trip.coverImage === 'object' ? trip.coverImage?.alt : trip.title}&rdquo;
-                  </span>
-                </div>
-                {typeof trip.coverImage === 'object' && trip.coverImage?.photographer && (
-                  <div className="flex items-start gap-1">
-                    <span className="text-stone-400 whitespace-nowrap">👤 Photographer:</span>
-                    <span className="text-stone-300">{trip.coverImage.photographer}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Footer: Pricing & CTA */}
-        <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
-          <div>
+        <div className="pt-3.5 sm:pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2 min-w-0">
+          <div className="min-w-0">
             <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--text-muted)] block">
               {trip.isPriceOnRequest ? 'Pricing' : 'Starting From'}
             </span>
-            <span className="text-base sm:text-lg font-serif font-medium text-[var(--text-primary)]">
+            <span className="text-sm sm:text-lg font-serif font-medium text-[var(--text-primary)] truncate block">
               {formattedPrice}
             </span>
           </div>
@@ -198,7 +151,7 @@ function ItineraryCard({
               e.stopPropagation();
               onSelect(trip);
             }}
-            className="px-4 py-2 rounded-full bg-[var(--accent)] text-white text-xs font-mono font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 [@media(hover:hover)]:group-hover:translate-x-0.5"
+            className="min-h-[44px] px-3.5 sm:px-4 py-2 rounded-full bg-[var(--accent)] text-white text-xs font-mono font-medium hover:opacity-90 transition-opacity flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 shrink-0 [@media(hover:hover)]:group-hover:translate-x-0.5"
           >
             <span>Explore journey</span>
             <ArrowRight className="w-3.5 h-3.5 transition-transform [@media(hover:hover)]:group-hover:translate-x-0.5" />

@@ -384,7 +384,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
   return (
     <section
       id="india-journey"
-      className="relative w-full bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-700 py-16 sm:py-24 md:py-28 select-none"
+      className="relative w-full bg-[var(--bg-primary)] text-[var(--text-primary)] transition-colors duration-700 py-14 sm:py-20 md:py-28"
       aria-label="Kinetic Journey Deck — Kashmir to Kanyakumari"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 space-y-8 sm:space-y-12">
@@ -703,132 +703,92 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
         </div>
 
         {/* ── 04. MOBILE RESPONSIVE EDITORIAL FEED (< 1024px) ─────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-6">
-          {journeyDeckItems.map((item, idx) => {
-            const isExpanded = expandedMobileIdx === idx;
-            return (
-              <motion.div
-                key={item.id}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-30px' }}
-                whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
-                transition={{ duration: 0.4 }}
-                className="rounded-3xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-sm flex flex-col justify-between"
-              >
-                {/* Cover Photograph Box */}
-                <div
-                  className="relative h-60 w-full overflow-hidden bg-black/20 cursor-pointer"
-                  onClick={() => setExpandedMobileIdx(isExpanded ? null : idx)}
-                >
-                  <Image
-                    src={getDeckItemImage(item).src}
-                    alt={getDeckItemImage(item).alt}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 50vw"
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:hidden gap-5">
+          {journeyDeckItems.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => handleExplore(item)}
+              className="rounded-3xl overflow-hidden border border-[var(--border-subtle)] bg-[var(--bg-surface)] shadow-md flex flex-col justify-between cursor-pointer active:scale-[0.98] transition-transform touch-manipulation"
+            >
+              {/* Cover Photograph Box */}
+              <div className="relative h-52 w-full overflow-hidden bg-black/20">
+                <Image
+                  src={getDeckItemImage(item).src}
+                  alt={getDeckItemImage(item).alt}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className="object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
 
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20">
-                      {item.chapterNumber} · {item.destination}
-                    </span>
-                    <span className="text-[10px] font-mono text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
-                      <Clock className="w-2.5 h-2.5 text-[var(--accent)]" />
-                      <span>{item.duration}</span>
-                    </span>
-                  </div>
+                {/* Badges */}
+                <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-[#E46B3B] px-2.5 py-0.5 rounded-full font-bold shadow-xs">
+                    {item.chapterNumber} · {item.destination}
+                  </span>
+                  <span className="text-[10px] font-mono text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
+                    <Clock className="w-2.5 h-2.5 text-[#FFAA70]" />
+                    <span>{item.duration.split('·')[0]}</span>
+                  </span>
+                </div>
 
-                  {/* Title overlay on photo */}
-                  <div className="absolute bottom-3 left-4 right-4 pointer-events-none space-y-0.5">
-                    <span className="text-[9px] font-mono uppercase tracking-widest text-[var(--accent)] font-semibold block">
-                      {item.tag}
-                    </span>
-                    <h3 className="text-lg font-serif font-medium text-white line-clamp-1">
-                      {item.title}
-                    </h3>
+                {/* Title overlay on photo */}
+                <div className="absolute bottom-3 left-4 right-4 pointer-events-none space-y-0.5">
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-[#FFAA70] font-semibold block">
+                    {item.tag}
+                  </span>
+                  <h3 className="text-base font-serif font-medium text-white line-clamp-1">
+                    {item.title}
+                  </h3>
+                </div>
+              </div>
+
+              {/* Card Content Body */}
+              <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
+                <div className="space-y-1.5">
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed font-sans line-clamp-2">
+                    {item.subtitle}
+                  </p>
+
+                  {/* Route line */}
+                  <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-primary)]">
+                    <MapPin className="w-3 h-3 text-[var(--accent)] shrink-0" />
+                    <span className="truncate">{item.route}</span>
                   </div>
                 </div>
 
-                {/* Card Content Body */}
-                <div className="p-4 sm:p-5 space-y-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <p className="text-xs text-[var(--text-muted)] leading-relaxed font-sans">
-                      {item.subtitle}
-                    </p>
-
-                    {/* Route line */}
-                    <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--text-primary)]">
-                      <MapPin className="w-3 h-3 text-[var(--accent)] shrink-0" />
-                      <span className="truncate">{item.route}</span>
-                    </div>
-
-                    {/* Expandable Day Preview for Mobile */}
-                    <AnimatePresence>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="space-y-2 pt-2 border-t border-[var(--border-subtle)] overflow-hidden"
-                        >
-                          <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--accent)] block font-semibold">
-                            Day-by-Day Highlights:
-                          </span>
-                          <div className="space-y-1.5">
-                            {item.dayPreview.map((d, di) => (
-                              <div
-                                key={di}
-                                className="p-2 rounded-xl bg-[var(--bg-surface-2)] border border-[var(--border-subtle)] text-[10px]"
-                              >
-                                <span className="font-mono text-[var(--accent)] font-bold">
-                                  DAY {d.day}:{' '}
-                                </span>
-                                <span className="font-semibold text-[var(--text-primary)]">
-                                  {d.title}
-                                </span>
-                                <p className="text-[var(--text-muted)] pt-0.5">{d.detail}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                {/* Bottom Footer: Price & CTA */}
+                <div className="pt-2.5 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--text-muted)] block">
+                      {item.isPriceOnRequest ? 'Pricing' : 'Starting From'}
+                    </span>
+                    <span className="text-sm font-serif font-bold text-[var(--text-primary)]">
+                      {item.priceDisplay}
+                    </span>
                   </div>
 
-                  {/* Bottom Footer: Price & CTA */}
-                  <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
-                    <div>
-                      <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--text-muted)] block">
-                        {item.isPriceOnRequest ? 'Pricing' : 'Starting From'}
-                      </span>
-                      <span className="text-base font-serif font-bold text-[var(--text-primary)]">
-                        {item.priceDisplay}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleExplore(item)}
-                      className="px-4 py-2 rounded-full bg-[var(--accent)] text-white text-xs font-mono font-medium hover:opacity-90 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
-                    >
-                      <span>Explore</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleExplore(item);
+                    }}
+                    className="px-3.5 py-1.5 rounded-full bg-[var(--accent)] text-white text-[11px] font-mono font-medium hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer shadow-xs active:scale-95 touch-manipulation"
+                  >
+                    <span>Explore</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
-              </motion.div>
-            );
-          })}
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* ── 05. SECTION BOTTOM EXPLORE LINK ─────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[var(--border-subtle)] text-center sm:text-left">
-          <div className="text-xs font-mono text-[var(--text-muted)] flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[var(--border-subtle)] text-center sm:text-left min-w-0 max-w-full">
+          <div className="text-xs font-mono text-[var(--text-muted)] flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 min-w-0">
             <span>Verified boutique stays</span>
             <span className="opacity-40">·</span>
             <span>Private chauffeur</span>
@@ -838,7 +798,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
 
           <Link
             href="/itineraries"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-white text-xs font-mono font-medium transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-white text-xs font-mono font-medium transition-all shadow-md active:scale-95 cursor-pointer whitespace-nowrap shrink-0 min-h-[44px]"
           >
             <span>Explore all {getItineraryCount()} itineraries</span>
             <ArrowRight className="w-3.5 h-3.5" />

@@ -14,7 +14,7 @@ interface FinalCinematicCTAProps {
 
 export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAProps) {
   return (
-    <section className="relative min-h-[640px] sm:min-h-[760px] flex items-center justify-center overflow-hidden border-t border-[var(--border-subtle)] bg-[#090908]">
+    <section className="relative min-h-[460px] sm:min-h-[580px] md:min-h-[700px] flex items-center justify-center overflow-hidden border-t border-[var(--border-subtle)] bg-[#090908]">
       {/* Background Full-Viewport Authentic Mountain Road Landscape */}
       <motion.div
         initial={{ scale: 1.08, opacity: 0.8 }}
@@ -30,7 +30,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
           sizes="100vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/75 to-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#090908] via-black/80 to-black/60" />
       </motion.div>
 
       {/* Animated Final Journey Path Route Line & Airplane */}
@@ -75,7 +75,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
       </div>
 
       {/* Content */}
-      <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 md:px-10 text-center text-white space-y-8 py-24">
+      <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 md:px-10 text-center text-white space-y-6 sm:space-y-8 py-14 sm:py-20 md:py-24">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -83,7 +83,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
           transition={{ duration: 0.6, delay: 0.1 }}
           className="inline-flex justify-center"
         >
-          <TripkarioLogo badgeSize={42} variant="white" />
+          <TripkarioLogo badgeSize={36} variant="white" />
         </motion.div>
 
         {/* Masked Split Headline */}
@@ -93,7 +93,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
             whileInView={{ y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="text-5xl sm:text-7xl md:text-8xl font-serif font-normal leading-[0.98] text-white tracking-tight"
+            className="text-3xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-normal leading-[1.04] text-white tracking-tight"
           >
             Ready to go <br />
             <motion.span
@@ -113,7 +113,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="text-base sm:text-xl text-white/85 max-w-xl mx-auto font-normal leading-relaxed"
+          className="text-sm sm:text-lg text-white/85 max-w-xl mx-auto font-normal leading-relaxed"
         >
           Your next trip is probably closer than you think. Tell us where you want to wake up next, and we will handle the rest.
         </motion.p>
@@ -123,23 +123,25 @@ export default function FinalCinematicCTA({ onOpenPlanTrip }: FinalCinematicCTAP
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.55 }}
-          className="flex flex-wrap items-center justify-center gap-4 pt-4"
+          className="flex flex-wrap items-center justify-center gap-3 pt-2"
         >
-          <MagneticButton
+          <button
+            type="button"
             onClick={onOpenPlanTrip}
-            className="gap-2.5 rounded-full px-8 h-13 bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-2xl flex items-center font-medium"
+            className="gap-2 rounded-full px-6 sm:px-8 h-12 bg-[#E46B3B] hover:bg-[#ED7B4D] text-white shadow-2xl flex items-center justify-center text-xs font-bold tracking-wide active:scale-95 touch-manipulation cursor-pointer"
           >
             <span>PLAN MY TRIP</span>
             <ArrowRight className="w-4 h-4" />
-          </MagneticButton>
+          </button>
 
-          <MagneticButton
+          <button
+            type="button"
             onClick={() => openWhatsApp('Hi TripKario! I am ready to plan my next vacation.')}
-            className="border border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-8 h-13 glass-surface flex items-center font-medium"
+            className="border border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-5 sm:px-8 h-12 bg-black/40 backdrop-blur-md shadow-xl flex items-center justify-center text-xs font-bold tracking-wide active:scale-95 touch-manipulation cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4 text-[#E46B3B]" />
+            <MessageCircle className="w-4 h-4 text-[#25D366]" />
             <span>TALK TO US</span>
-          </MagneticButton>
+          </button>
         </motion.div>
 
         {/* End-of-Journey Personal Brand Signature: with love, Yashi */}
