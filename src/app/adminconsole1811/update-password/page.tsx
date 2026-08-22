@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import TripkarioLogo from '@/components/TripkarioLogo';
+import ThemeToggle from '@/components/ThemeToggle';
 import { supabase } from '@/lib/supabase/client';
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, ShieldCheck, ArrowLeft, ArrowRight } from 'lucide-react';
 
@@ -60,13 +61,13 @@ export default function UpdatePasswordPage() {
           // If hash tokens are being processed asynchronously, give a short grace period
           const timer = setTimeout(async () => {
             if (!isMounted) return;
-            const { data: { session: delayedSession } } = await supabase.auth.getSession();
-            if (delayedSession) {
+            const { data: { session: retrySession } } = await supabase.auth.getSession();
+            if (retrySession) {
               setSessionStatus('valid');
             } else {
-              setSessionStatus((current) => (current === 'checking' ? 'invalid' : current));
+              setSessionStatus((prev) => (prev === 'checking' ? 'invalid' : prev));
             }
-          }, 1200);
+          }, 800);
 
           return () => clearTimeout(timer);
         }
@@ -113,19 +114,11 @@ export default function UpdatePasswordPage() {
 
         if (error) {
           setIsSubmitting(false);
-          const msg = error.message?.toLowerCase() || '';
-          if (msg.includes('same password') || msg.includes('different')) {
-            setErrorMsg('New password should be different from your old password.');
-          } else if (msg.includes('expired') || msg.includes('invalid') || msg.includes('token')) {
-            setErrorMsg('This password reset link is invalid or has expired.');
-            setSessionStatus('invalid');
-          } else {
-            setErrorMsg('Unable to update password. Please try again or request a new reset link.');
-          }
+          setErrorMsg(error.message || 'Failed to update password. Please try again.');
           return;
         }
 
-        // Clean up recovery session so the user signs in fresh with their new password
+        // Sign out to force re-login with new password
         try {
           await supabase.auth.signOut();
         } catch {
@@ -149,6 +142,11 @@ export default function UpdatePasswordPage() {
 
   return (
     <div className="min-h-screen bg-[#0F0E0C] text-white flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden select-none">
+      {/* Top Floating Controls */}
+      <div className="absolute top-5 right-5 z-20">
+        <ThemeToggle className="bg-white/10 border-white/20 hover:bg-white/15" />
+      </div>
+
       {/* Background Ambience */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_30%,rgba(200,93,58,0.12),transparent_70%)] pointer-events-none" />
 

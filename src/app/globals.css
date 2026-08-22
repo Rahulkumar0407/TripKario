@@ -70,20 +70,9 @@
   --glass-shadow-hover: 0 32px 85px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.20);
 }
 
-@keyframes themeWipeDown {
-  0% {
-    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
-    opacity: 0.96;
-  }
-  48% {
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-    opacity: 0.96;
-  }
-  100% {
-    clip-path: polygon(0 100%, 100% 100%, 100% 100%, 0 100%);
-    opacity: 0;
-  }
-}
+/* ════════════════════════════════════════════════════════════════
+   FAST & SATISFYING THEME TRANSITIONS (160ms ease-out)
+   ════════════════════════════════════════════════════════════════ */
 
 * {
   box-sizing: border-box;
@@ -99,7 +88,13 @@ body {
   color: var(--text-primary);
   overflow-x: hidden;
   font-style: normal;
-  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1), color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color 0.16s ease-out, color 0.16s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none !important;
+  }
 }
 
 /* Tactile Glass Surface Primitives */

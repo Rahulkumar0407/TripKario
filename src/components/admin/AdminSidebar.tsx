@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import TripkarioLogo from '@/components/TripkarioLogo';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useAdminAuth } from '@/lib/admin/auth';
 import { Compass, Users, Image as ImageIcon, ExternalLink, LogOut } from 'lucide-react';
 
@@ -67,6 +68,8 @@ export default function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
 
       {/* Footer Profile & Public Site Action */}
       <div className="p-4 border-t border-[#262420] space-y-2 bg-[#14120F]">
+        <ThemeToggle variant="sidebar" />
+
         <Link
           href="/"
           target="_blank"

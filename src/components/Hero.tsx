@@ -7,6 +7,8 @@ import {
   AnimatePresence,
   useScroll,
   useTransform,
+  useMotionValue,
+  useSpring,
   PanInfo,
 } from 'framer-motion';
 import {
@@ -26,7 +28,6 @@ import MagneticButton from './ui/MagneticButton';
 import {
   heroDestinations,
   preloadHeroImage,
-  HERO_DESTINATION_COUNT,
   HERO_AUTOPLAY_MS,
   HERO_TRANSITION_DURATION,
 } from '@/data/heroDestinations';
@@ -188,8 +189,15 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
     'dest' | 'style' | 'budget' | null
   >(null);
 
-  // ── Parallax State ───────────────────────────────────────────
-  const [mouseParallax, setMouseParallax] = useState({ x: 0, y: 0 });
+  // ── Mouse Parallax (Image Layer Only — Zero React Rerenders) ──
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const smoothMouseX = useSpring(mouseX, { stiffness: 120, damping: 30, mass: 0.5 });
+  const smoothMouseY = useSpring(mouseY, { stiffness: 120, damping: 30, mass: 0.5 });
+  // Clamped subtle background photo parallax: X: ±6px, Y: ±3.5px
+  const imgParallaxX = useTransform(smoothMouseX, [-1, 1], [-6, 6]);
+  const imgParallaxY = useTransform(smoothMouseY, [-1, 1], [-3.5, 3.5]);
+
   const heroRef = useRef<HTMLDivElement>(null);
   const lastValidIdx = useRef(0);
 
@@ -308,7 +316,7 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
     };
   }, []);
 
-  // ── Mouse Parallax ───────────────────────────────────────────
+  // ── Mouse Parallax (Desktop Only, Clamped, Direct Motion Value Updates) ──
   useEffect(() => {
     // Only register mouse parallax on desktop devices with fine pointer
     if (typeof window === 'undefined' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
@@ -317,13 +325,17 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
     const handler = (e: MouseEvent) => {
       if (!heroRef.current) return;
       const { innerWidth, innerHeight } = window;
-      const x = (e.clientX - innerWidth / 2) / (innerWidth / 2);
-      const y = (e.clientY - innerHeight / 2) / (innerHeight / 2);
-      setMouseParallax({ x, y });
+      const rawX = (e.clientX - innerWidth / 2) / (innerWidth / 2);
+      const rawY = (e.clientY - innerHeight / 2) / (innerHeight / 2);
+      // Strictly clamp coordinates to [-1, 1] range to avoid runaway values
+      const clampedX = Math.max(-1, Math.min(1, rawX));
+      const clampedY = Math.max(-1, Math.min(1, rawY));
+      mouseX.set(clampedX);
+      mouseY.set(clampedY);
     };
     window.addEventListener('mousemove', handler, { passive: true });
     return () => window.removeEventListener('mousemove', handler);
-  }, []);
+  }, [mouseX, mouseY]);
 
   // ── Drag / Swipe ─────────────────────────────────────────────
   const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -551,11 +563,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
               >
                 <motion.div
                   className="absolute inset-0"
-                  animate={{
-                    x: mouseParallax.x * 3,
-                    y: mouseParallax.y * 2,
+                  style={{
+                    x: imgParallaxX,
+                    y: imgParallaxY,
                   }}
-                  transition={{ type: 'spring', stiffness: 80, damping: 40 }}
                 >
                   <Image
                     src={exiting.image}
@@ -598,11 +609,10 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
           >
             <motion.div
               className="absolute inset-0"
-              animate={{
-                x: mouseParallax.x * 4,
-                y: mouseParallax.y * 3,
+              style={{
+                x: imgParallaxX,
+                y: imgParallaxY,
               }}
-              transition={{ type: 'spring', stiffness: 80, damping: 40 }}
             >
               <Image
                 src={current.image}
@@ -648,11 +658,6 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
           <motion.div
             className="max-w-3xl space-y-5"
             style={{ y: headingExitY, opacity: headingExitOpacity }}
-            animate={{
-              x: mouseParallax.x * 8,
-              y: mouseParallax.y * 6,
-            }}
-            transition={{ type: 'spring', stiffness: 80, damping: 35 }}
           >
             <h1>
               <span className="block overflow-hidden pb-1 -mb-1">
@@ -730,6 +735,31 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
               </AnimatePresence>
             </div>
 
+            {/* ─── YASHI BRAND SIGNATURE (Brand layer: mounts once, stable across slide transitions) ─── */}
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.5,
+                delay: 0.85,
+                ease: EASE.out as [number, number, number, number],
+              }}
+              className="pt-1 flex items-baseline gap-1.5 select-none"
+              aria-label="with love, Yashi"
+            >
+              <span className="text-[11px] sm:text-xs font-mono font-normal tracking-wide text-white/55">
+                with love,
+              </span>
+              <span className="text-sm sm:text-[15px] font-serif font-normal text-[#F4A261] tracking-normal">
+                Yashi
+              </span>
+            </motion.div>
+
+            {/* Brand Wit */}
+            <p className="text-[11px] font-mono tracking-[0.06em] text-white/40 max-w-xs">
+              Planning a trip shouldn&apos;t require 47 WhatsApp messages.
+            </p>
+
             {/* Primary Action Buttons */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <MagneticButton
@@ -761,11 +791,6 @@ export default function Hero({ slides, onOpenPlanTrip, onExploreJourney, onSearc
           <motion.div
             className="mb-1 flex flex-col items-end gap-4"
             style={{ y: infoExitY, opacity: infoExitOpacity }}
-            animate={{
-              x: mouseParallax.x * 10,
-              y: mouseParallax.y * 8,
-            }}
-            transition={{ type: 'spring', stiffness: 80, damping: 35 }}
           >
             <AnimatePresence mode="wait">
               <motion.div

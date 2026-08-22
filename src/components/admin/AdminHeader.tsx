@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Menu, Plus, ExternalLink, Compass, Users, Image as ImageIcon } from 'lucide-react';
 import ImageKitStorageWidget from '@/components/admin/ImageKitStorageWidget';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface AdminHeaderProps {
   onToggleMobileMenu: () => void;
@@ -26,7 +27,7 @@ export default function AdminHeader({ onToggleMobileMenu }: AdminHeaderProps) {
           type="button"
           onClick={onToggleMobileMenu}
           aria-label="Toggle navigation menu"
-          className="lg:hidden p-2 rounded-xl text-[#6D665E] dark:text-[#B8B0A4] hover:bg-black/5 dark:hover:bg-white/5"
+          className="lg:hidden p-2 rounded-xl text-[#6D665E] dark:text-[#B8B0A4] hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -37,8 +38,10 @@ export default function AdminHeader({ onToggleMobileMenu }: AdminHeaderProps) {
         </div>
       </div>
 
-      {/* Right Actions: Storage Monitor, Quick Add Dropdown, View Website */}
-      <div className="flex items-center gap-2.5 sm:gap-4">
+      {/* Right Actions: Theme Toggle, Storage Monitor, Quick Add Dropdown, View Website */}
+      <div className="flex items-center gap-2 sm:gap-3.5">
+        <ThemeToggle className="bg-black/5 dark:bg-white/10 border-black/10 dark:border-white/15" />
+
         {/* ImageKit Storage Summary Widget */}
         <ImageKitStorageWidget variant="header" />
         {/* Quick Add Menu */}

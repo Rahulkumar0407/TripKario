@@ -152,9 +152,7 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
                   <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--accent)] font-bold">
                     Menu
                   </span>
-                  <span className="text-[11px] font-mono text-[var(--text-muted)]">
-                    TripKario.com
-                  </span>
+                  <ThemeToggle variant="pill" />
                 </div>
 
                 <nav className="flex flex-col gap-1">

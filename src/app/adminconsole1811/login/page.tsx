@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import TripkarioLogo from '@/components/TripkarioLogo';
+import ThemeToggle from '@/components/ThemeToggle';
 import { useAdminAuth } from '@/lib/admin/auth';
 import { Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -75,6 +76,11 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0F0E0C] text-white flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-hidden select-none">
+      {/* Top Floating Controls */}
+      <div className="absolute top-5 right-5 z-20">
+        <ThemeToggle className="bg-white/10 border-white/20 hover:bg-white/15" />
+      </div>
+
       {/* Background Ambience */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_800px_at_50%_30%,rgba(200,93,58,0.12),transparent_70%)] pointer-events-none" />
 
