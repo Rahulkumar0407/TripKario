@@ -43,7 +43,7 @@ function TestimonialCard({ item }: TestimonialCardProps) {
       <GlassSurface
         variant="frost"
         rounded="3xl"
-        className="w-full p-5 sm:p-6 flex flex-col justify-between border border-[var(--border-card)] shadow-md hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 bg-[var(--bg-surface)]/90 dark:bg-[#121816]/90 backdrop-blur-xl"
+        className="w-full p-5 sm:p-6 flex flex-col justify-between border border-[var(--border-card)] shadow-md hover:shadow-xl transition-all duration-300 group hover:-translate-y-1 bg-[var(--bg-surface)] dark:bg-[#121816]"
       >
         <div className="space-y-3.5">
           {/* Header: Initials Avatar, Name, Location & Google Badge */}

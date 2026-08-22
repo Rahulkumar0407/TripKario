@@ -48,8 +48,8 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
             px-5 lg:px-6
             transition-all duration-500 ease-out
             ${scrolled
-              ? 'h-[58px] bg-[var(--glass-bg)] border border-[var(--glass-border)] backdrop-blur-2xl shadow-xl shadow-black/10'
-              : 'h-[66px] bg-black/25 border border-white/12 backdrop-blur-lg'
+              ? 'h-[58px] bg-[var(--bg-surface)]/95 md:bg-[var(--glass-bg)] border border-[var(--border-subtle)] md:border-[var(--glass-border)] md:backdrop-blur-2xl shadow-xl shadow-black/10'
+              : 'h-[66px] bg-black/75 md:bg-black/25 border border-white/15 md:border-white/12 md:backdrop-blur-lg'
             }
           `}
           style={{ marginLeft: 'auto', marginRight: 'auto', width: 'calc(100% - 32px)' }}
@@ -136,7 +136,7 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 z-[95] bg-black/60 backdrop-blur-md lg:hidden"
+              className="fixed inset-0 z-[95] bg-black/70 lg:hidden"
             />
 
             {/* Menu Panel */}
@@ -147,7 +147,7 @@ export default function Navbar({ onOpenPlanTrip }: NavbarProps) {
               transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="fixed left-3 right-3 top-[80px] z-[96] lg:hidden max-h-[calc(100vh-100px)] overflow-y-auto"
             >
-              <div className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl backdrop-blur-2xl p-5 sm:p-6 space-y-4">
+              <div className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-card)] shadow-2xl p-5 sm:p-6 space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
                   <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--accent)] font-bold">
                     Menu

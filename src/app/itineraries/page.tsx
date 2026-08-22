@@ -580,7 +580,7 @@ function ItinerariesCatalogueContent() {
 
           {/* ── Mobile & Tablet Filter Bottom Sheet Drawer ───────────────── */}
           {isFilterDrawerOpen && (
-            <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/60 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end bg-black/75">
               <div className="bg-[var(--bg-surface)] rounded-t-3xl sm:rounded-3xl border-t sm:border border-[var(--border-card)] p-6 space-y-4 max-h-[85vh] sm:max-w-xl sm:mx-auto sm:mb-8 overflow-y-auto safe-area-inset-bottom w-full shadow-2xl">
                 <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)]">
                   <div className="flex items-center gap-2">

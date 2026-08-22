@@ -537,7 +537,7 @@ export default function AdminGalleryPage() {
           SIMPLIFIED UPLOAD / EDIT MODAL
           ══════════════════════════════════════════════════ */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 animate-in fade-in duration-200">
           <div className="relative w-full max-w-lg rounded-3xl bg-[#FAF7F2] dark:bg-[#14120F] border border-[#262420]/20 dark:border-[#262420] p-5 sm:p-7 space-y-5 shadow-2xl max-h-[92vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-[#262420]/15 dark:border-[#262420]">
@@ -839,7 +839,7 @@ export default function AdminGalleryPage() {
           DELETE CONFIRMATION MODAL
           ══════════════════════════════════════════════════ */}
       {photoToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
           <div className="w-full max-w-sm rounded-3xl bg-[#FAF7F2] dark:bg-[#14120F] border border-[#262420]/20 dark:border-[#262420] p-6 space-y-4 shadow-2xl text-center">
             <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />

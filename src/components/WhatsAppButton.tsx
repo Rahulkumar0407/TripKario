@@ -14,14 +14,14 @@ export default function WhatsAppButton() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-40">
+    <div className="fixed bottom-4 left-4 sm:bottom-6 sm:left-6 z-40 mb-safe">
       <button
         type="button"
         onClick={handleClick}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         aria-label="Talk to us on WhatsApp"
-        className="flex items-center gap-2.5 h-11 px-3.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[#25D366] shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group backdrop-blur-md"
+        className="flex items-center gap-2.5 h-11 px-3.5 rounded-full bg-[var(--bg-surface)] text-[var(--text-primary)] border border-[var(--border-subtle)] hover:border-[#25D366] shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group active:scale-95 touch-manipulation"
       >
         <MessageCircle className="w-4 h-4 text-[#25D366] shrink-0" />
         <motion.div

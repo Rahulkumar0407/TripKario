@@ -67,7 +67,7 @@ export default function JourneyRail({ onOpenPlanTrip }: JourneyRailProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
               <div className="absolute top-5 left-5">
-                <span className="px-3.5 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono uppercase tracking-widest font-bold">
+                <span className="px-3.5 py-1.5 rounded-full bg-black/80 text-white text-[10px] font-mono uppercase tracking-widest font-bold">
                   {trip.destination} · {trip.durationNights}N/{trip.durationDays}D
                 </span>
               </div>

@@ -38,10 +38,10 @@ export default function GlassSurface({
 
   const variantStyles = {
     default: 'glass-surface',
-    light: 'bg-white/70 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 shadow-md',
-    dark: 'bg-black/50 backdrop-blur-md border border-white/10 shadow-lg',
-    frost: 'bg-[var(--bg-surface)]/90 backdrop-blur-md border border-[var(--border-card)] shadow-md',
-    clear: 'bg-white/5 backdrop-blur-xs border border-white/10 shadow-xs',
+    light: 'bg-white/95 dark:bg-[#1A1815]/95 md:bg-white/70 md:dark:bg-white/10 md:backdrop-blur-md border border-white/40 dark:border-white/10 shadow-md',
+    dark: 'bg-[#14120F]/95 md:bg-black/50 md:backdrop-blur-md border border-white/10 shadow-lg',
+    frost: 'bg-[var(--bg-surface)] md:bg-[var(--bg-surface)]/90 md:backdrop-blur-md border border-[var(--border-card)] shadow-md',
+    clear: 'bg-white/5 md:backdrop-blur-xs border border-white/10 shadow-xs',
   };
 
   const roundedClasses = {

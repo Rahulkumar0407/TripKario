@@ -266,7 +266,7 @@ export default function AdminTeamPage() {
           EDITORIAL EMPTY STATE (IF 0 TEAM MEMBERS)
           ══════════════════════════════════════════════════ */}
       {!isLoading && team.length === 0 && (
-        <div className="py-20 sm:py-28 px-6 text-center max-w-xl mx-auto rounded-3xl border border-dashed border-[#262420]/20 dark:border-[#262420] bg-white/40 dark:bg-[#14120F]/40 backdrop-blur-sm space-y-6">
+        <div className="py-20 sm:py-28 px-6 text-center max-w-xl mx-auto rounded-3xl border border-dashed border-[#262420]/20 dark:border-[#262420] bg-white/60 dark:bg-[#14120F] space-y-6">
           <div className="w-16 h-16 rounded-full bg-[#FAF7F2] dark:bg-[#1C1916] border border-[#262420]/15 dark:border-[#262420] mx-auto flex items-center justify-center text-[#C85D3A]">
             <UserPlus className="w-7 h-7 stroke-1" />
           </div>
@@ -342,7 +342,7 @@ export default function AdminTeamPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/10 opacity-70 pointer-events-none" />
 
                       {/* Number Stamp */}
-                      <span className="absolute top-4 left-4 text-xs font-mono tracking-widest text-white/90 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-lg">
+                      <span className="absolute top-4 left-4 text-xs font-mono tracking-widest text-white/90 bg-black/75 px-2.5 py-1 rounded-lg">
                         PORTRAIT {itemNumber}
                       </span>
 
@@ -476,7 +476,7 @@ export default function AdminTeamPage() {
       {editingMember && (
         <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-300">
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/75"
             onClick={() => {
               setEditingMember(null);
               setIsCreatingNew(false);
@@ -753,7 +753,7 @@ export default function AdminTeamPage() {
           DELETE MEMBER CONFIRMATION MODAL
           ══════════════════════════════════════════════════ */}
       {memberToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
           <div className="bg-[#FAF7F2] dark:bg-[#1C1916] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-[#E5DFD5] dark:border-[#262420] shadow-2xl space-y-5 text-center">
             <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
@@ -790,7 +790,7 @@ export default function AdminTeamPage() {
           REMOVE PHOTO CONFIRMATION MODAL
           ══════════════════════════════════════════════════ */}
       {isConfirmingRemovePhoto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-200">
           <div className="bg-[#FAF7F2] dark:bg-[#1C1916] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-[#E5DFD5] dark:border-[#262420] shadow-2xl space-y-5 text-center">
             <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mx-auto">
               <ImageIcon className="w-6 h-6" />

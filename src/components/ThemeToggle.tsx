@@ -174,8 +174,8 @@ export default function ThemeToggle({
       className={`
         relative w-[38px] h-[38px] min-w-[38px] min-h-[38px] rounded-full cursor-pointer
         flex items-center justify-center shrink-0
-        bg-white/10 dark:bg-white/10 backdrop-blur-md
-        border border-white/20 dark:border-white/15
+        bg-black/10 dark:bg-white/10
+        border border-black/15 dark:border-white/15
         hover:bg-white/20 dark:hover:bg-white/18
         hover:border-white/35 dark:hover:border-white/30
         transition-colors duration-150

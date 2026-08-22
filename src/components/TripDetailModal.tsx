@@ -187,15 +187,15 @@ Please help me plan this journey with verified stays and private transport.`;
                 {trip.destination}
               </span>
               {trip.category && (
-                <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/20">
+                <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-black/80 text-white text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/20">
                   {trip.category}
                 </span>
               )}
-              <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/25">
+              <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full bg-white/20 text-white text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/25">
                 {trip.durationNights}N · {trip.durationDays}D
               </span>
               {trip.coverImage?.location && (
-                <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-white/90 text-[10px] font-mono border border-white/20">
+                <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-black/70 text-white/90 text-[10px] font-mono border border-white/20">
                   <MapPin className="w-3 h-3 text-[#FFAA70]" />
                   <span>{trip.coverImage.location}</span>
                 </span>

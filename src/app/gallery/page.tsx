@@ -157,7 +157,7 @@ export default function GalleryPage() {
 
                         {/* Photographic Numbering Stamp */}
                         <div className="absolute top-4 left-4 pointer-events-none z-10">
-                          <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-mono tracking-widest border border-white/20 font-bold">
+                          <span className="px-3 py-1 rounded-full bg-black/80 text-white text-[11px] font-mono tracking-widest border border-white/20 font-bold">
                             {numberString}
                           </span>
                         </div>

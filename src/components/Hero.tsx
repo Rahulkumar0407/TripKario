@@ -431,7 +431,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
             <span className="px-3 py-1 rounded-full bg-[#E46B3B] text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-md">
               {current.destination}
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-mono border border-white/20">
+            <span className="px-2.5 py-1 rounded-full bg-black/85 text-white/90 text-[10px] font-mono border border-white/20">
               {current.duration}
             </span>
           </div>
@@ -724,7 +724,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                       delay: 0.06,
                       ease: EASE.out as [number, number, number, number],
                     }}
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-md"
+                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/80 md:backdrop-blur-md border border-white/20 shadow-md"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A50]" />
                     <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
@@ -789,7 +789,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                     '_blank'
                   );
                 }}
-                className="px-5 h-[48px] rounded-full text-white text-[13px] font-bold tracking-wide border border-white/40 bg-black/60 hover:bg-black/80 hover:border-white/70 backdrop-blur-md shadow-xl shadow-black/50 transition-all"
+                className="px-5 h-[48px] rounded-full text-white text-[13px] font-bold tracking-wide border border-white/40 bg-black/80 hover:bg-black hover:border-white/70 md:backdrop-blur-md shadow-xl shadow-black/50 transition-all"
               >
                 <MessageCircle className="w-3.5 h-3.5 mr-1.5" />
                 <span>Talk to an Expert</span>
@@ -823,7 +823,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                   variant="dark"
                   enableRefraction
                   rounded="2xl"
-                  className="p-5 text-white w-[310px] shadow-2xl border border-white/20 bg-black/60 backdrop-blur-xl space-y-2.5"
+                  className="p-5 text-white w-[310px] shadow-2xl border border-white/20 bg-black/85 md:backdrop-blur-xl space-y-2.5"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[10px] font-mono tracking-[0.2em] uppercase text-[#FFAA70] font-bold">
@@ -898,7 +898,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                 <MagneticButton
                   onClick={() => prevScene(true)}
                   aria-label="Previous destination"
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#141816]/80 hover:bg-[#C85D3A] active:bg-[#141816] text-[#FAF4E8] hover:text-white border border-white/30 hover:border-[#C85D3A] backdrop-blur-md shadow-lg shadow-black/40 transition-all duration-200 ease-out flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#C85D3A] focus-visible:outline-hidden cursor-pointer"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#141816]/95 hover:bg-[#C85D3A] active:bg-[#141816] text-[#FAF4E8] hover:text-white border border-white/30 hover:border-[#C85D3A] shadow-lg shadow-black/40 transition-all duration-200 ease-out flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#C85D3A] focus-visible:outline-hidden cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </MagneticButton>
@@ -906,7 +906,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                 <MagneticButton
                   onClick={() => nextScene(true)}
                   aria-label="Next destination"
-                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#141816]/80 hover:bg-[#C85D3A] active:bg-[#141816] text-[#FAF4E8] hover:text-white border border-white/30 hover:border-[#C85D3A] backdrop-blur-md shadow-lg shadow-black/40 transition-all duration-200 ease-out flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#C85D3A] focus-visible:outline-hidden cursor-pointer"
+                  className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#141816]/95 hover:bg-[#C85D3A] active:bg-[#141816] text-[#FAF4E8] hover:text-white border border-white/30 hover:border-[#C85D3A] shadow-lg shadow-black/40 transition-all duration-200 ease-out flex items-center justify-center focus-visible:ring-2 focus-visible:ring-[#C85D3A] focus-visible:outline-hidden cursor-pointer"
                 >
                   <ArrowRight className="w-4 h-4" />
                 </MagneticButton>
@@ -939,7 +939,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                   className={`group relative px-3.5 py-1.5 rounded-full text-[11px] font-mono tracking-wider transition-all duration-300 cursor-pointer flex items-center gap-1.5 shrink-0 ${
                     isActive
                       ? 'bg-[#E46B3B] text-white font-bold shadow-lg shadow-[#E46B3B]/30'
-                      : 'bg-black/35 hover:bg-black/60 text-white/70 hover:text-white border border-white/10 hover:border-white/25 backdrop-blur-md'
+                      : 'bg-black/60 hover:bg-black/80 text-white/70 hover:text-white border border-white/10 hover:border-white/25'
                   }`}
                 >
                   <span
@@ -964,7 +964,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
             variant="frost"
             enableRefraction
             rounded="3xl"
-            className="px-2 py-2 shadow-2xl border border-[var(--border-card)] bg-[var(--bg-surface)]/95 backdrop-blur-2xl text-[var(--text-primary)]"
+            className="px-2 py-2 shadow-2xl border border-[var(--border-card)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
           >
             <form
               onSubmit={handleSearchSubmit}
@@ -1016,7 +1016,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.98 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 mt-2 w-80 rounded-2xl shadow-2xl p-3 z-50 overflow-hidden bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)] backdrop-blur-2xl"
+                      className="absolute top-full left-0 mt-2 w-80 rounded-2xl shadow-2xl p-3 z-50 overflow-hidden bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)]"
                     >
                       <div className="relative mb-2">
                         <Search className="w-3.5 h-3.5 text-[#857B72] dark:text-white/40 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1120,7 +1120,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.98 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute top-full left-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)] backdrop-blur-2xl"
+                      className="absolute top-full left-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)]"
                     >
                       <div className="space-y-0.5">
                         {styleOptions.map((opt) => (
@@ -1181,7 +1181,7 @@ export default function Hero({ slides, signature, onOpenPlanTrip, onExploreJourn
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.98 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute top-full right-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)] backdrop-blur-2xl"
+                      className="absolute top-full right-0 mt-2 w-48 rounded-2xl shadow-2xl p-2.5 z-50 bg-[var(--bg-surface)] dark:bg-[#141816] text-[var(--text-primary)] border border-[var(--border-card)]"
                     >
                       <div className="space-y-0.5">
                         {budgetOptions.map((b) => (

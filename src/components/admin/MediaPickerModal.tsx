@@ -119,7 +119,7 @@ export default function MediaPickerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 animate-in fade-in duration-200">
       <div className="bg-white dark:bg-[#14120F] rounded-3xl w-full max-w-4xl max-h-[88vh] border border-[#E5DFD5] dark:border-[#262420] shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
         <div className="p-5 sm:p-6 border-b border-[#E5DFD5] dark:border-[#262420] flex items-center justify-between gap-4">

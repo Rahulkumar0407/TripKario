@@ -193,7 +193,7 @@ export default function TravelChatbot() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-40 px-4 py-3 rounded-full bg-[#1B4947] text-[#FAF4E8] shadow-2xl flex items-center gap-2.5 border border-white/20 backdrop-blur-md cursor-pointer group"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 px-4 py-3 rounded-full bg-[#1B4947] text-[#FAF4E8] shadow-2xl flex items-center gap-2.5 border border-white/20 cursor-pointer group mb-safe active:scale-95 touch-manipulation"
           aria-label="Open TripKaro Guide"
         >
           <div className="w-2.5 h-2.5 rounded-full bg-[#EE582C] animate-pulse" />
@@ -212,7 +212,7 @@ export default function TravelChatbot() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[400px] max-h-[580px] h-[85vh] rounded-3xl bg-[var(--bg-surface)] dark:bg-[#141816] border border-[var(--border-card)] shadow-2xl flex flex-col overflow-hidden backdrop-blur-2xl"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[400px] max-h-[580px] h-[85vh] rounded-3xl bg-[var(--bg-surface)] dark:bg-[#141816] border border-[var(--border-card)] shadow-2xl flex flex-col overflow-hidden mb-safe"
           >
             {/* Guide Header */}
             <div className="p-4 sm:p-5 bg-[#1B4947] text-white flex items-center justify-between shrink-0">

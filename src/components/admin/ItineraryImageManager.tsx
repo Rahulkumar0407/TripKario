@@ -214,7 +214,7 @@ export default function ItineraryImageManager({
               key={currentImageUrl}
             />
             <div className="absolute top-2.5 left-2.5">
-              <span className="px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-white text-[10px] tracking-wider uppercase font-bold border border-white/20">
+              <span className="px-2.5 py-1 rounded-lg bg-black/85 text-white text-[10px] tracking-wider uppercase font-bold border border-white/20">
                 CURRENT
               </span>
             </div>
@@ -361,7 +361,7 @@ export default function ItineraryImageManager({
 
       {/* ── 03. RESTORE CONFIRMATION MODAL ───────────────────────────── */}
       {isRestoreModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 animate-in fade-in duration-150">
           <div className="w-full max-w-sm rounded-3xl bg-[#FAF7F2] dark:bg-[#14120F] border border-[#262420]/20 dark:border-[#262420] p-6 space-y-4 shadow-2xl text-center">
             <div className="w-12 h-12 rounded-full bg-[#174E48]/10 text-[#174E48] dark:text-[#2DD4BF] flex items-center justify-center mx-auto">
               <RotateCcw className="w-6 h-6" />
@@ -420,7 +420,7 @@ export default function ItineraryImageManager({
       {/* ── 04. PREVIEW MODAL ────────────────────────────────────────── */}
       {previewImageUrl && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 animate-in fade-in duration-150"
           onClick={() => setPreviewImageUrl(null)}
         >
           <div

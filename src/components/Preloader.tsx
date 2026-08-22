@@ -4,17 +4,19 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TripkarioLogo from './TripkarioLogo';
 
+import { useIsMobile } from '@/hooks/use-mobile';
+
 interface PreloaderProps {
   onComplete?: () => void;
 }
 
 export default function Preloader({ onComplete }: PreloaderProps) {
+  const isMobile = useIsMobile();
   const [isFinished, setIsFinished] = useState(true); // Default to finished to prevent mobile flash
 
   useEffect(() => {
     // Skip preloader entirely on mobile viewports (<768px) and for returning visits to maximize FCP & LCP
-    const isMobile = window.innerWidth < 768 || ('ontouchstart' in window && window.innerWidth < 1024);
-    const hasSeenPreloader = sessionStorage.getItem('tripkario_preloader_seen');
+    const hasSeenPreloader = typeof window !== 'undefined' ? sessionStorage.getItem('tripkario_preloader_seen') : null;
 
     if (isMobile || hasSeenPreloader) {
       setIsFinished(true);

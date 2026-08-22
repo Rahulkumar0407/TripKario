@@ -103,7 +103,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Login Card */}
-        <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] backdrop-blur-xl space-y-6">
+        <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] space-y-6">
           {/* Error Banner: ONLY shown after failed submission */}
           {errorMsg && (
             <div
@@ -217,7 +217,7 @@ export default function AdminLoginPage() {
 
       {/* Forgot Password Reset Modal */}
       {isForgotOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85">
           <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 max-w-sm w-full border border-white/15 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold text-white">Reset Admin Password</h3>

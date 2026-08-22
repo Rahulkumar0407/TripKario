@@ -195,11 +195,11 @@ export default function TripCarousel({
 
                 {/* Top Badges */}
                 <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full font-bold border border-white/15 shadow-xs">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/80 px-2.5 py-0.5 rounded-full font-bold border border-white/15 shadow-xs">
                     {trip.durationNights}N · {trip.durationDays}D
                   </span>
                   {trip.category && (
-                    <span className="text-[10px] font-mono tracking-wider uppercase text-white/90 bg-white/15 backdrop-blur-md px-2 py-0.5 rounded-full font-semibold">
+                    <span className="text-[10px] font-mono tracking-wider uppercase text-white/90 bg-white/20 px-2 py-0.5 rounded-full font-semibold">
                       {trip.category}
                     </span>
                   )}
@@ -362,12 +362,12 @@ export default function TripCarousel({
 
                 {/* Top Duration & Destination Tags */}
                 <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full font-bold border border-white/15 shadow-sm">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-white bg-black/80 px-3 py-1 rounded-full font-bold border border-white/15 shadow-sm">
                     {trip.durationNights}N · {trip.durationDays}D
                   </span>
 
                   {trip.category && (
-                    <span className="text-[10px] font-mono tracking-wider uppercase text-white/90 bg-white/15 backdrop-blur-md px-2.5 py-0.5 rounded-full font-semibold">
+                    <span className="text-[10px] font-mono tracking-wider uppercase text-white/90 bg-white/20 px-2.5 py-0.5 rounded-full font-semibold">
                       {trip.category}
                     </span>
                   )}

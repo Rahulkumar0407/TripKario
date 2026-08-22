@@ -232,7 +232,7 @@ export default function LocationGalleryPage({ params }: PageProps) {
 
                     {/* Stamp / Index badge */}
                     <div className="absolute top-3 left-3 pointer-events-none z-10">
-                      <span className="px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono tracking-wider border border-white/20">
+                      <span className="px-2.5 py-0.5 rounded-full bg-black/80 text-white text-[10px] font-mono tracking-wider border border-white/20">
                         {String(idx + 1).padStart(2, '0')}
                       </span>
                     </div>
@@ -312,7 +312,7 @@ export default function LocationGalleryPage({ params }: PageProps) {
       {/* ── 04. Fullscreen Lightbox Photo Viewer ─────────────────────────────── */}
       {activePhoto && (
         <div
-          className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-xl flex flex-col justify-between p-4 sm:p-6 md:p-8 animate-in fade-in duration-200 h-[100dvh] w-screen"
+          className="fixed inset-0 z-[150] bg-black/95 flex flex-col justify-between p-4 sm:p-6 md:p-8 animate-in fade-in duration-200 h-[100dvh] w-screen"
           onClick={() => setActiveLightboxIndex(null)}
         >
           {/* Top Bar */}

@@ -291,8 +291,37 @@ body {
   touch-action: manipulation;
 }
 
-.safe-area-inset-bottom {
+.safe-area-inset-bottom,
+.pb-safe {
   padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* iOS High-Performance Mobile Surface (Zero Compositing Jank) */
+.ios-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.dark .ios-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Prevent iOS Safari Automatic Viewport Zoom on Form Focus */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -303,3 +332,4 @@ body {
     scroll-behavior: auto !important;
   }
 }
+

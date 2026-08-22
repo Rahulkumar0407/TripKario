@@ -35,7 +35,7 @@ export default function AdminConsoleLayout({
             {isMobileSidebarOpen && (
               <div className="fixed inset-0 z-50 lg:hidden flex">
                 <div
-                  className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+                  className="fixed inset-0 bg-black/75"
                   onClick={() => setIsMobileSidebarOpen(false)}
                 />
                 <div className="relative z-10 w-72 h-full">

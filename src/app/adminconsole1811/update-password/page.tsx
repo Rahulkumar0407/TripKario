@@ -170,7 +170,7 @@ export default function UpdatePasswordPage() {
 
         {/* Checking State */}
         {sessionStatus === 'checking' && (
-          <div className="bg-[#171512] rounded-3xl p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] backdrop-blur-xl flex flex-col items-center justify-center space-y-4 text-center">
+          <div className="bg-[#171512] rounded-3xl p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] flex flex-col items-center justify-center space-y-4 text-center">
             <div className="w-10 h-10 rounded-full border-2 border-[#C85D3A] border-t-transparent animate-spin" />
             <div className="space-y-1">
               <p className="text-sm font-semibold text-white">Verifying reset link...</p>
@@ -181,7 +181,7 @@ export default function UpdatePasswordPage() {
 
         {/* Invalid / Expired State */}
         {sessionStatus === 'invalid' && (
-          <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] backdrop-blur-xl space-y-6">
+          <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] space-y-6">
             <div className="p-4 rounded-2xl bg-[#C85D3A]/15 border border-[#C85D3A]/30 text-[#F5B4A1] flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-[#C85D3A] shrink-0 mt-0.5" />
               <div className="space-y-1">
@@ -206,7 +206,7 @@ export default function UpdatePasswordPage() {
 
         {/* Success State */}
         {sessionStatus === 'success' && (
-          <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] backdrop-blur-xl space-y-6">
+          <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] space-y-6">
             <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div className="space-y-1">
@@ -231,7 +231,7 @@ export default function UpdatePasswordPage() {
 
         {/* Valid Recovery Session: Form */}
         {sessionStatus === 'valid' && (
-          <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] backdrop-blur-xl space-y-6">
+          <div className="bg-[#171512] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_24px_80px_rgba(0,0,0,0.8)] space-y-6">
             <div>
               <h2 className="text-lg font-bold text-white">Reset your password</h2>
               <p className="text-xs text-[#B8B0A4] mt-1">

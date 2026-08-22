@@ -145,11 +145,11 @@ I would like to check available departure dates and get the complete day-by-day 
               {trip.destination}
             </span>
             {trip.category && (
-              <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/15">
+              <span className="px-3 py-1 rounded-full bg-black/80 text-white text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/15">
                 {trip.category}
               </span>
             )}
-            <span className="px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/20">
+            <span className="px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-mono font-semibold uppercase tracking-wider border border-white/20">
               {trip.durationNights}N · {trip.durationDays}D
             </span>
           </div>

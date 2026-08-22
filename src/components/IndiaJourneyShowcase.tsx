@@ -538,16 +538,16 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
                 {/* Top Badges */}
                 <div className="relative z-10 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 shadow-sm flex items-center gap-1.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-black/80 px-3 py-1 rounded-full border border-white/20 shadow-sm flex items-center gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
                       <span>{currentItem.chapterNumber} · {currentItem.destination}</span>
                     </span>
-                    <span className="text-[10px] font-mono text-[var(--accent)] bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20 font-semibold uppercase">
+                    <span className="text-[10px] font-mono text-[var(--accent)] bg-black/80 px-2.5 py-1 rounded-full border border-white/20 font-semibold uppercase">
                       {currentItem.tag}
                     </span>
                   </div>
 
-                  <span className="text-[10px] font-mono text-white/90 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5">
+                  <span className="text-[10px] font-mono text-white/90 bg-black/80 px-3 py-1 rounded-full border border-white/20 flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-[var(--accent)]" />
                     <span>{currentItem.duration}</span>
                   </span>
@@ -565,7 +565,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
                   </div>
 
                   {/* Route Pill */}
-                  <div className="flex items-center gap-2 text-xs font-mono text-white/90 bg-black/40 backdrop-blur-sm px-3.5 py-1.5 rounded-xl border border-white/10 w-fit">
+                  <div className="flex items-center gap-2 text-xs font-mono text-white/90 bg-black/60 px-3.5 py-1.5 rounded-xl border border-white/10 w-fit">
                     <MapPin className="w-3.5 h-3.5 text-[var(--accent)] shrink-0" />
                     <span className="truncate">{currentItem.route}</span>
                   </div>
@@ -584,7 +584,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
                       {currentItem.dayPreview.map((d, di) => (
                         <div
                           key={di}
-                          className="p-2.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 space-y-1"
+                          className="p-2.5 rounded-xl bg-black/70 border border-white/10 space-y-1"
                         >
                           <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--accent)] font-semibold block">
                             DAY {d.day}
@@ -743,7 +743,7 @@ export default function IndiaJourneyShowcase({ onSelectJourney }: IndiaJourneySh
                   <span className="text-[10px] font-mono uppercase tracking-wider text-white bg-[#E46B3B] px-2.5 py-0.5 rounded-full font-bold shadow-xs">
                     {item.chapterNumber} · {item.destination}
                   </span>
-                  <span className="text-[10px] font-mono text-white bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
+                  <span className="text-[10px] font-mono text-white bg-black/80 px-2.5 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
                     <Clock className="w-2.5 h-2.5 text-[#FFAA70]" />
                     <span>{item.duration.split('·')[0]}</span>
                   </span>

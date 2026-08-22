@@ -172,7 +172,7 @@ export default function DestinationCarousel({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
                 <div className="absolute top-3 left-3 pointer-events-none z-10">
-                  <span className="px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-mono uppercase tracking-wider border border-white/20">
+                  <span className="px-2.5 py-0.5 rounded-full bg-black/80 text-white text-[10px] font-mono uppercase tracking-wider border border-white/20">
                     {dest.region}
                   </span>
                 </div>

@@ -145,7 +145,7 @@ export default function FinalCinematicCTA({ onOpenPlanTrip, signature }: FinalCi
           <button
             type="button"
             onClick={() => openWhatsApp('Hi TripKario! I am ready to plan my next vacation.')}
-            className="border border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-5 sm:px-8 h-12 bg-black/40 backdrop-blur-md shadow-xl flex items-center justify-center text-xs font-bold tracking-wide active:scale-95 touch-manipulation cursor-pointer"
+            className="border border-white/30 text-white hover:bg-white/10 gap-2 rounded-full px-5 sm:px-8 h-12 bg-black/60 shadow-xl flex items-center justify-center text-xs font-bold tracking-wide active:scale-95 touch-manipulation cursor-pointer"
           >
             <MessageCircle className="w-4 h-4 text-[#25D366]" />
             <span>TALK TO US</span>
